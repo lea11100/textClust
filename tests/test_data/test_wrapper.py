@@ -1,14 +1,22 @@
-import pytest
-
 from textClust.data.point import RawPoint
 from textClust.data.wrapper import StaticJsonWrapper
+import json
 
-def test_static_json_wrapper_yields_points_and_none():
+def write_json_lines(file_path, items):
+    with open(file_path, "w") as file:
+        for item in items:
+            file.write(json.dumps(item))
+            file.write("\n")
+
+
+def test_static_json_wrapper_yields_points_and_none(tmp_path):
     dataset = [
         {"tweets": "hello", "timestamp": 123, "tweetID": "u1", "clusterNo": 7},
         {"tweets": "world", "timestamp": 456, "tweetID": "u2", "clusterNo": 9},
     ]
-    wrapper = StaticJsonWrapper(dataset)
+    file_path = tmp_path / "data.jsonl"
+    write_json_lines(file_path, dataset)
+    wrapper = StaticJsonWrapper(str(file_path))
 
     items = list(wrapper.load())
 
@@ -26,12 +34,14 @@ def test_static_json_wrapper_yields_points_and_none():
     assert items[1].cluster_id == 9
 
 
-def test_static_json_wrapper_handles_missing_fields():
+def test_static_json_wrapper_handles_missing_fields(tmp_path):
     dataset = [
         {"tweets": "only text"},
         {},
     ]
-    wrapper = StaticJsonWrapper(dataset)
+    file_path = tmp_path / "data.jsonl"
+    write_json_lines(file_path, dataset)
+    wrapper = StaticJsonWrapper(str(file_path))
 
     items = list(wrapper.load())
 
@@ -49,18 +59,21 @@ def test_static_json_wrapper_handles_missing_fields():
     assert items[2] is None
 
 
-def test_static_json_wrapper_retains_dataset_reference():
-    dataset = []
-    wrapper = StaticJsonWrapper(dataset)
+def test_static_json_wrapper_retains_file_path(tmp_path):
+    file_path = tmp_path / "data.jsonl"
+    write_json_lines(file_path, [])
+    wrapper = StaticJsonWrapper(str(file_path))
 
-    assert wrapper.dataset is dataset
+    assert wrapper.file_path == str(file_path)
 
 
-def test_static_json_wrapper_load_is_repeatable():
+def test_static_json_wrapper_load_is_repeatable(tmp_path):
     dataset = [
         {"tweets": "a", "timestamp": 1, "tweetID": "u", "clusterNo": 2},
     ]
-    wrapper = StaticJsonWrapper(dataset)
+    file_path = tmp_path / "data.jsonl"
+    write_json_lines(file_path, dataset)
+    wrapper = StaticJsonWrapper(str(file_path))
 
     first = list(wrapper.load())
     second = list(wrapper.load())

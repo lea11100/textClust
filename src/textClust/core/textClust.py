@@ -1,14 +1,13 @@
 from textClust.data.stream import Stream
 
 class textClust:
-    def __init__(self, data_loader:Stream, preprocessor, time_manager, micro_clusterer, macro_clusterer, history_manager, cleaner):
+    def __init__(self, data_loader:Stream, preprocessor, time_manager, micro_clusterer, macro_clusterer, history_manager):
         self.data_loader = data_loader
         self.preprocessor = preprocessor
         self.time_manager = time_manager
         self.micro_clusterer = micro_clusterer
         self.macro_clusterer = macro_clusterer
         self.history_manager = history_manager
-        self.cleaner = cleaner
     
     def start(self):
         stream = self.data_loader.load()
