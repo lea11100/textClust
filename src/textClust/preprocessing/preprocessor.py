@@ -12,7 +12,7 @@ class Preprocessor:
     def __call__(self, point: RawPoint) -> Point:
         raise NotImplementedError("preprocess() must be implemented by subclass")
 
-class TFIDFPreprocessor:
+class TFIDFPreprocessor(Preprocessor):
     def __init__(self, 
                  language='english',
                  stopword_removal=True,

@@ -1,9 +1,17 @@
+from typing import Optional
+
+
 class TimeManager:
     def __init__(self, *args, **kwargs):
-        self.current_time = 0
+        self.current_time = 0.0
         
-    def update(self, timestamp):
-        self.current_time = timestamp
+    def update(self, timestamp:Optional[float] = None):
+        if timestamp is None:
+            self.current_time += 1.0
+        else:
+            if timestamp < self.current_time:
+                raise ValueError("Timestamps must be non-decreasing")
+            self.current_time = timestamp
         
     def get_current_time(self):
         return self.current_time    

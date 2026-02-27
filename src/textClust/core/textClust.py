@@ -34,6 +34,7 @@ class textClust:
     def process_one(self, point: RawPoint):
         point = self.preprocessor(point) if self.preprocessor is not None else point
         time = self.time_manager.get_current_time()
+        point.timestamp = time
         clusterId = self.micro_clusterer.update(point.to_microcluster(), current_time=time)
         self.history_manager.update_text_assignment(time, point, clusterId)
     

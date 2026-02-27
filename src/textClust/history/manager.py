@@ -29,7 +29,7 @@ class HistoryManager:
         for cluster_id in expired_info:
             self.cluster_expiration_time.append((current_time, cluster_id))
             
-        for merged_cluster_id, destination_cluster_ids in merged_info:
+        for merged_cluster_id, destination_cluster_ids in merged_info.items():
             self.cluster_merge_history.append((current_time, merged_cluster_id, destination_cluster_ids))
             
             

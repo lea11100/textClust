@@ -4,7 +4,7 @@ import numpy as np
 from textClust.online.cluster import Microcluster
 
 class RawPoint:
-    def __init__(self, text:str, timestamp:Optional[int] = None, text_id: Optional[str] = None,
+    def __init__(self, text:str, timestamp:Optional[float] = None, text_id: Optional[str] = None,
                  cluster_id: Optional[int] = None, **kwargs):
         self.text = text
         self.timestamp = timestamp
@@ -23,7 +23,7 @@ class RawPoint:
         
 class Point(RawPoint):
     def __init__(self, text:str, processed_text_tokens:Optional[List[str]] = None, embedding:Optional[np.ndarray] = None, 
-                 timestamp:Optional[int] = None, text_id: Optional[str] = None, cluster_id: Optional[int] = None, **kwargs):
+                 timestamp:Optional[float] = None, text_id: Optional[str] = None, cluster_id: Optional[int] = None, **kwargs):
         super().__init__(text, timestamp, text_id, cluster_id, **kwargs)
         self.processed_text_tokens = processed_text_tokens
         self.embedding = embedding

@@ -25,7 +25,7 @@ class TfidfCosineDistance(DistanceMetric):
         intersection = set(tf1.keys()) & set(tf2.keys())
         
         if not intersection:
-            return 0.0
+            return 1.0
         
         inner_product = 0.0
         

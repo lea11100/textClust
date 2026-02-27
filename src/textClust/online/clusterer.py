@@ -9,7 +9,7 @@ from textClust.online.metrics import DistanceMetric
 
 class Microclusterer:
     def __init__(self, *args, **kwargs):
-        self.clusterId = 0
+        self.clusterId = 1
         
     def update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int:
         clusterId = self._update(mc, current_time, *args, **kwargs)
@@ -51,6 +51,11 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
     def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int | None:
         idf = self._get_idf() if self.distance_metric.requires_idf else None
         distances = [self.distance_metric(mc, existing_mc, idf=idf, *args, **kwargs) for existing_mc in self.microclusters]
+        if len(distances) == 0:
+            self.microclusters.append(mc)
+            self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first point
+            self.outlier_dist_squaresum += 1.0
+            return None
         min_dist_idx = np.argmin(distances)
         min_dist = distances[min_dist_idx]
         
