@@ -17,7 +17,7 @@ class StaticJsonWrapper(Stream):
                     timestamp = item.get("timestamp", None)
                     id = item.get("tweetID", None)
                     cluster_id = item.get("clusterNo", None)
-                    point = RawPoint(text=text, timestamp=timestamp, user=id, cluster_id=cluster_id)
+                    point = RawPoint(text=text, timestamp=timestamp, text_id=id, cluster_id=cluster_id)
                     yield point
             yield None
         return generator()

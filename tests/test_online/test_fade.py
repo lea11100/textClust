@@ -1,5 +1,5 @@
 from textClust.online.fade import ExpFade
-from textClust.online.microcluster import Microcluster
+from textClust.online.cluster import Microcluster
 
 
 def test_exp_fade_updates_weight_and_time_without_term_fading():

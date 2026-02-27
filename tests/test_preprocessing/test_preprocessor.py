@@ -1,11 +1,11 @@
 import pytest
 
 from textClust.data.point import RawPoint
-from textClust.preprocessing.tfidf import TFIDFPreprocessor
+from textClust.preprocessing.preprocessor import TFIDFPreprocessor
 
 
 def test_preprocess_text_default_options(monkeypatch):
-    monkeypatch.setattr("textClust.preprocessing.tfidf.stopwords.words", lambda _: ["and", "the"])
+    monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: ["and", "the"])
     preprocessor = TFIDFPreprocessor()
 
     text = "Check out https://example.com #Topic @user the and a 42 ok!"
@@ -15,7 +15,7 @@ def test_preprocess_text_default_options(monkeypatch):
 
 
 def test_preprocess_text_can_remove_hashtags(monkeypatch):
-    monkeypatch.setattr("textClust.preprocessing.tfidf.stopwords.words", lambda _: [])
+    monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: [])
     preprocessor = TFIDFPreprocessor(hashtag=False)
 
     tokens = preprocessor.preprocess_text("#Tag")
@@ -24,7 +24,7 @@ def test_preprocess_text_can_remove_hashtags(monkeypatch):
 
 
 def test_preprocess_text_excludes_tokens_case_insensitive(monkeypatch):
-    monkeypatch.setattr("textClust.preprocessing.tfidf.stopwords.words", lambda _: [])
+    monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: [])
     preprocessor = TFIDFPreprocessor(exclude_tokens=["Topic", "OK"])
 
     tokens = preprocessor.preprocess_text("topic ok other")
@@ -33,7 +33,7 @@ def test_preprocess_text_excludes_tokens_case_insensitive(monkeypatch):
 
 
 def test_preprocess_text_with_stemming(monkeypatch):
-    monkeypatch.setattr("textClust.preprocessing.tfidf.stopwords.words", lambda _: [])
+    monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: [])
     preprocessor = TFIDFPreprocessor(stemming=True, stopword_removal=False)
 
     tokens = preprocessor.preprocess_text("running runs runner")
@@ -42,7 +42,7 @@ def test_preprocess_text_with_stemming(monkeypatch):
 
 
 def test_call_returns_point_with_processed_tokens(monkeypatch):
-    monkeypatch.setattr("textClust.preprocessing.tfidf.stopwords.words", lambda _: [])
+    monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: [])
     preprocessor = TFIDFPreprocessor(stopword_removal=False)
     raw_point = RawPoint(text="Hello world")
 

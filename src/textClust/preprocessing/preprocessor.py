@@ -5,6 +5,13 @@ from nltk.stem import PorterStemmer
 
 from typing import List
 
+class Preprocessor:
+    def __init__(self):
+        pass
+    
+    def __call__(self, point: RawPoint) -> Point:
+        raise NotImplementedError("preprocess() must be implemented by subclass")
+
 class TFIDFPreprocessor:
     def __init__(self, 
                  language='english',

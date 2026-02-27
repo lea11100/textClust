@@ -1,4 +1,4 @@
-from textClust.online.microcluster import Microcluster
+from textClust.online.cluster import Microcluster
 from textClust.online.fade import DampedFade
 from typing import Optional
 
@@ -6,7 +6,7 @@ class Merger:
     def __init__(self):
         pass
     
-    def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float) -> Microcluster:
+    def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
         raise NotImplementedError("merge() must be implemented by subclass")
     
     

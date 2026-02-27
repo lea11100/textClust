@@ -16,18 +16,3 @@ class Microcluster:
                 self.last_update_time == value.last_update_time and
                 self.n == value.n and
                 (self.embedding == value.embedding if self.embedding is not None and value.embedding is not None else self.embedding is value.embedding))
-
-class Microclusterer:
-    def __init__(self):
-        pass
-    
-    def get_microclusters(self) -> list[Microcluster]: #TODO
-        raise NotImplementedError("get_microclusters() must be implemented by subclass")
-    
-class SimpleMicroclusterer(Microclusterer):
-    def __init__(self):
-        super().__init__()
-        self.microclusters = []
-    
-    def get_microclusters(self) -> list[Microcluster]:
-        return self.microclusters

@@ -26,11 +26,11 @@ def test_static_json_wrapper_yields_points_and_none(tmp_path):
     assert items[2] is None
     assert items[0].text == "hello"
     assert items[0].timestamp == 123
-    assert items[0].user == "u1"
+    assert items[0].text_id == "u1"
     assert items[0].cluster_id == 7
     assert items[1].text == "world"
     assert items[1].timestamp == 456
-    assert items[1].user == "u2"
+    assert items[1].text_id == "u2"
     assert items[1].cluster_id == 9
 
 
@@ -50,11 +50,11 @@ def test_static_json_wrapper_handles_missing_fields(tmp_path):
     assert isinstance(items[1], RawPoint)
     assert items[0].text == "only text"
     assert items[0].timestamp is None
-    assert items[0].user is None
+    assert items[0].text_id is None
     assert items[0].cluster_id is None
     assert items[1].text is None
     assert items[1].timestamp is None
-    assert items[1].user is None
+    assert items[1].text_id is None
     assert items[1].cluster_id is None
     assert items[2] is None
 

@@ -1,11 +1,11 @@
-from textClust.online.microcluster import Microcluster
+from textClust.online.cluster import Microcluster
 from typing import Tuple
 
 class DampedFade:
     def __init__(self):
         pass
     
-    def __call__(self, mc: Microcluster, current_time: float) -> Tuple[Microcluster, bool]:
+    def __call__(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, bool]:
         raise NotImplementedError("fade_microcluster() must be implemented by subclass")
 
 class ExpFade(DampedFade):

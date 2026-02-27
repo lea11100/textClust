@@ -1,7 +1,14 @@
+from textClust.data.point import RawPoint
 from textClust.data.stream import Stream
+from textClust.preprocessing.preprocessor import Preprocessor
+from textClust.online.clusterer import Microclusterer
+from textClust.time.manager import TimeManager
+from textClust.history.manager import HistoryManager
+from textClust.offline.clusterer import MacroClusterer
+
 
 class textClust:
-    def __init__(self, data_loader:Stream, preprocessor, time_manager, micro_clusterer, macro_clusterer, history_manager):
+    def __init__(self, data_loader:Stream, preprocessor:Preprocessor, time_manager: TimeManager, micro_clusterer:Microclusterer, macro_clusterer:MacroClusterer, history_manager: HistoryManager):
         self.data_loader = data_loader
         self.preprocessor = preprocessor
         self.time_manager = time_manager
@@ -24,26 +31,28 @@ class textClust:
         self.end()
             
     
-    def process_one(self, point):
+    def process_one(self, point: RawPoint):
         point = self.preprocessor(point) if self.preprocessor is not None else point
-        info = self.micro_clusterer.update(point, time=self.time_manager)
-        self.history_manager.update_micro(info, time=self.time_manager)
+        time = self.time_manager.get_current_time()
+        clusterId = self.micro_clusterer.update(point.to_microcluster(), current_time=time)
+        self.history_manager.update_text_assignment(time, point, clusterId)
     
 
     def clean_up(self):
-        info = self.micro_clusterer.clean(time = self.time_manager)
-        self.history_manager.clean_micro(info, time=self.time_manager)
+        time = self.time_manager.get_current_time()
+        expired_cluster_ids, merged_clusters = self.micro_clusterer.clean_up(current_time=time)
+        self.history_manager.update_history(current_time=time, expired_info=expired_cluster_ids, merged_info=merged_clusters)
+        self.history_manager.snapshot(current_time=time, microclusters=self.micro_clusterer.get_clusters())
         
     
     def cluster(self):
         self.clean_up()
-        micro_clusters = self.micro_clusterer.get_clusters(time=self.time_manager)
-        macro_clusters = self.macro_clusterer.cluster(micro_clusters, time=self.time_manager)
-        results = self.macro_clusterer.evaluate(micro_clusters, time=self.time_manager)
+        micro_clusters = self.micro_clusterer.get_clusters()
+        macro_clusters = self.macro_clusterer.cluster(micro_clusters, current_time=self.time_manager.get_current_time())
+        results = self.macro_clusterer.evaluate(macro_clusters, history_manager=self.history_manager, current_time=self.time_manager.get_current_time())
         
         if self.macro_clusterer.display is not None:
-            self.macro_clusterer.display(macro_clusters, micro_clusters, results, time=self.time_manager)
+            self.macro_clusterer.display(results)
         
-    
     def end(self):
         self.cluster()

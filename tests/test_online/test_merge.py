@@ -1,6 +1,6 @@
 from textClust.online.fade import ExpFade
 from textClust.online.merge import SumMerger
-from textClust.online.microcluster import Microcluster
+from textClust.online.cluster import Microcluster
 
 
 def test_sum_merger_combines_weights_counts_and_terms():

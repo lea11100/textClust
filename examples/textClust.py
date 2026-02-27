@@ -1,6 +1,6 @@
 from textClust.core.textClust import textClust
 from textClust.data.wrapper import StaticJsonWrapper
-from textClust.preprocessing.tfidf import TFIDFPreprocessor
+from textClust.preprocessing.preprocessor import TFIDFPreprocessor
 
 if __name__ == "__main__":
     wrapper = StaticJsonWrapper("examples/data/News-T.json")
