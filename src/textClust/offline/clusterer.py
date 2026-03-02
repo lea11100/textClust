@@ -126,14 +126,16 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
             print("=" * 70)
         print("\n\n")
         
-    def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> None:
+    def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, top_k: int = 20, *args, **kwargs) -> None:
         df_list = []
         for s in history_manager.snapshots:
             clusters = [[id, weight, s.time] for id, weight in zip(s.microcluster_ids, s.microcluster_weights)]
             df_list.extend(clusters)
             
         df = pd.DataFrame(df_list, columns=["cluster_id", "weight", "time"])
-        sns.lineplot(data=df, x="time", y="weight", hue="cluster_id", legend=False, palette="tab10")
+        top_clusters = df.groupby('cluster_id')['weight'].max().nlargest(top_k).index
+        df = df[df["cluster_id"].isin(top_clusters)]
+        sns.lineplot(data=df, x="time", y="weight", hue="cluster_id", legend=False, palette="tab20")
         plt.title("Microcluster Weight Evolution Over Time")
         plt.xlabel("Time")
         plt.ylabel("Weight")
