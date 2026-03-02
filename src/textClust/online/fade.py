@@ -20,7 +20,7 @@ class ExpFade(DampedFade):
         mc.last_update_time = current_time
         is_expired = mc.weight < self.min_weight
         
-        if self.term_fading and not is_expired:
+        if self.term_fading:
             mc.tf = {term: weight * factor for term, weight in mc.tf.items()}
             mc.tf = {term: weight for term, weight in mc.tf.items() if weight > self.min_weight}  # Remove faded terms
         

@@ -3,8 +3,11 @@ from textClust.history.manager import HistoryManager
 from textClust.online.cluster import Microcluster
 
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.metrics import homogeneity_completeness_v_measure
-import datetime
+import time
 
 class MacroCluster(Microcluster):
     def __init__(self, id, tf:dict[str, float], current_time: float, n: int, embedding=None, weight = 1.0):
@@ -23,13 +26,16 @@ class MacroClusterer:
     def display(self, evaluation_result: dict) -> None:
         raise NotImplementedError("display() must be implemented by subclass")
     
+    def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> None:
+        raise NotImplementedError("display_final() must be implemented by subclass")
+    
 class SimpleTfidfMacroClusterer(MacroClusterer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.walltime_at_clustering = []
     
     def cluster(self, micro_clusters: List[Microcluster], current_time: float, *args, **kwargs) -> List[MacroCluster]:
-        now = datetime.datetime.now()
+        now = time.time()
         self.walltime_at_clustering.append(now)
         macro_clusters = []
         for mc in micro_clusters:
@@ -40,9 +46,9 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         macro_clusters.sort(key=lambda x: x.weight, reverse=True)
         top = macro_clusters[:top_k]
         
-        walltime_diff = np.diff(self.walltime_at_clustering) if len(self.walltime_at_clustering) > 1 else []
+        walltime_diff = np.diff(self.walltime_at_clustering) / 1000 if len(self.walltime_at_clustering) > 1 else []
         
-        eval_result = {"time": current_time, "k": top_k, "top_k": top, "walltime_diff": walltime_diff}
+        eval_result = {"time": current_time, "k": top_k, "top_k": top, "walltime_diff": walltime_diff, "num_macro_clusters": len(macro_clusters)}
         if len(history_manager.true_assignments) > 0:
             eval_result.update(self._eval_with_ground_truth(history_manager))
         
@@ -99,9 +105,8 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
     
     def display(self, evaluation_result: dict) -> None:
         res = evaluation_result
-        print(f"Time {res['time']}:")
         print("=" * 70)
-        print(f"🔍 Top {res['k']} Macro-Clusters")
+        print(f"🔍 Top {res['k']} Micro-Clusters")
         print("=" * 70)
         for rank, mc in enumerate(res['top_k'], 1):
             print(f"  #{rank} | Cluster {mc.id} | Weight: {mc.weight:.2f} | Docs: {mc.n}")
@@ -109,11 +114,28 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
             for term, weight in sorted(mc.tf.items(), key=lambda x: x[1], reverse=True)[:5]:
                 print(f"         {term}: {weight:.2f}")
             print("-" * 70)
-            
+        print("=" * 70)  
+        time_diff = res['walltime_diff'][-1] if len(res['walltime_diff']) > 0 else 0
+        print(f"⏰ Time: {time_diff} sec")
+        print(f"📊 Number of Macro-Clusters: {res['num_macro_clusters']}")
+        print("=" * 70)  
         if "homogeneity" in res:
             print(f"Evaluation Metrics:")
             print(f"  Initial Clustering - Homogeneity: {res['homogeneity']:.4f}, Completeness: {res['completeness']:.4f}, V-measure: {res['v_measure']:.4f}")
             print(f"  Final Clustering   - Homogeneity: {res['homogeneity_final']:.4f}, Completeness: {res['completeness_final']:.4f}, V-measure: {res['v_measure_final']:.4f}")
+            print("=" * 70)
         print("\n\n")
+        
+    def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> None:
+        df_list = []
+        for s in history_manager.snapshots:
+            clusters = [[id, weight, s.time] for id, weight in zip(s.microcluster_ids, s.microcluster_weights)]
+            df_list.extend(clusters)
             
+        df = pd.DataFrame(df_list, columns=["cluster_id", "weight", "time"])
+        sns.lineplot(data=df, x="time", y="weight", hue="cluster_id", legend=False, palette="tab10")
+        plt.title("Microcluster Weight Evolution Over Time")
+        plt.xlabel("Time")
+        plt.ylabel("Weight")
+        plt.show()
         

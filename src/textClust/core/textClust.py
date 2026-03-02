@@ -8,14 +8,17 @@ from textClust.offline.clusterer import MacroClusterer
 
 
 class textClust:
-    def __init__(self, data_loader:Stream, preprocessor:Preprocessor, time_manager: TimeManager, micro_clusterer:Microclusterer, macro_clusterer:MacroClusterer, history_manager: HistoryManager):
+    def __init__(self, data_loader:Stream, preprocessor:Preprocessor, time_manager: TimeManager, 
+                 micro_clusterer:Microclusterer, macro_clusterer:MacroClusterer, history_manager: HistoryManager,
+                 verbose: bool = True):
         self.data_loader = data_loader
         self.preprocessor = preprocessor
         self.time_manager = time_manager
         self.micro_clusterer = micro_clusterer
         self.macro_clusterer = macro_clusterer
         self.history_manager = history_manager
-    
+        self.verbose = verbose
+        
     def start(self):
         stream = self.data_loader.load()
         while True:
@@ -52,8 +55,10 @@ class textClust:
         macro_clusters = self.macro_clusterer.cluster(micro_clusters, current_time=self.time_manager.get_current_time())
         results = self.macro_clusterer.evaluate(macro_clusters, history_manager=self.history_manager, current_time=self.time_manager.get_current_time())
         
-        if self.macro_clusterer.display is not None:
+        if self.macro_clusterer.display is not None and self.verbose:
             self.macro_clusterer.display(results)
         
     def end(self):
         self.cluster()
+        if self.macro_clusterer.display_final is not None and self.verbose:
+            self.macro_clusterer.display_final(micro_clusters=self.micro_clusterer.get_clusters(), history_manager=self.history_manager, current_time=self.time_manager.get_current_time())

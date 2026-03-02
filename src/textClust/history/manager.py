@@ -11,11 +11,11 @@ class Snapshot:
 
 class HistoryManager:
     def __init__(self):
-        self.initial_text_assignments = []   # time, point_id, cluster_id
-        self.true_assignments = []   # point_id, true_cluster_id
-        self.snapshots = []  # List of Snapshot objects, ordered by time
-        self.cluster_expiration_time = []  # time, cluster_id
-        self.cluster_merge_history = []  # time, merged_cluster_id, destination_cluster_ids      
+        self.initial_text_assignments: List[tuple] = []   # time, point_id, cluster_id
+        self.true_assignments: List[tuple] = []   # point_id, true_cluster_id
+        self.snapshots: List[Snapshot] = []  # List of Snapshot objects, ordered by time
+        self.cluster_expiration_time: List[tuple] = []  # time, cluster_id
+        self.cluster_merge_history: List[tuple] = []  # time, merged_cluster_id, destination_cluster_ids      
     
     def update_text_assignment(self, current_time: float, point: RawPoint, cluster_id: int):
         self.initial_text_assignments.append((current_time, point.text_id, cluster_id))
