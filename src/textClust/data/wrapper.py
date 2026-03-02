@@ -1,15 +1,26 @@
+"""Concrete stream wrappers for loading textClust input data."""
+
 from textClust.data.stream import Stream
 from textClust.data.point import RawPoint
 from typing import List
 import json
 
 class StaticJsonWrapper(Stream):
+    """Load newline-delimited JSON records from disk as raw points."""
+
     def __init__(self, file_path: str, **kwargs):
+        """Initialize the JSON wrapper.
+
+        Args:
+            file_path: Path to an input JSONL file.
+        """
         super().__init__(**kwargs)
         self.file_path = file_path
     
     def load(self, **kwargs):
+        """Return a generator of `RawPoint` records from `file_path`."""
         def generator():
+            """Yield parsed JSON lines as `RawPoint` objects, then `None`."""
             with open(self.file_path, "r") as file:
                 for l in file:
                     item = json.loads(l)

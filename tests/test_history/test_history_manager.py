@@ -75,17 +75,17 @@ def test_update_history_records_expired_and_merged_info():
     manager.update_history(
         current_time=20.0,
         expired_info=[1, 2],
-        merged_info=[(3, [10, 12]), (4, [11])],
+        merged_info={3: 10, 4: 11},
     )
 
     assert manager.cluster_expiration_time == [(20.0, 1), (20.0, 2)]
-    assert manager.cluster_merge_history == [(20.0, 3, [10, 12]), (20.0, 4, [11])]
+    assert manager.cluster_merge_history == [(20.0, 3, 10), (20.0, 4, 11)]
 
 
 def test_update_history_with_empty_inputs_makes_no_changes():
     manager = HistoryManager()
 
-    manager.update_history(current_time=30.0, expired_info=[], merged_info=[])
+    manager.update_history(current_time=30.0, expired_info=[], merged_info={})
 
     assert manager.cluster_expiration_time == []
     assert manager.cluster_merge_history == []

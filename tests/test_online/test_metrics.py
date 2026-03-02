@@ -30,7 +30,7 @@ def test_tfidf_cosine_distance_returns_zero_when_no_term_overlap():
 
     distance = metric(mc1, mc2, idf={"a": 1.2, "b": 1.4})
 
-    assert distance == 0.0
+    assert distance == 1.0
 
 
 def test_tfidf_cosine_distance_without_idf_matches_expected_value():

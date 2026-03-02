@@ -1,22 +1,32 @@
+"""Distance metrics used for microcluster similarity computations."""
+
 from typing import Any
 import numpy as np
 
 from textClust.online.cluster import Microcluster
 
 class DistanceMetric:
+    """Base callable interface for microcluster distance metrics."""
+
     def __init__(self):
+        """Initialize metric capabilities."""
         self.requires_idf = False
     
     def __call__(self, mc1: Microcluster, mc2: Microcluster, *args: Any, **kwds: Any) -> float:
+        """Return a non-negative distance between two microclusters."""
         raise NotImplementedError("DistanceMetric must implement __call__()")
     
 class TfidfCosineDistance(DistanceMetric):
+    """Cosine distance over TF-IDF-weighted term-frequency vectors."""
+
     def __init__(self):
+        """Initialize cosine metric and declare IDF dependency."""
         super().__init__()
         self.requires_idf = True
         
     
     def __call__(self, mc1: Microcluster, mc2: Microcluster, idf: dict[str, float], **kwds: Any) -> float:
+        """Compute TF-IDF cosine distance in the interval `[0, 1]`."""
         # Compute cosine distance between two microclusters based on their TF-IDF vectors
         tf1 = mc1.tf
         tf2 = mc2.tf
@@ -48,6 +58,7 @@ class TfidfCosineDistance(DistanceMetric):
         return distance
     
     def _make_tfidf_vectors(self, tf1: dict[str, float], tf2: dict[str, float], idf: dict[str, float]) -> tuple[np.ndarray, np.ndarray]:
+        """Build weighted vectors from term-frequency mappings."""
         if idf:
             tfidf1 = [(idf.get(k, 1.0) * v) for k, v in tf1.items()]
             tfidf2 = [(idf.get(k, 1.0) * v) for k, v in tf2.items()]

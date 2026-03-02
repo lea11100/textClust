@@ -1,3 +1,5 @@
+"""Offline macro-clustering interfaces and basic TF-IDF implementation."""
+
 from typing import List
 from textClust.history.manager import HistoryManager
 from textClust.online.cluster import Microcluster
@@ -10,31 +12,45 @@ from sklearn.metrics import homogeneity_completeness_v_measure
 import time
 
 class MacroCluster(Microcluster):
+    """Macro-level cluster representation built from microclusters."""
+
     def __init__(self, id, tf:dict[str, float], current_time: float, n: int, embedding=None, weight = 1.0):
+        """Initialize a macrocluster."""
         super().__init__(id, tf, current_time, n, embedding, weight)
 
 class MacroClusterer:
+    """Base interface for macro-clustering and evaluation components."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize macroclusterer instance."""
         pass
     
     def cluster(self, micro_clusters: List[Microcluster], current_time: float, *args, **kwargs) -> List[MacroCluster]:
+        """Create macroclusters from active microclusters."""
         raise NotImplementedError("cluster() must be implemented by subclass")
     
     def evaluate(self, micro_clusters: List[MacroCluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> dict:
+        """Evaluate macroclustering results and return metric dictionary."""
         raise NotImplementedError("evaluate() must be implemented by subclass")
     
     def display(self, evaluation_result: dict) -> None:
+        """Render intermediate evaluation output."""
         raise NotImplementedError("display() must be implemented by subclass")
     
     def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> None:
+        """Render final output at the end of processing."""
         raise NotImplementedError("display_final() must be implemented by subclass")
     
 class SimpleTfidfMacroClusterer(MacroClusterer):
+    """Simple baseline macroclusterer that mirrors microclusters one-to-one."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize simple macroclusterer state."""
         super().__init__(*args, **kwargs)
         self.walltime_at_clustering = []
     
     def cluster(self, micro_clusters: List[Microcluster], current_time: float, *args, **kwargs) -> List[MacroCluster]:
+        """Convert each microcluster into a same-identity macrocluster."""
         now = time.time()
         self.walltime_at_clustering.append(now)
         macro_clusters = []
@@ -43,6 +59,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         return macro_clusters
     
     def evaluate(self, macro_clusters: List[MacroCluster], history_manager: HistoryManager, current_time: float, top_k = 5, *args, **kwargs) -> dict:
+        """Compute summary stats and optional ground-truth clustering metrics."""
         macro_clusters.sort(key=lambda x: x.weight, reverse=True)
         top = macro_clusters[:top_k]
         
@@ -55,6 +72,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         return eval_result
     
     def _eval_with_ground_truth(self, history_manager: HistoryManager):
+        """Compute homogeneity/completeness/V-measure against truth labels."""
         assert len(history_manager.true_assignments) > 0, "No ground truth available for evaluation"
         initial_assignments = np.array(history_manager.initial_text_assignments)
         final_assignments = np.array(self._make_final_assignent(history_manager))
@@ -83,6 +101,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         }
     
     def _make_final_assignent(self, history_manager: HistoryManager):
+        """Derive final text-to-cluster assignments after merge history replay."""
         assignments = { t_id : c_id for _, t_id, c_id in history_manager.initial_text_assignments }
         rev_assignments = {}
         for t_id, c_id in assignments.items():
@@ -104,6 +123,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         
     
     def display(self, evaluation_result: dict) -> None:
+        """Print a textual summary of current top macroclusters and metrics."""
         res = evaluation_result
         print("=" * 70)
         print(f"🔍 Top {res['k']} Micro-Clusters")
@@ -117,7 +137,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         print("=" * 70)  
         time_diff = res['walltime_diff'][-1] if len(res['walltime_diff']) > 0 else 0
         print(f"⏰ Time: {time_diff} sec")
-        print(f"📊 Number of Macro-Clusters: {res['num_macro_clusters']}")
+        print(f"📊 Number of Micro-Clusters: {res['num_macro_clusters']}")
         print("=" * 70)  
         if "homogeneity" in res:
             print(f"Evaluation Metrics:")
@@ -127,6 +147,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         print("\n\n")
         
     def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, top_k: int = 20, *args, **kwargs) -> None:
+        """Plot microcluster weight trajectories over time for top clusters."""
         df_list = []
         for s in history_manager.snapshots:
             clusters = [[id, weight, s.time] for id, weight in zip(s.microcluster_ids, s.microcluster_weights)]

@@ -1,3 +1,5 @@
+"""Online micro-clustering algorithms and base interfaces."""
+
 from typing import List
 import numpy as np
 import math
@@ -8,10 +10,14 @@ from textClust.online.merge import Merger
 from textClust.online.metrics import DistanceMetric
 
 class Microclusterer:
+    """Base interface for assigning points to microclusters."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize cluster id generation state."""
         self.clusterId = 1
         
     def update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int:
+        """Update state with one microcluster candidate and return cluster id."""
         clusterId = self._update(mc, current_time, *args, **kwargs)
         if clusterId is None:
             clusterId = self.pull_new_clusterId()
@@ -19,20 +25,31 @@ class Microclusterer:
         return clusterId
     
     def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int | None:
+        """Internal update hook implemented by subclasses.
+
+        Returns:
+            Existing cluster id if merged, otherwise `None`.
+        """
         raise NotImplementedError("update() must be implemented by subclass")
      
     def get_clusters(self) -> List[Microcluster]:
+        """Return the current list of active microclusters."""
         raise NotImplementedError("get_clusters() must be implemented by subclass")
     
     def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List[int], dict[int, int]]:
+        """Expire and merge stale/close clusters, returning event metadata."""
         raise NotImplementedError("clean_up() must be implemented by subclass")
     
     def pull_new_clusterId(self):
+        """Generate and return a fresh cluster id."""
         self.clusterId += 1
         return self.clusterId - 1
     
 class AdaptiveThresholdMicroclusterer(Microclusterer):
+    """Adaptive-threshold online microclusterer based on pairwise distances."""
+
     def __init__(self, distance_metric: DistanceMetric, fader: DampedFade, merger: Merger, sigma=1.0, *args, **kwargs):
+        """Initialize adaptive threshold microclusterer parameters."""
         super().__init__()
         self.microclusters = []
         self.sigma = sigma
@@ -46,9 +63,11 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         self.dist_sum = 0.0
     
     def get_clusters(self) -> List[Microcluster]:
+        """Return currently tracked microclusters."""
         return self.microclusters
     
     def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int | None:
+        """Assign or merge incoming microcluster using adaptive thresholding."""
         idf = self._get_idf() if self.distance_metric.requires_idf else None
         distances = [self.distance_metric(mc, existing_mc, idf=idf, *args, **kwargs) for existing_mc in self.microclusters]
         if len(distances) == 0:
@@ -81,6 +100,11 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
             return None
     
     def _delete_expired(self, current_time: float):
+        """Fade all clusters and remove expired ones.
+
+        Returns:
+            List of expired cluster ids.
+        """
         removed = np.zeros(len(self.microclusters), dtype=bool)
         for i in range(len(self.microclusters)):
             mc, is_expired =self.fader(self.microclusters[i], current_time)
@@ -95,6 +119,11 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
                 
         
     def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List[int], dict[int, int]]:
+        """Run expiration pass and merge close clusters.
+
+        Returns:
+            A tuple of `(expired_cluster_ids, merge_history)`.
+        """
         threshold = self.dist_sum / self.num_merged_obs if self.num_merged_obs > 0 else 0.0
         self.num_merged_obs = 0
         self.dist_sum = 0.0
@@ -126,6 +155,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         return expired_cluster_ids, merge_history
         
     def _get_idf(self):
+        """Compute per-term inverse document frequency over active clusters."""
         result = {}
         
         # Count document frequency for each term

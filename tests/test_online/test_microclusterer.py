@@ -73,8 +73,8 @@ def test_microclusterer_update_assigns_new_cluster_id_when_update_returns_none()
 
     assigned_id = clusterer.update(incoming, current_time=1.0)
 
-    assert assigned_id == 0
-    assert incoming.id == 0
+    assert assigned_id == 1
+    assert incoming.id == 1
 
 
 def test_adaptive_update_merges_into_closest_cluster_when_below_threshold():

@@ -1,5 +1,19 @@
+"""Microcluster data structures for online clustering."""
+
 class Microcluster:
+    """Compact summary of a group of text points."""
+
     def __init__(self, id, tf:dict[str, float], current_time: float, n: int, embedding=None, weight = 1.0):
+        """Initialize a microcluster.
+
+        Args:
+            id: Cluster identifier.
+            tf: Term-frequency map for represented points.
+            current_time: Last update timestamp.
+            n: Number of aggregated points.
+            embedding: Optional embedding summary.
+            weight: Current cluster weight.
+        """
         self.id = id
         self.tf = tf
         self.last_update_time = current_time
@@ -8,6 +22,7 @@ class Microcluster:
         self.n = n
                 
     def __eq__(self, value):
+        """Return value-based equality for testing and comparisons."""
         if not isinstance(value, Microcluster):
             return False
         return (self.id == value.id and

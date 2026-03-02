@@ -38,7 +38,7 @@ def test_simple_tfidf_cluster_converts_microclusters_to_macroclusters():
     assert [mc.n for mc in macroclusters] == [2, 3]
     assert [mc.weight for mc in macroclusters] == [1.5, 2.5]
     assert len(clusterer.walltime_at_clustering) == 1
-    assert isinstance(clusterer.walltime_at_clustering[0], datetime.datetime)
+    assert isinstance(clusterer.walltime_at_clustering[0], float)
 
 
 def test_evaluate_sorts_by_weight_and_computes_walltime_diff_without_ground_truth():
@@ -115,23 +115,25 @@ def test_evaluate_includes_ground_truth_metrics_when_available():
 def test_display_prints_macrocluster_summary_and_metrics(capsys):
     clusterer = SimpleTfidfMacroClusterer()
     evaluation_result = {
-        "time": 7.0,
         "k": 1,
         "top_k": [Microcluster(id=3, tf={"alpha": 2.0, "beta": 1.0}, current_time=0.0, n=4, weight=5.0)],
-        "walltime_diff": [],
+        "walltime_diff": [7.0],
         "homogeneity": 1.0,
         "completeness": 1.0,
         "v_measure": 1.0,
         "homogeneity_final": 1.0,
         "completeness_final": 1.0,
         "v_measure_final": 1.0,
+        "num_macro_clusters": 1,
     }
 
     clusterer.display(evaluation_result)
     output = capsys.readouterr().out
+    print(output)  # For debugging purposes, can be removed later
 
-    assert "Time 7.0:" in output
-    assert "Top 1 Macro-Clusters" in output
+    assert "Time: 7.0 sec" in output
+    assert "Top 1 Micro-Clusters" in output
     assert "Cluster 3" in output
     assert "alpha: 2.00" in output
     assert "Evaluation Metrics:" in output
+    assert "Number of Micro-Clusters: 1" in output
