@@ -270,6 +270,50 @@ def combine_children(children: Sequence['Microcluster']):
             result_idf[term] = result_idf.get(term, 0) + (1 if term in c.tf else 0)
     return result_tf, result_idf
 
+class TfidfCosineDistanceTree(DistanceMetric):
+    def __init__(self):
+        super().__init__()
+        self.requires_idf = True
+        
+    def __call__(self, mc1: TreeMicrocluster, mc2: TreeMicrocluster, *args, **kwargs) -> float:
+        if not isinstance(mc1, TreeMicrocluster) or not isinstance(mc2, TreeMicrocluster):
+            raise ValueError("TfidfCosineDistanceTree requires TreeMicrocluster instances")
+        assert mc1.parent is not None, "TreeMicroclusters must have a parent to compute IDF"
+        
+        tf1 = mc1.tf
+        tf2 = mc2.tf
+        
+        idf = mc1.parent.idf
+        
+        if not tf1 or not tf2:
+            return 1.0
+        
+        # Create uniform embeddings
+        intersection = set(tf1.keys()) & set(tf2.keys())
+        
+        if not intersection:
+            return 1.0
+        
+        inner_product = 0.0
+        
+        for term in intersection:
+            tf_val1 = tf1[term]
+            tf_val2 = tf2[term]
+            
+            if idf and term in idf:
+                inner_product += idf[term] ** 2 * tf_val1 * tf_val2
+            else:
+                inner_product += tf_val1 * tf_val2
+                
+        n = len(mc1.parent.children)
+        norm1 = mc1.norm.get_norm(n)
+        norm2 = mc2.norm.get_norm(n)
+
+        similarity = inner_product / (norm1 * norm2)
+        
+        distance = min(1, 1 - similarity)
+        return distance
+
 class TreeSumMerger(SumMerger):
     """Extension of SumMerger that also merges tree structure for TreeMicroclusters."""
 
@@ -329,7 +373,8 @@ class TreeClusterer(Microclusterer):
         self.outlier_dist_squaresum = 0.0
         self.dist_sum = 0.0
         
-    def _update(self, mc: TreeMicrocluster, current_time: float, *args, root: Optional[TreeMicrocluster] = None, **kwargs) -> None:
+    def _update(self, mc: Microcluster, current_time: float, *args, root: Optional[TreeMicrocluster] = None, **kwargs) -> None:
+        mc = TreeMicrocluster(mc.id, mc.tf, mc.last_update_time, mc.n, None, mc.embedding, mc.weight)
         root = self.tree if root is None else root
         clusterId = None
         if root is None:
@@ -509,7 +554,7 @@ class TreeClusterer(Microclusterer):
         else:
             expired_children = np.zeros(len(node.children), dtype=bool)
             for i, c in enumerate(node.children):
-                is_expired, expired_ids = self._clean_up_clusters(current_time, c)
+                is_expired, expired_ids = self._clean_up_clusters_rec(current_time, c)
                 expired_children[i] = is_expired
                 if is_expired:
                     expired_ids.extend(expired_ids)
