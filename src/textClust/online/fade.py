@@ -17,13 +17,13 @@ class DampedFade:
 class ExpFade(DampedFade):
     """Exponential fading based on elapsed time since last update."""
 
-    def __init__(self, decay_rate, term_fading=False, min_weight=0.5):
+    def __init__(self, decay_rate, term_fading=True, min_weight=0.5):
         """Initialize exponential fading parameters."""
         self.decay_rate = decay_rate
         self.term_fading = term_fading
         self.min_weight = min_weight
         
-    def __call__(self, mc: Microcluster, current_time: float) -> Tuple[Microcluster, bool]:
+    def __call__(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, bool]:
         """Exponentially decay cluster weight and optionally term weights."""
         factor = 2 ** (- self.decay_rate * (current_time - mc.last_update_time))
         mc.weight *= factor

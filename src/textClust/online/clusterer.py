@@ -32,11 +32,11 @@ class Microclusterer:
         """
         raise NotImplementedError("update() must be implemented by subclass")
      
-    def get_clusters(self) -> List[Microcluster]:
+    def get_clusters(self, *args, **kwargs) -> List[Microcluster]:
         """Return the current list of active microclusters."""
         raise NotImplementedError("get_clusters() must be implemented by subclass")
     
-    def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List[int], dict[int, int]]:
+    def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List, dict]:
         """Expire and merge stale/close clusters, returning event metadata."""
         raise NotImplementedError("clean_up() must be implemented by subclass")
     

@@ -23,7 +23,7 @@ class SumMerger(Merger):
         """Initialize sum merger."""
         super().__init__()
         
-    def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, fader: Optional[DampedFade] = None) -> Microcluster:
+    def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, fader: Optional[DampedFade] = None, *args, **kwargs) -> Microcluster:
         """Optionally fade inputs then merge into `mc1`'s cluster id."""
         if fader is not None:
             mc1, _ = fader(mc1, current_time)
