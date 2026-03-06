@@ -63,7 +63,7 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
         macro_clusters.sort(key=lambda x: x.weight, reverse=True)
         top = macro_clusters[:top_k]
         
-        walltime_diff = np.diff(self.walltime_at_clustering) / 1000 if len(self.walltime_at_clustering) > 1 else []
+        walltime_diff = np.diff(self.walltime_at_clustering) if len(self.walltime_at_clustering) > 1 else []
         
         eval_result = {"time": current_time, "k": top_k, "top_k": top, "walltime_diff": walltime_diff, "num_macro_clusters": len(macro_clusters)}
         if len(history_manager.true_assignments) > 0:
@@ -125,15 +125,15 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
     def display(self, evaluation_result: dict) -> None:
         """Print a textual summary of current top macroclusters and metrics."""
         res = evaluation_result
-        print("=" * 70)
-        print(f"🔍 Top {res['k']} Micro-Clusters")
-        print("=" * 70)
-        for rank, mc in enumerate(res['top_k'], 1):
-            print(f"  #{rank} | Cluster {mc.id} | Weight: {mc.weight:.2f} | Docs: {mc.n}")
-            print(f"       Top Terms:")
-            for term, weight in sorted(mc.tf.items(), key=lambda x: x[1], reverse=True)[:5]:
-                print(f"         {term}: {weight:.2f}")
-            print("-" * 70)
+        # print("=" * 70)
+        # print(f"🔍 Top {res['k']} Micro-Clusters")
+        # print("=" * 70)
+        # for rank, mc in enumerate(res['top_k'], 1):
+        #     print(f"  #{rank} | Cluster {mc.id} | Weight: {mc.weight:.2f} | Docs: {mc.n}")
+        #     print(f"       Top Terms:")
+        #     for term, weight in sorted(mc.tf.items(), key=lambda x: x[1], reverse=True)[:5]:
+        #         print(f"         {term}: {weight:.2f}")
+        #     print("-" * 70)
         print("=" * 70)  
         time_diff = res['walltime_diff'][-1] if len(res['walltime_diff']) > 0 else 0
         print(f"⏰ Time: {time_diff} sec")
@@ -144,7 +144,6 @@ class SimpleTfidfMacroClusterer(MacroClusterer):
             print(f"  Initial Clustering - Homogeneity: {res['homogeneity']:.4f}, Completeness: {res['completeness']:.4f}, V-measure: {res['v_measure']:.4f}")
             print(f"  Final Clustering   - Homogeneity: {res['homogeneity_final']:.4f}, Completeness: {res['completeness_final']:.4f}, V-measure: {res['v_measure_final']:.4f}")
             print("=" * 70)
-        print("\n\n")
         
     def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, top_k: int = 20, *args, **kwargs) -> None:
         """Plot microcluster weight trajectories over time for top clusters."""

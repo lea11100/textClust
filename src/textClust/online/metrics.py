@@ -37,7 +37,7 @@ class TfidfCosineDistance(DistanceMetric):
         if not intersection:
             return 1.0
         
-        inner_product = 0.0
+        inner_product = 0.0      
         
         for term in intersection:
             tf_val1 = tf1[term]

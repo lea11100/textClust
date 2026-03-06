@@ -1,6 +1,6 @@
 """Online micro-clustering algorithms and base interfaces."""
 
-from typing import List
+from typing import List, Optional, Tuple
 import numpy as np
 import math
 
@@ -18,17 +18,17 @@ class Microclusterer:
         
     def update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int:
         """Update state with one microcluster candidate and return cluster id."""
-        clusterId = self._update(mc, current_time, *args, **kwargs)
+        mc, clusterId = self._update(mc, current_time, *args, **kwargs)
         if clusterId is None:
             clusterId = self.pull_new_clusterId()
             mc.id = clusterId
         return clusterId
     
-    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int | None:
+    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, Optional[int]]:
         """Internal update hook implemented by subclasses.
 
         Returns:
-            Existing cluster id if merged, otherwise `None`.
+            Tuple of (updated microcluster, existing cluster id if merged, otherwise `None`).
         """
         raise NotImplementedError("update() must be implemented by subclass")
      
@@ -66,7 +66,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         """Return currently tracked microclusters."""
         return self.microclusters
     
-    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> int | None:
+    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, Optional[int]]:
         """Assign or merge incoming microcluster using adaptive thresholding."""
         idf = self._get_idf() if self.distance_metric.requires_idf else None
         distances = [self.distance_metric(mc, existing_mc, idf=idf, *args, **kwargs) for existing_mc in self.microclusters]
@@ -74,7 +74,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
             self.microclusters.append(mc)
             self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first point
             self.outlier_dist_squaresum += 1.0
-            return None
+            return mc, None
         min_dist_idx = np.argmin(distances)
         min_dist = distances[min_dist_idx]
         
@@ -91,13 +91,13 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
             self.num_merged_obs += 1
             self.dist_sum += min_dist 
             
-            return closest_mc.id
+            return merged_mc, closest_mc.id
         else:
             self.microclusters.append(mc)
             self.outlier_dist_sum += min_dist
             self.outlier_dist_squaresum += min_dist ** 2
             
-            return None
+            return mc, None
     
     def _delete_expired(self, current_time: float):
         """Fade all clusters and remove expired ones.
@@ -154,7 +154,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         self.microclusters = [c for r, c in zip(removed, self.microclusters) if not r]
         return expired_cluster_ids, merge_history
         
-    def _get_idf(self):
+    def _get_idf(self, additional_mc: Optional[Microcluster] = None) -> dict[str, float]:
         """Compute per-term inverse document frequency over active clusters."""
         result = {}
         
@@ -165,9 +165,17 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
                     result[term] = 1
                 else:
                     result[term] += 1
+        if additional_mc is not None:
+            for term in additional_mc.tf.keys():
+                if term not in result:
+                    result[term] = 1
+                else:
+                    result[term] += 1
         
         # Calculate IDF: 1 + log(N / df)
         num_clusters = len(self.microclusters)
+        if additional_mc is not None:
+            num_clusters += 1
         for term in result.keys():
             result[term] = 1 + math.log(num_clusters / result[term])
         
