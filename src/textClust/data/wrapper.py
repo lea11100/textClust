@@ -4,27 +4,33 @@ from datetime import datetime
 
 from textClust.data.stream import Stream
 from textClust.data.point import RawPoint
-from typing import List
+from typing import List, Optional
 import json
 
 class StaticJsonWrapper(Stream):
     """Load newline-delimited JSON records from disk as raw points."""
 
-    def __init__(self, file_path: str, **kwargs):
+    def __init__(self, file_path: str, max_samples: Optional[int] = None, **kwargs):
         """Initialize the JSON wrapper.
 
         Args:
             file_path: Path to an input JSONL file.
+            max_samples: Maximum number of samples to load. If `None`, load all samples.
         """
         super().__init__(**kwargs)
+        self.max_samples = max_samples
         self.file_path = file_path
     
     def load(self, **kwargs):
         """Return a generator of `RawPoint` records from `file_path`."""
         def generator():
             """Yield parsed JSON lines as `RawPoint` objects, then `None`."""
+            i = 0
             with open(self.file_path, "r") as file:
                 for l in file:
+                    if self.max_samples is not None and i >= self.max_samples:
+                        break
+                    i += 1
                     item = json.loads(l)
                     text = item.get("tweets", None)
                     timestamp = item.get("timestamp", None)
