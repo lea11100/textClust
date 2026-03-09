@@ -13,12 +13,12 @@ if __name__ == "__main__":
     wrapper = StaticJsonWrapper("examples/data/News-T.json")
     preprocessor = TFIDFPreprocessor()
     
-    time_manager = FixedIntervalTimeManager(clean_interval=200, cluster_interval=1000)
+    time_manager = FixedIntervalTimeManager(clean_interval=1000, cluster_interval=1000, log_interval=100)
     
     metric = TfidfCosineDistanceTree()
     fader = TreeFader(decay_rate=0.002, term_fading=True, min_weight=2 ** (-1 * 0.002 * 100))
     merger = TreeSumMerger()
-    micro_clusterer = TreeClusterer(max_depth=10, max_children=10, sigma=2,
+    micro_clusterer = TreeClusterer(max_depth=10, max_children=10, sigma=2.5,
                                     distance_metric=metric, fader=fader, merger=merger)
     history = HistoryManager()
     

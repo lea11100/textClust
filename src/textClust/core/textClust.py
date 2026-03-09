@@ -61,6 +61,8 @@ class textClust:
                 self.clean_up()
             if self.time_manager.time_to_cluster():
                 self.cluster()
+            if self.time_manager.time_to_log():
+                self.log()
         self.end()
             
     
@@ -76,6 +78,10 @@ class textClust:
         clusterId = self.micro_clusterer.update(point.to_microcluster(), current_time=time)
         self.history_manager.update_text_assignment(time, point, clusterId)
     
+    def log(self):
+        """Log intermediate results or diagnostics if enabled."""
+        time = self.time_manager.get_current_time()
+        self.history_manager.snapshot(current_time=time, microclusters=self.micro_clusterer.get_clusters())
 
     def clean_up(self):
         """Run micro-cluster cleanup and persist history snapshots.
@@ -86,17 +92,13 @@ class textClust:
         time = self.time_manager.get_current_time()
         expired_cluster_ids, merged_clusters = self.micro_clusterer.clean_up(current_time=time)
         self.history_manager.update_history(current_time=time, expired_info=expired_cluster_ids, merged_info=merged_clusters)
-        self.history_manager.snapshot(current_time=time, microclusters=self.micro_clusterer.get_clusters())
         
     
     def cluster(self):
         """Perform macro-clustering on current micro-clusters and evaluate.
 
-        This method forces a cleanup first to ensure macro-clustering is based
-        on up-to-date micro-cluster state. If configured, intermediate results
-        are displayed.
+        If configured, intermediate results are displayed.
         """
-        self.clean_up()
         micro_clusters = self.micro_clusterer.get_clusters()
         macro_clusters = self.macro_clusterer.cluster(micro_clusters, current_time=self.time_manager.get_current_time())
         results = self.macro_clusterer.evaluate(macro_clusters, history_manager=self.history_manager, current_time=self.time_manager.get_current_time())

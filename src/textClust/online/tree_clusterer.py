@@ -501,12 +501,18 @@ class TreeClusterer(Microclusterer):
                         merge_history[node.children[j].id] = node.children[i].id
                         merged[j] = True
                     elif not node.children[i].is_centroid and node.children[j].is_centroid:
-                        _, id = self._update(node.children[i], current_time=current_time, root=node.children[j])
+                        mc, id = self._update(node.children[i], current_time=current_time, root=node.children[j])
+                        if id is None:
+                            id = self.pull_new_clusterId()
+                            mc.id = id
                         merged[i] = True
                         merge_history[node.children[i].id] = id
                         break
                     elif node.children[i].is_centroid and not node.children[j].is_centroid:
-                        _, id = self._update(node.children[j], current_time=current_time, root=node.children[i])
+                        mc, id = self._update(node.children[j], current_time=current_time, root=node.children[i])
+                        if id is None:
+                            id = self.pull_new_clusterId()
+                            mc.id = id
                         merged[j] = True
                         merge_history[node.children[j].id] = id
                     else:

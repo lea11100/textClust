@@ -31,16 +31,25 @@ class TimeManager:
         """Return whether macro-clustering should run at current time."""
         raise NotImplementedError("time_to_cluster() must be implemented by subclass")
     
+    def time_to_log(self) -> bool:
+        """Return whether logging should run at current time."""
+        return False  # Optional logging, default to never
+    
     
 class FixedIntervalTimeManager(TimeManager):
     """Time manager that triggers actions on fixed time intervals."""
 
-    def __init__(self, clean_interval=60, cluster_interval=300, *args, **kwargs):
+    def __init__(self, clean_interval=60, cluster_interval=300, log_interval=60, *args, **kwargs):
         """Initialize fixed cleanup and clustering intervals."""
         super().__init__(*args, **kwargs)
         self.clean_interval = clean_interval
-        self.cluster_interval = cluster_interval 
-    
+        self.cluster_interval = cluster_interval
+        self.log_interval = log_interval
+
+    def time_to_log(self) -> bool:
+        """Return true when current time hits a logging interval."""
+        return self.current_time % self.log_interval == 0
+
     def time_to_clean(self) -> bool:
         """Return true when current time hits a cleanup interval."""
         return self.current_time % self.clean_interval == 0
