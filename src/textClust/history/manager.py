@@ -2,6 +2,7 @@
 
 from textClust.data.point import RawPoint, Point
 from textClust.online.cluster import Microcluster
+from textClust.preprocessing.preprocessor import TFIDFPreprocessor
 
 from typing import List
 
@@ -24,7 +25,8 @@ class HistoryManager:
         self.snapshots: List[Snapshot] = []  # List of Snapshot objects, ordered by time
         self.cluster_expiration_time: List[tuple] = []  # time, cluster_id
         self.cluster_merge_history: List[tuple] = []  # time, merged_cluster_id, destination_cluster_ids
-        self.texts = {}  # Optional: store text content for reference, keyed by text_id      
+        self.texts = {}  # Optional: store text content for reference, keyed by text_id   
+        self.preprocessor =  TFIDFPreprocessor()   
     
     def update_text_assignment(self, current_time: float, point: RawPoint, cluster_id: int):
         """Record predicted assignment and optional ground-truth label."""
@@ -33,7 +35,7 @@ class HistoryManager:
             self.true_assignments.append((point.text_id, point.cluster_id))
             
         if isinstance(point, Point):
-            self.texts[point.text_id] = point.processed_text_tokens
+            self.texts[point.text_id] = self.preprocessor.preprocess_text(point.text)
         
     def snapshot(self, current_time: float, microclusters: List[Microcluster]):
         """Append a snapshot of the current microcluster state."""

@@ -5,7 +5,7 @@ from textClust.online.tree_clusterer import TreeFader, TreeSumMerger, TreeCluste
 from textClust.online.merge import SumMerger
 from textClust.time.manager import FixedIntervalTimeManager
 from textClust.history.manager import HistoryManager
-from textClust.offline.clusterer import SimpleTfidfMacroClusterer
+from textClust.offline.clusterer import SimpleMacroClusterer
 
 if __name__ == "__main__":
     wrapper = StaticJsonWrapper("examples/data/Trends-T_modified.json", max_samples=20000)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
                                     distance_metric=metric, fader=fader, merger=merger)
     history = HistoryManager()
     
-    macro_clusterer = SimpleTfidfMacroClusterer()
+    macro_clusterer = SimpleMacroClusterer()
     
     clusterer = textClust(wrapper, preprocessor, time_manager, micro_clusterer, macro_clusterer, history)
     clusterer.start()

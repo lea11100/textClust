@@ -183,7 +183,7 @@ class TfIdfAdaptiveThresholdMicroclusterer(Microclusterer):
     
 class EmbeddingAdaptiveThresholdClusterer(Microclusterer):
     def __init__(self,
-                 distance_metric: EmbeddingDistanceMetric, fader: EmbeddingDampedFade, merger: EmbeddingMerger, sigma=1.0, *args, **kwargs):
+                 distance_metric: EmbeddingDistanceMetric, fader: EmbeddingDampedFade, merger: EmbeddingMerger, sigma=1.0, min_num_mc=15, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.microclusters = []
         self.distance_metric = distance_metric
@@ -195,9 +195,16 @@ class EmbeddingAdaptiveThresholdClusterer(Microclusterer):
         self.outlier_dist_sum = 0.0
         self.outlier_dist_squaresum = 0.0
         self.dist_sum = 0.0
-        
+        self.min_num_mc = min_num_mc
+
     def _update(self, mc: EmbeddingMicrocluster, current_time: float, *args, **kwargs) -> Tuple[EmbeddingMicrocluster, Optional[int]]:
         """Assign or merge incoming microcluster using adaptive thresholding."""
+        if self.min_num_mc > len(self.microclusters): # Maintain multiple initial clusters to get better distance stats before merging
+            self.microclusters.append(mc)
+            self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first few points
+            self.outlier_dist_squaresum += 1.0
+            return mc, None
+        
         distances = [self.distance_metric(mc, existing_mc, *args, **kwargs) for existing_mc in self.microclusters]
         if len(distances) == 0:
             self.microclusters.append(mc)

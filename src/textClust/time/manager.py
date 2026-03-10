@@ -9,6 +9,7 @@ class TimeManager:
     def __init__(self, *args, **kwargs):
         """Initialize the internal clock at zero."""
         self.current_time = 0.0
+        self.time_repeated = False # Flag to track if time has been repeated 
         
     def update(self, timestamp:Optional[float] = None):
         """Advance time using explicit timestamp or unit step."""
@@ -17,6 +18,10 @@ class TimeManager:
         else:
             if timestamp < self.current_time:
                 raise ValueError("Timestamps must be non-decreasing")
+            if timestamp == self.current_time:
+                self.time_repeated = True
+            else:
+                self.time_repeated = False
             self.current_time = timestamp
         
     def get_current_time(self):
@@ -48,12 +53,12 @@ class FixedIntervalTimeManager(TimeManager):
 
     def time_to_log(self) -> bool:
         """Return true when current time hits a logging interval."""
-        return self.current_time % self.log_interval == 0
+        return self.current_time % self.log_interval == 0 and not self.time_repeated  # Avoid repeated logging if time is repeated
 
     def time_to_clean(self) -> bool:
         """Return true when current time hits a cleanup interval."""
-        return self.current_time % self.clean_interval == 0
+        return self.current_time % self.clean_interval == 0 and not self.time_repeated  # Avoid repeated cleaning if time is repeated
     
     def time_to_cluster(self) -> bool:
         """Return true when current time hits a clustering interval."""
-        return self.current_time % self.cluster_interval == 0
+        return self.current_time % self.cluster_interval == 0 and not self.time_repeated  # Avoid repeated clustering if time is repeated

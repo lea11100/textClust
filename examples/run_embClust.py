@@ -7,7 +7,7 @@ from textClust.online.fade import EmbeddingExpFader
 from textClust.online.merge import WeightedSumMerger
 from textClust.time.manager import FixedIntervalTimeManager
 from textClust.history.manager import HistoryManager
-from textClust.offline.clusterer import SimpleEmbeddingMacroClusterer
+from textClust.offline.clusterer import SimpleMacroClusterer
 
 from sentence_transformers import SentenceTransformer
 
@@ -18,12 +18,12 @@ if __name__ == "__main__":
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=100)
     
     metric = EmbeddingCosineDistance()
-    fader = EmbeddingExpFader(decay_rate=0.005, min_weight=2 ** (-1 * 0.005 * 40))
+    fader = EmbeddingExpFader(decay_rate=0.005, min_weight=2 ** (-1 * 0.005 * 100))
     merger = WeightedSumMerger()
-    micro_clusterer = EmbeddingAdaptiveThresholdClusterer(sigma=1.2, distance_metric=metric, fader=fader, merger=merger)
+    micro_clusterer = EmbeddingAdaptiveThresholdClusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger)
     history = HistoryManager()
     
-    macro_clusterer = SimpleEmbeddingMacroClusterer()
+    macro_clusterer = SimpleMacroClusterer()
     
     clusterer = textClust(wrapper, preprocessor, time_manager, micro_clusterer, macro_clusterer, history)
     clusterer.start()
