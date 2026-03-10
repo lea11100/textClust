@@ -2,8 +2,9 @@
 
 from typing import Optional, List
 import numpy as np
+import torch
 
-from textClust.online.cluster import Microcluster
+from textClust.online.cluster import Microcluster, EmbeddingMicrocluster, TfIdfMicrocluster
 
 class RawPoint:
     """Raw text observation before preprocessing."""
@@ -29,7 +30,6 @@ class RawPoint:
         """Convert the raw point into a single-item microcluster shell."""
         return Microcluster(
             id=None,
-            tf={},  # Term frequencies can be computed later based on processed tokens
             current_time=self.timestamp if self.timestamp is not None else 0,
             n=1,
             weight=1.0
@@ -38,7 +38,7 @@ class RawPoint:
 class Point(RawPoint):
     """Preprocessed point with tokens and optional embedding."""
 
-    def __init__(self, text:str, processed_text_tokens:Optional[List[str]] = None, embedding:Optional[np.ndarray] = None, 
+    def __init__(self, text:str, processed_text_tokens:Optional[List[str]] = None, embedding:Optional[torch.Tensor] = None, 
                  timestamp:Optional[float] = None, text_id: Optional[str] = None, cluster_id: Optional[int] = None, **kwargs):
         """Initialize a processed point.
 
@@ -58,21 +58,37 @@ class Point(RawPoint):
         
     def to_microcluster(self) -> Microcluster:
         """Convert the point into a single-item term-frequency microcluster."""
-        tf = {}
-        if self.processed_text_tokens is not None:
+        
+        if self.embedding is not None:
+            # For simplicity, we won't include the embedding in the microcluster representation here,
+            # but it could be incorporated into an EmbeddingMicrocluster if desired.
+        
+            return EmbeddingMicrocluster(
+                id=None,
+                current_time=self.timestamp if self.timestamp is not None else 0,
+                n=1,
+                weight=1.0,
+                embedding=self.embedding
+            )
+        elif self.processed_text_tokens is not None:
+            tf = {}
             for token in self.processed_text_tokens:
                 tf[token] = tf.get(token, 0) + 1
-        
+            return TfIdfMicrocluster(
+                id=None,
+                tf=tf,
+                current_time=self.timestamp if self.timestamp is not None else 0,
+                n=1,
+                weight=1.0)
+            
         return Microcluster(
             id=None,
-            tf=tf,
             current_time=self.timestamp if self.timestamp is not None else 0,
             n=1,
-            embedding=self.embedding,
             weight=1.0
         )
         
-def point_from_raw_point(raw_point: RawPoint, processed_text_tokens:Optional[List[str]] = None, embedding:Optional[np.ndarray] = None, **kwargs):
+def point_from_raw_point(raw_point: RawPoint, processed_text_tokens:Optional[List[str]] = None, embedding:Optional[torch.Tensor] = None, **kwargs):
     """Create a processed `Point` from a `RawPoint` and derived features."""
     return Point(
         text = raw_point.text,

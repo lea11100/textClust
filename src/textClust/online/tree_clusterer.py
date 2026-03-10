@@ -1,4 +1,4 @@
-from textClust.online.cluster import Microcluster
+from textClust.online.cluster import TfIdfMicrocluster
 from textClust.online.clusterer import Microclusterer
 
 import math
@@ -9,8 +9,8 @@ import warnings
 from sklearn.decomposition import PCA
 import graphviz
 
-from textClust.online.fade import DampedFade, ExpFade
-from textClust.online.merge import Merger, SumMerger
+from textClust.online.fade import TfIdfExpFade, TfIdfDampedFade
+from textClust.online.merge import TfIdfMerger, SumMerger
 from textClust.online.metrics import DistanceMetric, TfidfCosineDistance
 
 class MicroclusterNorm: 
@@ -77,9 +77,9 @@ class MicroclusterNorm:
         self.remove_entry(old_tf, old_c, old_log_c)
         self.add_entry(new_tf, new_c, new_log_c)
 
-class TreeMicrocluster(Microcluster):
-    def __init__(self, id, tf:dict[str, float], current_time: float, n: int, parent: Optional['TreeMicrocluster']=None, embedding=None, weight = 1.0):
-        super().__init__(id, tf, current_time, n, embedding, weight)
+class TreeMicrocluster(TfIdfMicrocluster):
+    def __init__(self, id, tf:dict[str, float], current_time: float, n: int, parent: Optional['TreeMicrocluster']=None, weight = 1.0):
+        super().__init__(id, tf, current_time, n, weight)
         self.children: list['TreeMicrocluster'] = []
         self.is_centroid = False
         self.parent = parent
@@ -115,11 +115,11 @@ class TreeMicrocluster(Microcluster):
             if c.norm is not None:
                 c.norm.update_log(c.tf.get(term, 0), old_idf, idf)
         
-    def add_tf(self, other: Microcluster):
+    def add_tf(self, other: TfIdfMicrocluster):
         for term, tf in other.tf.items():
             self.set_tf(term, self.tf.get(term, 0) + tf)
             
-    def add_new_idf(self, other: Microcluster):
+    def add_new_idf(self, other: TfIdfMicrocluster):
         diff = set(other.tf.keys()) - set(self.idf.keys())
         for term in diff:
             self.set_idf(term, 1)
@@ -171,7 +171,7 @@ class TreeMicrocluster(Microcluster):
         right_children = [child for child, t in zip(self.children, above_the_threshold) if t]
         self.is_centroid = True # Should be ususally the case except for the first split
         
-        left_mc = TreeMicrocluster(id1, {}, current_time, 0, parent=self, embedding=None, weight=0)
+        left_mc = TreeMicrocluster(id1, {}, current_time, 0, parent=self, weight=0)
         tf, idf = combine_children(left_children)
         left_mc.tf = tf
         left_mc.idf = idf
@@ -181,7 +181,7 @@ class TreeMicrocluster(Microcluster):
         for c in left_children:
             c.set_parent(left_mc)
             
-        right_mc = TreeMicrocluster(id2, {}, current_time, 0, parent=self, embedding=None, weight=0)
+        right_mc = TreeMicrocluster(id2, {}, current_time, 0, parent=self, weight=0)
         tf, idf = combine_children(right_children)
         right_mc.tf = tf
         right_mc.idf = idf
@@ -283,7 +283,7 @@ class TreeMicrocluster(Microcluster):
                     result[term] = result.get(term, 0) + 1
         return result
 
-def combine_children(children: Sequence['Microcluster']):
+def combine_children(children: Sequence['TfIdfMicrocluster']):
     terms = set([term for c in children for term in c.tf.keys()])
     result_tf = {}
     result_idf = {}
@@ -342,10 +342,10 @@ class TfidfCosineDistanceTree(DistanceMetric):
 class TreeSumMerger(SumMerger):
     """Extension of SumMerger that also merges tree structure for TreeMicroclusters."""
 
-    def __call__(self, mc1: TreeMicrocluster, mc2: TreeMicrocluster, current_time: float, fader: Optional[DampedFade] = None) -> Microcluster:
+    def __call__(self, mc1: TreeMicrocluster, mc2: TreeMicrocluster, current_time: float, fader: Optional[TfIdfDampedFade] = None) -> TfIdfMicrocluster:
         """Merge two TreeMicroclusters and combine their children."""
         merged = super().__call__(mc1, mc2, current_time, fader)
-        merged = TreeMicrocluster(merged.id, merged.tf, merged.last_update_time, merged.n, None, merged.embedding, merged.weight)
+        merged = TreeMicrocluster(merged.id, merged.tf, merged.last_update_time, merged.n, None, merged.weight)
         merged.parent = mc1.parent  # Keep the same parent
         merged.children = mc1.children + mc2.children  # Combine children from both clusters
         intersection = set(mc1.tf.keys()) & set(mc2.tf.keys())
@@ -361,7 +361,7 @@ class TreeSumMerger(SumMerger):
         
         return merged
     
-class TreeFader(ExpFade):
+class TreeFader(TfIdfExpFade):
     """Fader that also applies fading to TreeMicrocluster norms."""
     
     def __init__(self, decay_rate: float, term_fading: bool = True, min_weight: float = 0.5):
@@ -371,7 +371,7 @@ class TreeFader(ExpFade):
         factor = 2 ** (- self.decay_rate * (current_time - mc.last_update_time)) # Calc factor before fading as fading will update the last_update_time
         
         faded_mc, is_expired = super().__call__(mc, current_time)
-        faded_mc = TreeMicrocluster(faded_mc.id, faded_mc.tf, faded_mc.last_update_time, faded_mc.n, None, faded_mc.embedding, faded_mc.weight)
+        faded_mc = TreeMicrocluster(faded_mc.id, faded_mc.tf, faded_mc.last_update_time, faded_mc.n, None, faded_mc.weight)
         faded_mc.parent = mc.parent
         faded_mc.children = mc.children
         
@@ -400,8 +400,8 @@ class TreeClusterer(Microclusterer):
         self.outlier_dist_squaresum = 0.0
         self.dist_sum = 0.0
         
-    def _update(self, mc: Microcluster, current_time: float, *args, root: Optional[TreeMicrocluster] = None, **kwargs) -> Tuple[TreeMicrocluster, Optional[int]]:
-        mc = TreeMicrocluster(mc.id, mc.tf, mc.last_update_time, mc.n, None, mc.embedding, mc.weight)
+    def _update(self, mc: TfIdfMicrocluster, current_time: float, *args, root: Optional[TreeMicrocluster] = None, **kwargs) -> Tuple[TreeMicrocluster, Optional[int]]:
+        mc = TreeMicrocluster(mc.id, mc.tf, mc.last_update_time, mc.n, None, mc.weight)
         root = self.tree if root is None else root
         clusterId = None
         if root is None:
@@ -451,13 +451,13 @@ class TreeClusterer(Microclusterer):
         return mc, clusterId
             
     def _make_tree(self, mc: TreeMicrocluster, current_time: float) -> None:
-        self.tree = TreeMicrocluster(self.pull_new_clusterId(), deepcopy(mc.tf), current_time, mc.n, None, None, mc.weight)
+        self.tree = TreeMicrocluster(self.pull_new_clusterId(), deepcopy(mc.tf), current_time, mc.n, None, mc.weight)
         self.tree.is_centroid = True
         self.tree.add_new_idf(mc)
         self.tree.children.append(mc)
         mc.set_parent(self.tree)
     
-    def get_clusters(self, node: Optional[TreeMicrocluster] = None) -> List[Microcluster]:
+    def get_clusters(self, node: Optional[TreeMicrocluster] = None) -> List[TfIdfMicrocluster]:
         node = self.tree if node is None else node
         if node is None:
             return []
@@ -559,7 +559,7 @@ class TreeClusterer(Microclusterer):
                 return 
         
         clusters = self.get_clusters()
-        self.tree = TreeMicrocluster(self.pull_new_clusterId(), {}, current_time, 0, None, None, 0)
+        self.tree = TreeMicrocluster(self.pull_new_clusterId(), {}, current_time, 0, None, 0)
         self.tree.children = clusters  # type: ignore
         tf, idf = combine_children(clusters)
         self.tree.tf = tf

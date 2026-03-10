@@ -2,8 +2,9 @@
 
 from typing import Any
 import numpy as np
+import torch.nn.functional as F
 
-from textClust.online.cluster import Microcluster
+from textClust.online.cluster import EmbeddingMicrocluster, TfIdfMicrocluster, Microcluster
 
 class DistanceMetric:
     """Base callable interface for microcluster distance metrics."""
@@ -16,7 +17,29 @@ class DistanceMetric:
         """Return a non-negative distance between two microclusters."""
         raise NotImplementedError("DistanceMetric must implement __call__()")
     
-class TfidfCosineDistance(DistanceMetric):
+class TfIdfDistanceMetric(DistanceMetric):
+    """Base class for distance metrics over TF-IDF microclusters."""
+
+    def __init__(self):
+        """Initialize metric capabilities."""
+        self.requires_idf = False
+    
+    def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, *args: Any, **kwds: Any) -> float:
+        """Return a non-negative distance between two microclusters."""
+        raise NotImplementedError("DistanceMetric must implement __call__()")
+    
+class EmbeddingDistanceMetric(DistanceMetric):
+    """Base class for distance metrics over embedding microclusters."""
+
+    def __init__(self):
+        """Initialize metric capabilities."""
+        self.requires_idf = False
+    
+    def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, *args: Any, **kwds: Any) -> float:
+        """Return a non-negative distance between two microclusters."""
+        raise NotImplementedError("DistanceMetric must implement __call__()")
+    
+class TfidfCosineDistance(TfIdfDistanceMetric):
     """Cosine distance over TF-IDF-weighted term-frequency vectors."""
 
     def __init__(self):
@@ -25,7 +48,7 @@ class TfidfCosineDistance(DistanceMetric):
         self.requires_idf = True
         
     
-    def __call__(self, mc1: Microcluster, mc2: Microcluster, idf: dict[str, float], **kwds: Any) -> float:
+    def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, idf: dict[str, float], **kwds: Any) -> float:
         """Compute TF-IDF cosine distance in the interval `[0, 1]`."""
         # Compute cosine distance between two microclusters based on their TF-IDF vectors
         tf1 = mc1.tf
@@ -67,3 +90,17 @@ class TfidfCosineDistance(DistanceMetric):
             tfidf2 = [v for v in tf2.values()]
             
         return np.array(tfidf1), np.array(tfidf2)
+    
+class EmbeddingCosineDistance(EmbeddingDistanceMetric):
+    def __init__(self):
+        super().__init__()
+        self.requires_idf = False
+        
+    def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, *args, **kwargs) -> float:
+        embedding1 = mc1.embedding
+        embedding2 = mc2.embedding
+        
+        similarity = F.cosine_similarity(embedding1, embedding2, dim=0).item()
+        distance = 1 - similarity
+        
+        return distance

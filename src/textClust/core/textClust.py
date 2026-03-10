@@ -81,7 +81,7 @@ class textClust:
     def log(self):
         """Log intermediate results or diagnostics if enabled."""
         time = self.time_manager.get_current_time()
-        self.history_manager.snapshot(current_time=time, microclusters=self.micro_clusterer.get_clusters())
+        self.history_manager.snapshot(current_time=time, microclusters=list(self.micro_clusterer.get_clusters()))
 
     def clean_up(self):
         """Run micro-cluster cleanup and persist history snapshots.
@@ -99,7 +99,7 @@ class textClust:
 
         If configured, intermediate results are displayed.
         """
-        micro_clusters = self.micro_clusterer.get_clusters()
+        micro_clusters = list(self.micro_clusterer.get_clusters())
         macro_clusters = self.macro_clusterer.cluster(micro_clusters, current_time=self.time_manager.get_current_time())
         results = self.macro_clusterer.evaluate(macro_clusters, history_manager=self.history_manager, current_time=self.time_manager.get_current_time())
         
@@ -110,4 +110,4 @@ class textClust:
         """Finalize processing and emit final visualization/report if enabled."""
         self.cluster()
         if self.macro_clusterer.display_final is not None and self.verbose:
-            self.macro_clusterer.display_final(micro_clusters=self.micro_clusterer.get_clusters(), history_manager=self.history_manager, current_time=self.time_manager.get_current_time())
+            self.macro_clusterer.display_final(micro_clusters=list(self.micro_clusterer.get_clusters()), history_manager=self.history_manager, current_time=self.time_manager.get_current_time())

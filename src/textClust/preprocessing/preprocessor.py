@@ -1,5 +1,7 @@
 """Text preprocessing components used before micro-clustering."""
 
+from sentence_transformers import SentenceTransformer
+
 from textClust.data.point import RawPoint, Point, point_from_raw_point
 import re
 from nltk.corpus import stopwords
@@ -81,3 +83,16 @@ class TFIDFPreprocessor(Preprocessor):
         tokens = [t for t in tokens if len(t) >= 2 and not t.isdigit()] # Remove short tokens and numbers
         
         return tokens
+    
+
+class EmbeddingPreprocessor(Preprocessor):
+    """Preprocessor that generates vector embeddings for input text."""
+
+    def __init__(self, embedding_model: SentenceTransformer):
+        """Initialize with a callable embedding model."""
+        self.embedding_model = embedding_model
+    
+    def __call__(self, point: RawPoint) -> Point:
+        """Generate an embedding for the input point text and return a `Point`."""
+        embedding = self.embedding_model.encode(point.text, convert_to_tensor=True)
+        return point_from_raw_point(point, embedding=embedding)

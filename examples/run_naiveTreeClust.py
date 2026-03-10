@@ -1,7 +1,6 @@
 from textClust.core.textClust import textClust
 from textClust.data.wrapper import StaticJsonWrapper
 from textClust.preprocessing.preprocessor import TFIDFPreprocessor
-from textClust.online.clusterer import AdaptiveThresholdMicroclusterer
 from textClust.online.metrics import TfidfCosineDistance
 from textClust.online.naive_tree_clusterer import NaiveTreeFader, NaiveTreeSumMerger, NaiveTreeClusterer, NaiveTfidfCosineDistanceTree
 from textClust.online.merge import SumMerger

@@ -1,9 +1,9 @@
 from textClust.core.textClust import textClust
 from textClust.data.wrapper import StaticJsonWrapper
 from textClust.preprocessing.preprocessor import TFIDFPreprocessor
-from textClust.online.clusterer import AdaptiveThresholdMicroclusterer
+from textClust.online.clusterer import TfIdfAdaptiveThresholdMicroclusterer
 from textClust.online.metrics import TfidfCosineDistance
-from textClust.online.fade import ExpFade
+from textClust.online.fade import TfIdfExpFade
 from textClust.online.merge import SumMerger
 from textClust.time.manager import FixedIntervalTimeManager
 from textClust.history.manager import HistoryManager
@@ -16,9 +16,9 @@ if __name__ == "__main__":
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=100)
     
     metric = TfidfCosineDistance()
-    fader = ExpFade(decay_rate=0.002, term_fading=True, min_weight=2 ** (-1 * 0.002 * 100))
+    fader = TfIdfExpFade(decay_rate=0.002, term_fading=True, min_weight=2 ** (-1 * 0.002 * 100))
     merger = SumMerger()
-    micro_clusterer = AdaptiveThresholdMicroclusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger)
+    micro_clusterer = TfIdfAdaptiveThresholdMicroclusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger)
     history = HistoryManager()
     
     macro_clusterer = SimpleTfidfMacroClusterer()
