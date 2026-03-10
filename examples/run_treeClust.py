@@ -10,7 +10,7 @@ from textClust.history.manager import HistoryManager
 from textClust.offline.clusterer import SimpleTfidfMacroClusterer
 
 if __name__ == "__main__":
-    wrapper = StaticJsonWrapper("examples/data/Trends-T.json", max_samples=10000)
+    wrapper = StaticJsonWrapper("examples/data/Trends-T_modified.json", max_samples=20000)
     preprocessor = TFIDFPreprocessor()
     
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=50)

@@ -306,13 +306,8 @@ class TfidfCosineDistanceTree(DistanceMetric):
         tf1 = mc1.tf
         tf2 = mc2.tf
         
-        if mc2 in mc1.parent.children:
-            idf = mc1.parent.idf
-            idf = {term: 1 + math.log(len(mc1.parent.children) / count) for term, count in idf.items()}
-        else:
-            idf = mc1.parent.idf
-            idf = {term: 1 + math.log((len(mc1.parent.children) + 1) / count) for term, count in idf.items()}
-                
+        idf = mc1.parent.idf
+              
         if not tf1 or not tf2:
             return 1.0
         
@@ -329,17 +324,19 @@ class TfidfCosineDistanceTree(DistanceMetric):
             tf_val2 = tf2[term]
             
             if idf and term in idf:
+                idf_i = 1 + math.log(len(mc1.parent.children) / idf.get(term, 1))
                 inner_product += idf[term] ** 2 * tf_val1 * tf_val2
             else:
                 inner_product += tf_val1 * tf_val2
                 
         n = len(mc1.parent.children)
-        norm1 = mc1.norm.get_norm(n+1)
-        norm2 = mc2.norm.get_norm(n+1)
+        norm1 = mc1.norm.get_norm(n)
+        norm2 = mc2.norm.get_norm(n)
 
         similarity = inner_product / (norm1 * norm2)
         
         distance = min(1, 1 - similarity)
+        distance = max(0, distance)
         return distance
 
 class TreeSumMerger(SumMerger):
