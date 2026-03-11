@@ -10,15 +10,15 @@ from textClust.history.manager import HistoryManager
 from textClust.offline.clusterer import SimpleMacroClusterer
 
 if __name__ == "__main__":
-    wrapper = StaticJsonWrapper("examples/data/Trends-T_modified.json", max_samples=20000)
+    wrapper = StaticJsonWrapper("examples/data/Semantic-T.json", max_samples=40000)
     preprocessor = TFIDFPreprocessor()
     
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=100)
     
     metric = TfidfCosineDistance()
-    fader = TfIdfExpFade(decay_rate=0.002, term_fading=True, min_weight=2 ** (-1 * 0.002 * 100))
+    fader = TfIdfExpFade(decay_rate=0.005, term_fading=True, min_weight=2 ** (-1 * 0.005 * 100))
     merger = SumMerger()
-    micro_clusterer = TfIdfAdaptiveThresholdMicroclusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger)
+    micro_clusterer = TfIdfAdaptiveThresholdMicroclusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger, min_num_mc=1)
     history = HistoryManager()
     
     macro_clusterer = SimpleMacroClusterer()

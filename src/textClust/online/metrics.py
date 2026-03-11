@@ -2,6 +2,7 @@
 
 from typing import Any
 import numpy as np
+import torch
 import torch.nn.functional as F
 
 from textClust.online.cluster import EmbeddingMicrocluster, TfIdfMicrocluster, Microcluster
@@ -12,6 +13,7 @@ class DistanceMetric:
     def __init__(self):
         """Initialize metric capabilities."""
         self.requires_idf = False
+        self.support_batch = False
     
     def __call__(self, mc1: Microcluster, mc2: Microcluster, *args: Any, **kwds: Any) -> float:
         """Return a non-negative distance between two microclusters."""
@@ -22,6 +24,7 @@ class TfIdfDistanceMetric(DistanceMetric):
 
     def __init__(self):
         """Initialize metric capabilities."""
+        super().__init__()
         self.requires_idf = False
     
     def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, *args: Any, **kwds: Any) -> float:
@@ -33,6 +36,7 @@ class EmbeddingDistanceMetric(DistanceMetric):
 
     def __init__(self):
         """Initialize metric capabilities."""
+        super().__init__()
         self.requires_idf = False
     
     def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, *args: Any, **kwds: Any) -> float:
@@ -95,6 +99,7 @@ class EmbeddingCosineDistance(EmbeddingDistanceMetric):
     def __init__(self):
         super().__init__()
         self.requires_idf = False
+        self.support_batch = True
         
     def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, *args, **kwargs) -> float:
         embedding1 = mc1.embedding
@@ -102,5 +107,20 @@ class EmbeddingCosineDistance(EmbeddingDistanceMetric):
         
         similarity = F.cosine_similarity(embedding1, embedding2, dim=0).item()
         distance = 1 - similarity
+        
+        return distance
+    
+    def batch_distance(self, mc1: EmbeddingMicrocluster, other_mcs: list[EmbeddingMicrocluster], *args, **kwargs) -> list[float]:
+        embedding1 = mc1.embedding
+        if isinstance(other_mcs, list):
+            distances = []
+            emb = torch.stack([mc.embedding for mc in other_mcs])
+            similarities = F.cosine_similarity(embedding1.unsqueeze(0), emb, dim=1)
+            distances = (1 - similarities).tolist()
+            return distances
+        else:
+            embedding2 = mc2.embedding        
+            similarity = F.cosine_similarity(embedding1, embedding2, dim=0).item()
+            distance = 1 - similarity
         
         return distance

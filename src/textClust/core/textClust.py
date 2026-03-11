@@ -81,7 +81,7 @@ class textClust:
     def log(self):
         """Log intermediate results or diagnostics if enabled."""
         time = self.time_manager.get_current_time()
-        self.history_manager.snapshot(current_time=time, microclusters=list(self.micro_clusterer.get_clusters()))
+        self.history_manager.snapshot(current_time=time, clusterer=self.micro_clusterer)
 
     def clean_up(self):
         """Run micro-cluster cleanup and persist history snapshots.

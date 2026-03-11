@@ -17,6 +17,7 @@ import plotly.graph_objects as go
 import plotly.tools as tls
 from plotly.subplots import make_subplots
 import plotly.express as px
+import textClust.offline.plots as plots
 
 class MacroCluster(Microcluster):
     """Macro-level cluster representation built from microclusters."""
@@ -107,7 +108,7 @@ class SimpleMacroClusterer(MacroClusterer):
         """Compute homogeneity/completeness/V-measure against truth labels."""
         assert len(history_manager.true_assignments) > 0, "No ground truth available for evaluation"
         initial_assignments = np.array(history_manager.initial_text_assignments)
-        final_assignments = np.array(self._make_final_assignent(history_manager))
+        final_assignments = np.array(history_manager.get_final_assignments())
         true_assignments = np.array(history_manager.true_assignments)
         
         initial_assignments = initial_assignments[initial_assignments[:, 1].argsort()]  # sort by point_id
@@ -135,29 +136,7 @@ class SimpleMacroClusterer(MacroClusterer):
             "homogeneity_final": homogeneity_final,
             "completeness_final": completeness_final,
             "v_measure_final": v_measure_final
-        }
-    
-    def _make_final_assignent(self, history_manager: HistoryManager):
-        """Derive final text-to-cluster assignments after merge history replay."""
-        assignments = { t_id : c_id for _, t_id, c_id in history_manager.initial_text_assignments }
-        rev_assignments = {}
-        for t_id, c_id in assignments.items():
-            if c_id not in rev_assignments:
-                rev_assignments[c_id] = []
-            rev_assignments[c_id].append(t_id)
-        for _, old_id, new_id in history_manager.cluster_merge_history:
-            if old_id in rev_assignments:
-                if new_id not in rev_assignments:
-                    rev_assignments[new_id] = []
-                rev_assignments[new_id].extend(rev_assignments[old_id])
-                del rev_assignments[old_id]
-                
-        final_assignements = []
-        for c_id, t_ids in rev_assignments.items():
-            for t_id in t_ids:
-                final_assignements.append((t_id, c_id))
-        return final_assignements
-        
+        }      
     
     def display(self, evaluation_result: dict) -> None:
         """Print a textual summary of current top macroclusters and metrics."""
@@ -175,18 +154,20 @@ class SimpleMacroClusterer(MacroClusterer):
         
     def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, top_k: int = 20, *args, **kwargs) -> None:
         """Plot microcluster weight trajectories over time for top clusters."""
-        fig1 = self._make_weight_plot(history_manager, top_k=top_k)
-        fig2 = self._make_sankey_plot(history_manager)
-        fig3 = self._make_eval_history_plot()
+        fig1 = plots.weight_plot(history_manager, top_k=top_k)
+        fig2 = plots.sankey_plot(history_manager)
+        fig3 = plots.metric_history_plot(self.eval_history)
+        fig4 = plots.threshold_over_time_plot(history_manager)
 
         fig = make_subplots(
-            rows=3,
+            rows=4,
             cols=1,
-            specs=[[{"type": "xy"}], [{"type": "domain"}], [{"type": "xy"}]],
+            specs=[[{"type": "xy"}], [{"type": "domain"}], [{"type": "xy"}], [{"type": "xy"}]],
             subplot_titles=(
                 "Microcluster Weight Evolution Over Time",
                 "Cluster Assignment Flow",
-                "Evaluation Metrics Over Time"
+                "Evaluation Metrics Over Time",
+                "Adaptive Threshold Over Time"
             ),
             vertical_spacing=0.12,
         )
@@ -203,127 +184,11 @@ class SimpleMacroClusterer(MacroClusterer):
             for trace in fig3.data:
                 fig.add_trace(trace, row=3, col=1)
                 
-        fig.update_layout(height=3000)
+        if fig4 is not None:
+            for trace in fig4.data:
+                fig.add_trace(trace, row=4, col=1)
+                
+        fig.update_layout(height=4000)
         fig.show()
         
-    def _make_eval_history_plot(self):
-        """Create a Plotly figure showing evaluation metric trajectories over time."""
-        if len(self.eval_history) == 0:
-            return None
-
-        df = pd.DataFrame(self.eval_history)
-        df = df.melt(
-            id_vars="time",
-            value_vars=[
-                "homogeneity",
-                "completeness",
-                "v_measure",
-                "homogeneity_final",
-                "completeness_final",
-                "v_measure_final"
-            ],
-            var_name="metric",
-            value_name="value"
-        )
-
-        fig = go.Figure()
-
-        for metric, g in df.groupby("metric"):
-            fig.add_trace(
-                go.Scatter(
-                    x=g["time"],
-                    y=g["value"],
-                    mode="lines",
-                    name=metric
-                )
-            )
-
-        fig.update_layout(
-            title="Evaluation Metrics Over Time",
-            xaxis_title="Time",
-            yaxis_title="Score",
-            legend_title="Metric"
-        )
-
-        return fig 
-        
-    def _make_sankey_plot(self, history_manager: HistoryManager) -> go.Figure:
-        """Create a Plotly Sankey diagram showing cluster merges over time."""
-        true_assignments = [int(c_id) for _, c_id in sorted(history_manager.true_assignments, key=lambda x: x[0])]  # sort by text_id
-        predicted_assignments = [int(c_id) for _, _, c_id in sorted(history_manager.initial_text_assignments, key=lambda x: x[1])]
-        final_assignments = [int(c_id) for _, c_id in sorted(self._make_final_assignent(history_manager), key=lambda x: x[0])]
-
-        word_counts_true = self._top_k_per_cluster(history_manager.true_assignments, history_manager)
-        word_counts_pred = self._top_k_per_cluster([(t_id, c_id) for _, t_id, c_id in history_manager.initial_text_assignments], history_manager)
-        word_counts_final = self._top_k_per_cluster([(t_id, c_id) for t_id, c_id in self._make_final_assignent(history_manager)], history_manager)
-        # Crosstab: counts of true → predicted
-        flows = pd.crosstab(pd.Series(true_assignments, name="true"), pd.Series(final_assignments, name="pred"))
-        
-        # Labels and node indices
-        true_nodes = [f"T{c}" for c in flows.index]
-        pred_nodes = [f"P{c}" for c in flows.columns]
-        labels = true_nodes + pred_nodes
-        hover_labels = ["<br>".join(f"{term}:{count}" for term, count in word_counts_true[c_id].items()) for c_id in flows.index] + \
-                       ["<br>".join(f"{term}:{count}" for term, count in word_counts_final[int(c_id[1:])].items()) for c_id in pred_nodes]
-        label_idx = {label:i for i,label in enumerate(labels)}
-
-        # Sources, targets, values
-        sources, targets, values = [], [], []
-        for t in flows.index:
-            for p in flows.columns:
-                count = int(flows.loc[t,p]) #type: ignore
-                if count > 0:
-                    sources.append(label_idx[f"T{t}"])
-                    targets.append(label_idx[f"P{p}"])
-                    values.append(count)
-
-        # Sankey plot
-        fig = go.Figure(
-            go.Sankey(
-                node=dict(
-                    label=labels,
-                    hovertemplate="%{label}<br>%{customdata}",
-                    customdata=hover_labels), 
-                link=dict(
-                    source=sources, 
-                    target=targets, 
-                    value=values))) 
-        return fig      
-
-    def _make_weight_plot(self, history_manager: HistoryManager, top_k: int = 20):
-        """Create a Plotly figure showing weight trajectories of top clusters."""
-        df_list = []
-        for s in history_manager.snapshots:
-            clusters = [[id, weight, s.time] for id, weight in zip(s.microcluster_ids, s.microcluster_weights)]
-            df_list.extend(clusters)
-        
-        df = pd.DataFrame(df_list, columns=["cluster_id", "weight", "time"])
-        top_clusters = df.groupby('cluster_id')['weight'].max().nlargest(top_k).index
-        df = df[df["cluster_id"].isin(top_clusters)]
-        ax = sns.lineplot(data=df, x="time", y="weight", hue="cluster_id", palette="tab20")
-        
-        ax.set_title("Microcluster Weight Evolution Over Time")
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Weight")
-        
-        fig_plotly = tls.mpl_to_plotly(ax.get_figure())
-        return fig_plotly
     
-    def _top_k_per_cluster(self, assignments: List[tuple], history_manager: HistoryManager, top_k: int = 10) -> dict[int, dict[str, int]]:
-        """Get top-k terms by weight for each cluster based on assignment history."""
-        cluster_word_counts = self._count_words_per_cluster(assignments, history_manager)
-        top_terms = {}
-        for cluster_id, term_counts in cluster_word_counts.items():
-            sorted_terms = sorted(term_counts.items(), key=lambda x: x[1], reverse=True)
-            top_terms[cluster_id] = {term: count for term, count in sorted_terms[:top_k]}
-        return top_terms
-    
-    def _count_words_per_cluster(self, assignments: List[tuple], history_manager: HistoryManager) -> dict[int, dict[str, int]]:
-        """Count total words assigned to each cluster based on text tokens."""
-        cluster_word_counts = {}
-        for text_id, cluster_id in assignments:
-            tokens = history_manager.texts.get(text_id, [])
-            cluster_word_counts[cluster_id] = cluster_word_counts.get(cluster_id, {})
-            for term in tokens:
-                cluster_word_counts[cluster_id][term] = cluster_word_counts[cluster_id].get(term, 0) + 1
-        return cluster_word_counts

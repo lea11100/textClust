@@ -35,8 +35,9 @@ class StaticJsonWrapper(Stream):
                     text = item.get("tweets", None)
                     timestamp = item.get("timestamp", None)
                     if timestamp is not None:
-                        timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-                        timestamp = timestamp.timestamp()
+                        if isinstance(timestamp, str):
+                            timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+                            timestamp = timestamp.timestamp()
                     id = item.get("tweetID", None)
                     cluster_id = item.get("clusterNo", None)
                     point = RawPoint(text=text, timestamp=timestamp, text_id=id, cluster_id=cluster_id)

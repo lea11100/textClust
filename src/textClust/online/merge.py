@@ -68,7 +68,7 @@ class SumMerger(TfIdfMerger):
         
 class WeightedSumMerger(EmbeddingMerger):
 
-    def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, current_time: float) -> EmbeddingMicrocluster:
+    def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, current_time: float, *args, **kwargs) -> EmbeddingMicrocluster:
         w1 = mc1.weight
         w2 = mc2.weight
         total_weight = w1 + w2

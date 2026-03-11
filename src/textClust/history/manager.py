@@ -2,6 +2,7 @@
 
 from textClust.data.point import RawPoint, Point
 from textClust.online.cluster import Microcluster
+from textClust.online.clusterer import Microclusterer
 from textClust.preprocessing.preprocessor import TFIDFPreprocessor
 
 from typing import List
@@ -26,6 +27,7 @@ class HistoryManager:
         self.cluster_expiration_time: List[tuple] = []  # time, cluster_id
         self.cluster_merge_history: List[tuple] = []  # time, merged_cluster_id, destination_cluster_ids
         self.texts = {}  # Optional: store text content for reference, keyed by text_id   
+        self.threshold_history: List[tuple] = []  # time, threshold_value (if applicable)
         self.preprocessor =  TFIDFPreprocessor()   
     
     def update_text_assignment(self, current_time: float, point: RawPoint, cluster_id: int):
@@ -37,9 +39,13 @@ class HistoryManager:
         if isinstance(point, Point):
             self.texts[point.text_id] = self.preprocessor.preprocess_text(point.text)
         
-    def snapshot(self, current_time: float, microclusters: List[Microcluster]):
+    def snapshot(self, current_time: float, clusterer: Microclusterer):
         """Append a snapshot of the current microcluster state."""
-        self.snapshots.append(Snapshot(microclusters, time=current_time))
+        self.snapshots.append(Snapshot(list(clusterer.get_clusters()), time=current_time))
+        if hasattr(clusterer, "last_threshold"):
+            attr = getattr(clusterer, "last_threshold")
+            if attr is not None:
+                self.threshold_history.append((current_time, attr))
         
     def update_history(self, current_time: float, expired_info: list[int], merged_info: dict[int, int]):
         """Record expired and merged cluster events at the given time."""
@@ -48,5 +54,26 @@ class HistoryManager:
             
         for merged_cluster_id, destination_cluster_ids in merged_info.items():
             self.cluster_merge_history.append((current_time, merged_cluster_id, destination_cluster_ids))
+            
+    def get_final_assignments(self) -> List[tuple[int, int]]:
+        """Derive final text-to-cluster assignments after merge history replay."""
+        assignments = { t_id : c_id for _, t_id, c_id in self.initial_text_assignments }
+        rev_assignments = {}
+        for t_id, c_id in assignments.items():
+            if c_id not in rev_assignments:
+                rev_assignments[c_id] = []
+            rev_assignments[c_id].append(t_id)
+        for _, old_id, new_id in self.cluster_merge_history:
+            if old_id in rev_assignments:
+                if new_id not in rev_assignments:
+                    rev_assignments[new_id] = []
+                rev_assignments[new_id].extend(rev_assignments[old_id])
+                del rev_assignments[old_id]
+                
+        final_assignments = []
+        for c_id, t_ids in rev_assignments.items():
+            for t_id in t_ids:
+                final_assignments.append((t_id, c_id))
+        return final_assignments
             
             
