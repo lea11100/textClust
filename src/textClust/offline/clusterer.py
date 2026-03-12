@@ -1,10 +1,13 @@
 """Offline macro-clustering interfaces and basic TF-IDF implementation."""
 
-from typing import List
+from typing import List, Optional
 
+from sentence_transformers import SentenceTransformer
+from sklearn.cluster import DBSCAN
 import torch
 
 from textClust.history.manager import HistoryManager
+from textClust.offline.cluster import MacroCluster, TfIdfMacroCluster, EmbeddingMacroCluster, TfIdfEmbeddingMacroCluster
 from textClust.online.cluster import Microcluster, TfIdfMicrocluster, EmbeddingMicrocluster
 
 import numpy as np
@@ -19,29 +22,6 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import textClust.offline.plots as plots
 
-class MacroCluster(Microcluster):
-    """Macro-level cluster representation built from microclusters."""
-
-    def __init__(self, id, current_time: float, n: int, weight = 1.0):
-        """Initialize a macrocluster."""
-        super().__init__(id, current_time, n, weight)
-        
-class TfIdfMacroCluster(MacroCluster):
-    """Macro-level cluster representation with TF-IDF summary."""
-
-    def __init__(self, id, tf:dict[str, float], current_time: float, n: int, weight = 1.0):
-        """Initialize a macrocluster."""
-        super().__init__(id, current_time, n, weight)
-        self.tf = tf
-        
-class EmbeddingMacroCluster(MacroCluster):
-    """Macro-level cluster representation with embedding summary."""
-
-    def __init__(self, id, current_time: float, n: int, embedding:torch.Tensor, weight = 1.0):
-        """Initialize a macrocluster."""
-        super().__init__(id, current_time, n, weight)
-        self.embedding = embedding
-        
 class MacroClusterer:
     """Base interface for macro-clustering and evaluation components."""
 
@@ -49,7 +29,7 @@ class MacroClusterer:
         """Initialize macroclusterer instance."""
         pass
     
-    def cluster(self, micro_clusters: List[Microcluster], current_time: float, *args, **kwargs) -> List[MacroCluster]:
+    def cluster(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[MacroCluster], Optional[dict[int, int]]]:
         """Create macroclusters from active microclusters."""
         raise NotImplementedError("cluster() must be implemented by subclass")
     
@@ -75,7 +55,7 @@ class SimpleMacroClusterer(MacroClusterer):
         self.last_eval_time = None
         self.eval_history = []
     
-    def cluster(self, micro_clusters: List[Microcluster], current_time: float, *args, **kwargs) -> List[MacroCluster]:
+    def cluster(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[MacroCluster], Optional[dict[int, int]]]:
         """Convert each microcluster into a same-identity macrocluster."""
         now = time.time()
         self.walltime_at_clustering.append(now)
@@ -87,7 +67,7 @@ class SimpleMacroClusterer(MacroClusterer):
                 macro_clusters.append(TfIdfMacroCluster(mc.id, mc.tf, current_time, mc.n, mc.weight))
             else:
                 macro_clusters.append(MacroCluster(mc.id, current_time, mc.n, mc.weight))
-        return macro_clusters
+        return macro_clusters, None
     
     def evaluate(self, macro_clusters: List[MacroCluster], history_manager: HistoryManager, current_time: float, top_k = 5, *args, **kwargs) -> dict:
         """Compute summary stats and optional ground-truth clustering metrics."""
@@ -191,4 +171,49 @@ class SimpleMacroClusterer(MacroClusterer):
         fig.update_layout(height=4000)
         fig.show()
         
+class TfidfToEmbeddingMacroClusterer(SimpleMacroClusterer):
+    def __init__(self, embedding_model: SentenceTransformer, epsilon: float = 0.4, *args, **kwargs):
+        """Initialize macroclusterer instance."""
+        self.embedding_model = embedding_model
+        self.walltime_at_clustering = []
+        self.last_eval_time = None
+        self.eval_history = []
+        self.epsilon = epsilon
     
+    def cluster(self, micro_clusters: List[TfIdfMicrocluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[MacroCluster], Optional[dict[int, int]]]:
+        """Create macroclusters from active microclusters."""
+        now = time.time()
+        self.walltime_at_clustering.append(now)
+        macro_clusters = []
+        sentences = [" ".join(sorted(mc.tf, key=lambda k: mc.tf[k], reverse=True)) for mc in micro_clusters]
+        embeddings = self.embedding_model.encode(sentences, convert_to_tensor=True)
+        # Compute cosine similarity matrix and apply DBSCAN to find macroclusters
+        sim = torch.nn.functional.cosine_similarity(embeddings.unsqueeze(1), embeddings.unsqueeze(0), dim=-1)
+        
+        
+        clusterer = DBSCAN(eps=self.epsilon, min_samples=4, metric="cosine")
+        labels = clusterer.fit_predict(embeddings.cpu().numpy())
+        merge_history = {}
+        for l in np.unique(labels):
+            if l == -1:
+                continue
+            else:
+                cluster_mask = labels == l
+                cluster_embeddings = embeddings[cluster_mask]
+                cluster_embedding = cluster_embeddings.mean(dim=0)
+                cluster_mcs = [mc for mc, mask in zip(micro_clusters, cluster_mask) if mask]
+                n = sum(mc.n for mc in cluster_mcs)
+                weight = sum(mc.weight for mc in cluster_mcs)
+                tf = {}
+                id = cluster_mcs[0].id
+                for mc in cluster_mcs:
+                    merge_history[mc.id] = id
+                    for term, freq in mc.tf.items():
+                        tf[term] = tf.get(term, 0) + freq
+                macro_clusters.append(TfIdfEmbeddingMacroCluster(id, tf, current_time, n, cluster_embedding, weight))
+                
+        for i, (mc, l) in enumerate(zip(micro_clusters, labels)):
+            if l == -1:
+                macro_clusters.append(TfIdfEmbeddingMacroCluster(mc.id, mc.tf, current_time, mc.n, embeddings[i], mc.weight))
+                merge_history[mc.id] = mc.id
+        return macro_clusters, merge_history

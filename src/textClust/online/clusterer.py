@@ -9,6 +9,8 @@ from textClust.online.fade import DampedFade, EmbeddingDampedFade, EmbeddingDamp
 from textClust.online.merge import EmbeddingMerger, EmbeddingMerger, Merger, TfIdfMerger
 from textClust.online.metrics import DistanceMetric, EmbeddingDistanceMetric, TfIdfDistanceMetric
 
+from textClust.offline.cluster import MacroCluster
+
 class Microclusterer:
     """Base interface for assigning points to microclusters."""
 
@@ -44,6 +46,10 @@ class Microclusterer:
         """Generate and return a fresh cluster id."""
         self.clusterId += 1
         return self.clusterId - 1
+    
+    def update_with_merge_history(self, merge_history: Optional[dict[int, int]], current_time: float, *args, **kwargs):
+        """Optional hook to update microclusterer state with macrocluster info."""
+        pass
     
 class AdaptiveThresholdMicroclusterer(Microclusterer):
     """Adaptive-threshold online microclusterer based on pairwise distances."""
@@ -181,6 +187,18 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
     def _get_idf(self, additional_mc: Optional[TfIdfMicrocluster] = None) -> dict[str, float]:
         """Compute per-term inverse document frequency over active clusters."""
         raise NotImplementedError("IDF calculation is only applicable for TF-IDF microclusters and must be implemented by subclass if needed.")
+    
+    def update_with_merge_history(self, merge_history: Optional[dict[int, int]], current_time: float, *args, **kwargs):
+        if merge_history is None or len(merge_history) == 0:
+            return
+        mc_dict = {mc.id: mc for mc in self.microclusters}
+        for dest_id in set(merge_history.values()):
+            for c_id in [mid for mid, dest in merge_history.items() if dest == dest_id]:
+                if dest_id == c_id:
+                    continue
+                mc_dict[dest_id] = self.merger(mc_dict[dest_id], mc_dict[c_id], current_time=current_time, fader=self.fader)
+                del mc_dict[c_id]
+        self.microclusters = list(mc_dict.values())
     
 class TfIdfAdaptiveThresholdMicroclusterer(AdaptiveThresholdMicroclusterer):
     """Adaptive-threshold online microclusterer based on pairwise distances."""

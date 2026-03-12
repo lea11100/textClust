@@ -100,8 +100,11 @@ class textClust:
         If configured, intermediate results are displayed.
         """
         micro_clusters = list(self.micro_clusterer.get_clusters())
-        macro_clusters = self.macro_clusterer.cluster(micro_clusters, current_time=self.time_manager.get_current_time())
-        results = self.macro_clusterer.evaluate(macro_clusters, history_manager=self.history_manager, current_time=self.time_manager.get_current_time())
+        macro_clusters, merge_history = self.macro_clusterer.cluster(micro_clusters, self.history_manager, current_time=self.time_manager.get_current_time())
+        self.micro_clusterer.update_with_merge_history(merge_history, current_time=self.time_manager.get_current_time())
+        if merge_history is not None:
+            self.history_manager.update_history(current_time=self.time_manager.get_current_time(), expired_info=[], merged_info=merge_history)
+        results = self.macro_clusterer.evaluate(macro_clusters, self.history_manager, current_time=self.time_manager.get_current_time())
         
         if self.macro_clusterer.display is not None and self.verbose:
             self.macro_clusterer.display(results)

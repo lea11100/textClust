@@ -12,13 +12,13 @@ from textClust.offline.clusterer import SimpleMacroClusterer
 from sentence_transformers import SentenceTransformer
 
 if __name__ == "__main__":
-    wrapper = StaticJsonWrapper("examples/data/Semantic-T.json", max_samples=50000)
+    wrapper = StaticJsonWrapper("examples/data/Semantic-T_peaked.json")
     preprocessor = EmbeddingPreprocessor(SentenceTransformer("all-MiniLM-L6-v2", device="mps"))
     
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=100)
     
     metric = EmbeddingCosineDistance()
-    fader = EmbeddingExpFader(decay_rate=0.005, min_weight=2 ** (-1 * 0.005 * 100))
+    fader = EmbeddingExpFader(decay_rate=0.005, min_weight=2 ** (-1 * 0.005 * 1000))
     merger = WeightedSumMerger()
     micro_clusterer = EmbeddingAdaptiveThresholdClusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger, min_num_mc=5, 
                                                           include_min_for_threshold=False, threshold_momentum=None)

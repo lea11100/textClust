@@ -1,4 +1,4 @@
-from textClust.online.cluster import Microcluster
+from textClust.online.cluster import TfIdfMicrocluster
 from textClust.online.clusterer import Microclusterer
 
 import math
@@ -9,13 +9,13 @@ import warnings
 from sklearn.decomposition import PCA
 import graphviz
 
-from textClust.online.fade import DampedFade, ExpFade
+from textClust.online.fade import DampedFade, TfIdfDampedFade, TfIdfExpFade
 from textClust.online.merge import Merger, SumMerger
 from textClust.online.metrics import DistanceMetric, TfidfCosineDistance
 
-class NaiveTreeMicrocluster(Microcluster):
-    def __init__(self, id, tf:dict[str, float], current_time: float, n: int, parent: Optional['NaiveTreeMicrocluster']=None, embedding=None, weight = 1.0):
-        super().__init__(id, tf, current_time, n, embedding, weight)
+class NaiveTreeMicrocluster(TfIdfMicrocluster):
+    def __init__(self, id, tf:dict[str, float], current_time: float, n: int, parent: Optional['NaiveTreeMicrocluster']=None, weight = 1.0):
+        super().__init__(id, tf, current_time, n, weight)
         self.children: list['NaiveTreeMicrocluster'] = []
         self.is_centroid = False
         self.parent = parent
@@ -72,7 +72,7 @@ class NaiveTreeMicrocluster(Microcluster):
         right_children = [child for child, t in zip(self.children, above_the_threshold) if t]
         self.is_centroid = True # Should be ususally the case except for the first split
         
-        left_mc = NaiveTreeMicrocluster(id1, {}, current_time, 0, parent=self, embedding=None, weight=0)
+        left_mc = NaiveTreeMicrocluster(id1, {}, current_time, 0, parent=self, weight=0)
         tf, idf = combine_children(left_children)
         left_mc.tf = tf
         left_mc.children = left_children
@@ -81,7 +81,7 @@ class NaiveTreeMicrocluster(Microcluster):
         for c in left_children:
             c.set_parent(left_mc)
             
-        right_mc = NaiveTreeMicrocluster(id2, {}, current_time, 0, parent=self, embedding=None, weight=0)
+        right_mc = NaiveTreeMicrocluster(id2, {}, current_time, 0, parent=self, weight=0)
         tf, idf = combine_children(right_children)
         right_mc.tf = tf
         right_mc.children = right_children
@@ -181,7 +181,7 @@ class NaiveTreeMicrocluster(Microcluster):
                     result[term] = result.get(term, 0) + 1
         return result
 
-def combine_children(children: Sequence['Microcluster']):
+def combine_children(children: Sequence['TfIdfMicrocluster']):
     terms = set([term for c in children for term in c.tf.keys()])
     result_tf = {}
     result_idf = {}
@@ -246,15 +246,15 @@ class NaiveTfidfCosineDistanceTree(DistanceMetric):
 class NaiveTreeSumMerger(SumMerger):
     """Extension of SumMerger that also merges tree structure for TreeMicroclusters."""
 
-    def __call__(self, mc1: NaiveTreeMicrocluster, mc2: NaiveTreeMicrocluster, current_time: float, fader: Optional[DampedFade] = None) -> Microcluster:
+    def __call__(self, mc1: NaiveTreeMicrocluster, mc2: NaiveTreeMicrocluster, current_time: float, fader: Optional[TfIdfDampedFade] = None) -> TfIdfMicrocluster:
         """Merge two TreeMicroclusters and combine their children."""
         merged = super().__call__(mc1, mc2, current_time, fader)
-        merged = NaiveTreeMicrocluster(merged.id, merged.tf, merged.last_update_time, merged.n, None, merged.embedding, merged.weight)
+        merged = NaiveTreeMicrocluster(merged.id, merged.tf, merged.last_update_time, merged.n, None, merged.weight)
         merged.parent = mc1.parent  # Keep the same parent
         merged.children = mc1.children + mc2.children  # Combine children from both clusters
         return merged
-    
-class NaiveTreeFader(ExpFade):
+
+class NaiveTreeFader(TfIdfExpFade):
     """Fader that also applies fading to TreeMicrocluster norms."""
     
     def __init__(self, decay_rate: float, term_fading: bool = True, min_weight: float = 0.5):
@@ -262,7 +262,7 @@ class NaiveTreeFader(ExpFade):
 
     def __call__(self, mc: NaiveTreeMicrocluster, current_time: float) -> tuple[NaiveTreeMicrocluster, bool]:
         faded_mc, is_expired = super().__call__(mc, current_time)
-        faded_mc = NaiveTreeMicrocluster(faded_mc.id, faded_mc.tf, faded_mc.last_update_time, faded_mc.n, None, faded_mc.embedding, faded_mc.weight)
+        faded_mc = NaiveTreeMicrocluster(faded_mc.id, faded_mc.tf, faded_mc.last_update_time, faded_mc.n, None, faded_mc.weight)
         faded_mc.parent = mc.parent
         faded_mc.children = mc.children
 
@@ -285,8 +285,8 @@ class NaiveTreeClusterer(Microclusterer):
         self.outlier_dist_squaresum = 0.0
         self.dist_sum = 0.0
         
-    def _update(self, mc: Microcluster, current_time: float, *args, root: Optional[NaiveTreeMicrocluster] = None, **kwargs) -> Tuple[NaiveTreeMicrocluster, Optional[int]]:
-        mc = NaiveTreeMicrocluster(mc.id, mc.tf, mc.last_update_time, mc.n, None, mc.embedding, mc.weight)
+    def _update(self, mc: TfIdfMicrocluster, current_time: float, *args, root: Optional[NaiveTreeMicrocluster] = None, **kwargs) -> Tuple[NaiveTreeMicrocluster, Optional[int]]:
+        mc = NaiveTreeMicrocluster(mc.id, mc.tf, mc.last_update_time, mc.n, None, mc.weight)
         root = self.tree if root is None else root
         clusterId = None
         if root is None:
@@ -332,12 +332,12 @@ class NaiveTreeClusterer(Microclusterer):
         return mc, clusterId
             
     def _make_tree(self, mc: NaiveTreeMicrocluster, current_time: float) -> None:
-        self.tree = NaiveTreeMicrocluster(self.pull_new_clusterId(), deepcopy(mc.tf), current_time, mc.n, None, mc.embedding, mc.weight)
+        self.tree = NaiveTreeMicrocluster(self.pull_new_clusterId(), deepcopy(mc.tf), current_time, mc.n, None, mc.weight)
         self.tree.is_centroid = True
         self.tree.children.append(mc)
         mc.set_parent(self.tree)
     
-    def get_clusters(self, node: Optional[NaiveTreeMicrocluster] = None) -> List[Microcluster]:
+    def get_clusters(self, node: Optional[NaiveTreeMicrocluster] = None) -> List[TfIdfMicrocluster]:
         node = self.tree if node is None else node
         if node is None:
             return []
@@ -425,7 +425,7 @@ class NaiveTreeClusterer(Microclusterer):
                 return 
         
         clusters = self.get_clusters()
-        self.tree = NaiveTreeMicrocluster(self.pull_new_clusterId(), {}, current_time, 0, None, None, 0)
+        self.tree = NaiveTreeMicrocluster(self.pull_new_clusterId(), {}, current_time, 0, None, 0)
         self.tree.children = clusters  # type: ignore
         tf, idf = combine_children(clusters)
         self.tree.tf = tf

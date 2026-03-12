@@ -53,7 +53,8 @@ class HistoryManager:
             self.cluster_expiration_time.append((current_time, cluster_id))
             
         for merged_cluster_id, destination_cluster_ids in merged_info.items():
-            self.cluster_merge_history.append((current_time, merged_cluster_id, destination_cluster_ids))
+            if merged_cluster_id != destination_cluster_ids:
+                self.cluster_merge_history.append((current_time, merged_cluster_id, destination_cluster_ids))
             
     def get_final_assignments(self) -> List[tuple[int, int]]:
         """Derive final text-to-cluster assignments after merge history replay."""
