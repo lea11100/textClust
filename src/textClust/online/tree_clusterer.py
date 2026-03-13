@@ -172,6 +172,7 @@ class TreeMicrocluster(TfIdfMicrocluster):
         self.is_centroid = True # Should be ususally the case except for the first split
         
         left_mc = TreeMicrocluster(id1, {}, current_time, 0, parent=self, weight=0)
+        left_mc.is_centroid = True
         tf, idf = combine_children(left_children)
         left_mc.tf = tf
         left_mc.idf = idf
@@ -182,6 +183,7 @@ class TreeMicrocluster(TfIdfMicrocluster):
             c.set_parent(left_mc)
             
         right_mc = TreeMicrocluster(id2, {}, current_time, 0, parent=self, weight=0)
+        right_mc.is_centroid = True
         tf, idf = combine_children(right_children)
         right_mc.tf = tf
         right_mc.idf = idf
@@ -469,6 +471,31 @@ class TreeClusterer(Microclusterer):
                 result.append(c)
         return result
     
+    def check_centroid(self):
+        def _check_centroid_rec(node: TreeMicrocluster):
+            if node is None:
+                return True
+            if node.is_centroid and len(node.children) == 0:
+                raise ValueError(f"Node {node.id} is marked as centroid but has no children")
+            if not node.is_centroid and len(node.children) > 0:
+                raise ValueError(f"Node {node.id} is not marked as centroid but has children")
+            for c in node.children:
+                _check_centroid_rec(c)
+        if self.tree is not None:
+            _check_centroid_rec(self.tree)
+    
+    def check_tree(self):
+        def _check_tree_rec(node: TreeMicrocluster):
+            if node is None:
+                return True
+            if node.parent is not None:
+                assert node in node.parent.children, f"Node {node.id} is not in its parent's children"
+            for c in node.children:
+                assert c.parent == node, f"Child {c.id} does not have correct parent reference"
+                _check_tree_rec(c)
+        if self.tree is not None:
+            _check_tree_rec(self.tree)
+    
     def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List, dict]:
         expired_ids = self._clean_up_clusters(current_time=current_time, node=self.tree)
         merged_ids = self._merge_clusters(current_time=current_time, *args, **kwargs)
@@ -513,14 +540,19 @@ class TreeClusterer(Microclusterer):
                         merged[j] = True
                         merge_history[node.children[j].id] = id
                     else:
+                        for c in node.children[j].children:
+                            c.set_parent(node.children[i])
                         node.children[i].children.extend(node.children[j].children)
                         node.children[i].split_children(self.pull_new_clusterId(), self.pull_new_clusterId(), current_time)
                         node.children[i], node.children[j] = node.children[i].children[0], node.children[i].children[1]
+                        node.children[i].set_parent(node)
+                        node.children[j].set_parent(node)
                         merged[j] = True
         node.children = [child for m, child in zip(merged, node.children) if not m] 
         if len(node.children) == 1 and node.parent is not None:
+            node.parent.children = [c for c in node.parent.children if c != node]
+            node.parent.children.append(node.children[0])
             node.children[0].set_parent(node.parent)
-            node = node.children[0]
         elif node.parent is not None and len(node.children) + len(node.parent.children) - 1 < self.max_children:
             # Merge with parent if the total number of children is less than max_children
             node.parent.children = [c for c in node.parent.children if c != node]
@@ -542,14 +574,14 @@ class TreeClusterer(Microclusterer):
         if self.tree is not None:
             merged_ids = self._merge_children(self.tree, threshold, current_time)
         
-        self._rebuilt_tree(current_time)
+        #self._rebuilt_tree(current_time)
         
         self.num_merged_obs = 0
         self.dist_sum = 0.0
         
         return merged_ids
         
-    def _rebuilt_tree(self, current_time: float):
+    def _rebuilt_tree(self, current_time: float, microclusters: Optional[List[TfIdfMicrocluster]] = None):
         def _rebuild_tree_helper(node: TreeMicrocluster):
             if len(node.children) > self.max_children:
                 node.split_children(self.pull_new_clusterId(), self.pull_new_clusterId(), current_time)
@@ -558,8 +590,9 @@ class TreeClusterer(Microclusterer):
             else:
                 return 
         
-        clusters = self.get_clusters()
+        clusters = self.get_clusters() if microclusters is None else microclusters
         self.tree = TreeMicrocluster(self.pull_new_clusterId(), {}, current_time, 0, None, 0)
+        self.tree.is_centroid = True
         self.tree.children = clusters  # type: ignore
         tf, idf = combine_children(clusters)
         self.tree.tf = tf
@@ -603,5 +636,21 @@ class TreeClusterer(Microclusterer):
             node.weight = node.get_weight_direct()
             
             return False, expired_ids
+        
+    def update_with_merge_history(self, merge_history: Optional[dict[int, int]], current_time: float, *args, **kwargs):
+        if merge_history is None or len(merge_history) == 0:
+            return
+        microclusters = self.get_clusters()
+        simple_merger = SumMerger()
+        mc_dict = {mc.id: mc for mc in microclusters}
+        for dest_id in set(merge_history.values()):
+            for c_id in [mid for mid, dest in merge_history.items() if dest == dest_id]:
+                if dest_id == c_id:
+                    continue
+                mc_dict[dest_id] = simple_merger(mc_dict[dest_id], mc_dict[c_id], current_time=current_time, fader=self.fader)
+                del mc_dict[c_id]
+        microclusters = list(mc_dict.values())
+        
+        self._rebuilt_tree(current_time, microclusters)
         
     

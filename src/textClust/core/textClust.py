@@ -63,6 +63,7 @@ class textClust:
                 self.cluster()
             if self.time_manager.time_to_log():
                 self.log()
+            
         self.end()
             
     
