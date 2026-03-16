@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --mail-type END,FAIL
 #SBATCH --mail-user sussekl@mail.uni-paderborn.de
-#SBATCH -t 1:00:00
+#SBATCH -t 00:10:00
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --mem=16G
@@ -10,9 +10,9 @@
 #SBATCH -p gpu
 #SBATCH -A hpc-prf-dedsm
 
-module load lang/Tkinter/3.9.6-GCCcore-11.2.0
 module load lang/Python/3.10.4-GCCcore-11.3.0
-module load system/CUDA/12.4.1
+module load system/CUDA/12.6.0
 source /scratch/hpc-prf-dedsm/sussekl/textClust/.venv/bin/activate
 
+pip install .
 python examples/run_rootClust.py
