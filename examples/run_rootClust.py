@@ -23,7 +23,8 @@ if __name__ == "__main__":
     micro_clusterer = RootClusterer(distance_metric=metric, fader=fader, merger=merger, sigma=3, min_num_mc=5, threshold_momentum=None)
     history = HistoryManager()
     
-    macro_clusterer = LlmMacroClusterer(model_name="Qwen/Qwen2.5-32B-Instruct:featherless-ai")
+    macro_clusterer = LlmMacroClusterer(model_name="Qwen/Qwen2.5-32B-Instruct", use_hf=False)
+    #macro_clusterer = LlmMacroClusterer(model_name="Qwen/Qwen2.5-32B-Instruct:featherless-ai")
     #macro_clusterer = TfidfToEmbeddingMacroClusterer(SentenceTransformer("all-MiniLM-L6-v2", device="mps"), epsilon=0.3, min_samples=5)
     #macro_clusterer = SimpleMacroClusterer()
     

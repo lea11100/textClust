@@ -23,6 +23,7 @@ import plotly.graph_objects as go
 import plotly.tools as tls
 from plotly.subplots import make_subplots
 import plotly.express as px
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import textClust.offline.plots as plots
 
 class MacroClusterer:
@@ -241,13 +242,18 @@ class TfidfToEmbeddingMacroClusterer(SimpleMacroClusterer):
     
     
 class LlmMacroClusterer(SimpleMacroClusterer):
-    def __init__(self, model_name:str, *args, **kwargs):
+    def __init__(self, model_name:str, use_hf=True, *args, **kwargs):
         """Initialize macroclusterer instance."""
         self.walltime_at_clustering = []
         self.last_eval_time = None
         self.eval_history = []
         self.model_name = model_name
-        self.client = InferenceClient(api_key=os.environ["HF_TOKEN"])
+        self.use_hf = use_hf
+        if use_hf:
+            self.client = InferenceClient(api_key=os.environ["HF_TOKEN"])
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.model = AutoModelForCausalLM.from_pretrained(model_name)
             
     def cluster(self, micro_clusters: List[TfIdfMicrocluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[MacroCluster], Optional[dict[int, int]]]:
         """Create macroclusters from active microclusters."""
@@ -266,18 +272,31 @@ class LlmMacroClusterer(SimpleMacroClusterer):
         Try to avoid topic mixing as much as possible. If you are unsure about a sentence, assign it to 'Mixed Themes'.
         Return only the JSON object, without any additional text or explanation.
         """
-
-        completion = self.client.chat.completions.create(
-            model="Qwen/Qwen2.5-32B-Instruct:featherless-ai",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"{instruction}\n\nSentences:\n{sentences}"
-                }
-            ],
-        )
         
-        response = completion.choices[0].message.content
+        message = [
+            {
+                "role": "user",
+                "content": f"{instruction}\n\nSentences:\n{sentences}"
+            }
+        ]
+        if self.use_hf:
+            completion = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=message,
+            )
+            
+            response = completion.choices[0].message.content
+        else:
+            inputs = self.tokenizer.apply_chat_template(
+                message,
+                add_generation_prompt=True,
+                tokenize=True,
+                return_dict=True,
+                return_tensors="pt",
+            ).to(self.model.device)
+
+            outputs = self.model.generate(**inputs, max_new_tokens=512)
+            response = self.tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:])
         # Convert the JSON response string into a dictionary
         assert response is not None, "LLM did not return a response"
         
