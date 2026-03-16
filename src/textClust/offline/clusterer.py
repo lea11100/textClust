@@ -1,7 +1,10 @@
 """Offline macro-clustering interfaces and basic TF-IDF implementation."""
 
+import json
+import os
 from typing import List, Optional
 
+from huggingface_hub import InferenceClient
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import DBSCAN
 import torch
@@ -135,17 +138,19 @@ class SimpleMacroClusterer(MacroClusterer):
     def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, top_k: int = 20, *args, **kwargs) -> None:
         """Plot microcluster weight trajectories over time for top clusters."""
         fig1 = plots.weight_plot(history_manager, top_k=top_k)
-        fig2 = plots.sankey_plot(history_manager)
-        fig3 = plots.metric_history_plot(self.eval_history)
-        fig4 = plots.threshold_over_time_plot(history_manager)
+        fig2 = plots.sankey_plot(history_manager, use_final_assignments=True)
+        fig3 = plots.sankey_plot(history_manager, use_final_assignments=False)
+        fig4 = plots.metric_history_plot(self.eval_history)
+        fig5 = plots.threshold_over_time_plot(history_manager)
 
         fig = make_subplots(
-            rows=4,
+            rows=5,
             cols=1,
-            specs=[[{"type": "xy"}], [{"type": "domain"}], [{"type": "xy"}], [{"type": "xy"}]],
+            specs=[[{"type": "xy"}], [{"type": "domain"}], [{"type": "domain"}], [{"type": "xy"}], [{"type": "xy"}]],
             subplot_titles=(
                 "Microcluster Weight Evolution Over Time",
                 "Cluster Assignment Flow",
+                "Cluster Assignment Flow (Initial)",
                 "Evaluation Metrics Over Time",
                 "Adaptive Threshold Over Time"
             ),
@@ -168,30 +173,46 @@ class SimpleMacroClusterer(MacroClusterer):
             for trace in fig4.data:
                 fig.add_trace(trace, row=4, col=1)
                 
+        if fig5 is not None:
+            for trace in fig5.data:
+                fig.add_trace(trace, row=5, col=1)
+                
         fig.update_layout(height=4000)
         fig.show()
         
 class TfidfToEmbeddingMacroClusterer(SimpleMacroClusterer):
-    def __init__(self, embedding_model: SentenceTransformer, epsilon: float = 0.4, *args, **kwargs):
+    def __init__(self, embedding_model: SentenceTransformer, epsilon: float = 0.4, min_samples: int = 4, *args, **kwargs):
         """Initialize macroclusterer instance."""
         self.embedding_model = embedding_model
         self.walltime_at_clustering = []
         self.last_eval_time = None
         self.eval_history = []
         self.epsilon = epsilon
+        self.min_samples = min_samples
     
     def cluster(self, micro_clusters: List[TfIdfMicrocluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[MacroCluster], Optional[dict[int, int]]]:
         """Create macroclusters from active microclusters."""
         now = time.time()
         self.walltime_at_clustering.append(now)
         macro_clusters = []
-        sentences = [" ".join(sorted(mc.tf, key=lambda k: mc.tf[k], reverse=True)) for mc in micro_clusters]
+        
+        final_assignments = np.array(history_manager.get_final_assignments(), dtype=int)
+        
+        sentences = [" ".join(sorted(mc.tf, key=lambda k: mc.tf[k], reverse=True)[:10]) for mc in micro_clusters]
         embeddings = self.embedding_model.encode(sentences, convert_to_tensor=True)
+        #sentences = [np.random.choice(final_assignments[final_assignments[:, 1] == mc.id, 0], size=20) for mc in micro_clusters]
+        #sentences = [[" ".join(history_manager.texts.get(str(text_id), "")) for text_id in sentence] for sentence in sentences]
+        #sentences_flattened = [s for sublist in sentences for s in sublist]
+        
+        #embeddings = self.embedding_model.encode(sentences_flattened, convert_to_tensor=True)
+        #embeddings = embeddings.reshape(len(micro_clusters), 20, -1).mean(dim=1)  # Average embeddings of top terms for each microcluster
+        
+        
         # Compute cosine similarity matrix and apply DBSCAN to find macroclusters
         sim = torch.nn.functional.cosine_similarity(embeddings.unsqueeze(1), embeddings.unsqueeze(0), dim=-1)
         
         
-        clusterer = DBSCAN(eps=self.epsilon, min_samples=4, metric="cosine")
+        clusterer = DBSCAN(eps=self.epsilon, min_samples=self.min_samples, metric="cosine")
         labels = clusterer.fit_predict(embeddings.cpu().numpy())
         merge_history = {}
         for l in np.unique(labels):
@@ -216,4 +237,79 @@ class TfidfToEmbeddingMacroClusterer(SimpleMacroClusterer):
             if l == -1:
                 macro_clusters.append(TfIdfEmbeddingMacroCluster(mc.id, mc.tf, current_time, mc.n, embeddings[i], mc.weight))
                 merge_history[mc.id] = mc.id
+        return macro_clusters, merge_history
+    
+    
+class LlmMacroClusterer(SimpleMacroClusterer):
+    def __init__(self, model_name:str, *args, **kwargs):
+        """Initialize macroclusterer instance."""
+        self.walltime_at_clustering = []
+        self.last_eval_time = None
+        self.eval_history = []
+        self.model_name = model_name
+        self.client = InferenceClient(api_key=os.environ["HF_TOKEN"])
+            
+    def cluster(self, micro_clusters: List[TfIdfMicrocluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[MacroCluster], Optional[dict[int, int]]]:
+        """Create macroclusters from active microclusters."""
+        now = time.time()
+        self.walltime_at_clustering.append(now)
+        macro_clusters = []
+        
+        sentences = [f"{' '.join(sorted(mc.tf, key=lambda k: mc.tf[k], reverse=True)[:10])} ({mc.id})" for mc in micro_clusters]
+        sentences = ".\n".join(sentences) + "."
+        
+        instruction = """You find words that construct sentences that might be syntactically incorrect. Each sentence has an associated ID in parentheses.
+        Cluster these sentences by their semantic meaning.
+        Return a JSON object with sentence IDs as keys and cluster labels as values. Use meaningful cluster labels based on the common themes of the sentences in each cluster. 
+        Be concise but descriptive in your cluster labels. Do not change the order of the IDs in the output.
+        Some sentenced may be impure and contain multiple themes, so assign them to a cluster named 'Mixed Themes'. 
+        Try to avoid topic mixing as much as possible. If you are unsure about a sentence, assign it to 'Mixed Themes'.
+        Return only the JSON object, without any additional text or explanation.
+        """
+
+        completion = self.client.chat.completions.create(
+            model="Qwen/Qwen2.5-32B-Instruct:featherless-ai",
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"{instruction}\n\nSentences:\n{sentences}"
+                }
+            ],
+        )
+        
+        response = completion.choices[0].message.content
+        # Convert the JSON response string into a dictionary
+        assert response is not None, "LLM did not return a response"
+        
+        cluster_result = json.loads(response)
+        cluster_result = sorted(cluster_result.items(), key=lambda x: int(x[0]))  # Sort by ID
+        cluster_result_ids = [int(item[0]) for item in cluster_result]
+        cluster_result_labels = np.array([item[1] for item in cluster_result])
+        
+        mc_sorted = sorted(micro_clusters, key=lambda mc: mc.id)
+        mc_ids = [mc.id for mc in mc_sorted]
+        
+        assert cluster_result_ids == mc_ids, "Mismatch between microcluster IDs and LLM output IDs"
+        
+        merge_history = {}
+        for l in np.unique(cluster_result_labels):
+            if l == "Mixed Themes":
+                continue
+            else:
+                cluster_mask = cluster_result_labels == l
+                cluster_mcs = [mc for mc, mask in zip(mc_sorted, cluster_mask) if mask]
+                n = sum(mc.n for mc in cluster_mcs)
+                weight = sum(mc.weight for mc in cluster_mcs)
+                tf = {}
+                id = cluster_mcs[0].id
+                for mc in cluster_mcs:
+                    merge_history[mc.id] = id
+                    for term, freq in mc.tf.items():
+                        tf[term] = tf.get(term, 0) + freq
+                macro_clusters.append(TfIdfMacroCluster(id, tf, current_time, n, weight))
+                
+        for i, (mc, l) in enumerate(zip(mc_sorted, cluster_result_labels)):
+            if l == "Mixed Themes":
+                #macro_clusters.append(TfIdfEmbeddingMacroCluster(mc.id, mc.tf, current_time, mc.n, embeddings[i], mc.weight))
+                merge_history[mc.id] = -1  # Indicate to delete
         return macro_clusters, merge_history

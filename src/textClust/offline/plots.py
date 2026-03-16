@@ -45,24 +45,28 @@ def metric_history_plot(eval_history: List[dict]) -> go.Figure:
 
     return fig 
     
-def sankey_plot(history_manager: HistoryManager) -> go.Figure:
+def sankey_plot(history_manager: HistoryManager, use_final_assignments: bool = False) -> go.Figure:
     """Create a Plotly Sankey diagram showing cluster merges over time."""
     true_assignments = [int(c_id) for _, c_id in sorted(history_manager.true_assignments, key=lambda x: x[0])]  # sort by text_id
-    predicted_assignments = [int(c_id) for _, _, c_id in sorted(history_manager.initial_text_assignments, key=lambda x: x[1])]
-    final_assignments = [int(c_id) for _, c_id in sorted(history_manager.get_final_assignments(), key=lambda x: x[0])]
+    if use_final_assignments:
+        predicted_assignments = [int(c_id) for _, c_id in sorted(history_manager.get_final_assignments(), key=lambda x: x[0])]
+    else:
+        predicted_assignments = [int(c_id) for _, _, c_id in sorted(history_manager.initial_text_assignments, key=lambda x: x[1])]
 
     word_counts_true = _top_k_per_cluster(history_manager.true_assignments, history_manager)
-    word_counts_pred = _top_k_per_cluster([(t_id, c_id) for _, t_id, c_id in history_manager.initial_text_assignments], history_manager)
-    word_counts_final = _top_k_per_cluster([(t_id, c_id) for t_id, c_id in history_manager.get_final_assignments()], history_manager)
+    if use_final_assignments:
+        word_counts_pred = _top_k_per_cluster([(t_id, c_id) for t_id, c_id in history_manager.get_final_assignments()], history_manager)
+    else:
+        word_counts_pred = _top_k_per_cluster([(t_id, c_id) for _, t_id, c_id in history_manager.initial_text_assignments], history_manager)
     # Crosstab: counts of true → predicted
-    flows = pd.crosstab(pd.Series(true_assignments, name="true"), pd.Series(final_assignments, name="pred"))
+    flows = pd.crosstab(pd.Series(true_assignments, name="true"), pd.Series(predicted_assignments, name="pred"))
     
     # Labels and node indices
     true_nodes = [f"T{c}" for c in flows.index]
     pred_nodes = [f"P{c}" for c in flows.columns]
     labels = true_nodes + pred_nodes
     hover_labels = ["<br>".join(f"{term}:{count}" for term, count in word_counts_true[c_id].items()) for c_id in flows.index] + \
-                    ["<br>".join(f"{term}:{count}" for term, count in word_counts_final[int(c_id[1:])].items()) for c_id in pred_nodes]
+                    ["<br>".join(f"{term}:{count}" for term, count in word_counts_pred[int(c_id[1:])].items()) for c_id in pred_nodes]
     label_idx = {label:i for i,label in enumerate(labels)}
 
     # Sources, targets, values
@@ -88,7 +92,7 @@ def sankey_plot(history_manager: HistoryManager) -> go.Figure:
                 value=values))) 
     return fig      
 
-def weight_plot(history_manager: HistoryManager, top_k: int = 20):
+def weight_plot(history_manager: HistoryManager, top_k: int = 10):
     """Create a Plotly figure showing weight trajectories of top clusters."""
     df_list = []
     for s in history_manager.snapshots:

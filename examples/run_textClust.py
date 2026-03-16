@@ -24,7 +24,7 @@ if __name__ == "__main__":
                                                            threshold_momentum=None)
     history = HistoryManager()
     
-    #macro_clusterer = TfidfToEmbeddingMacroClusterer(SentenceTransformer("all-MiniLM-L6-v2", device="mps"), epsilon=0.15)
+    #macro_clusterer = TfidfToEmbeddingMacroClusterer(SentenceTransformer("all-MiniLM-L6-v2", device="mps"), epsilon=0.2)
     macro_clusterer = SimpleMacroClusterer()
     
     clusterer = textClust(wrapper, preprocessor, time_manager, micro_clusterer, macro_clusterer, history)

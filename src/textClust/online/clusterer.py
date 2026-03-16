@@ -113,7 +113,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         if self.threshold_momentum and self.last_threshold > 0:
             threshold = self.threshold_momentum * self.last_threshold + (1 - self.threshold_momentum) * threshold
         self.last_threshold = threshold
-        if min_dist < threshold:
+        if min_dist < threshold and avg_dist < 1:
             closest_mc = self.microclusters[min_dist_idx]
             merged_mc = self.merger(closest_mc, mc, current_time=current_time, fader=self.fader)
             self.microclusters[min_dist_idx] = merged_mc
@@ -196,7 +196,8 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
             for c_id in [mid for mid, dest in merge_history.items() if dest == dest_id]:
                 if dest_id == c_id:
                     continue
-                mc_dict[dest_id] = self.merger(mc_dict[dest_id], mc_dict[c_id], current_time=current_time, fader=self.fader)
+                if dest_id != -1: # If dest_id is -1, it means the cluster should be deleted, so we skip merging and just mark for deletion 
+                    mc_dict[dest_id] = self.merger(mc_dict[dest_id], mc_dict[c_id], current_time=current_time, fader=self.fader)
                 del mc_dict[c_id]
         self.microclusters = list(mc_dict.values())
     
