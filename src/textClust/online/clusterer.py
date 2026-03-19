@@ -55,7 +55,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
     """Adaptive-threshold online microclusterer based on pairwise distances."""
 
     def __init__(self, distance_metric: DistanceMetric, fader: DampedFade, merger: Merger, sigma=1.0,
-                 min_num_mc=5, include_min_for_threshold=False, threshold_momentum=None, *args, **kwargs):
+                 min_num_mc=5, threshold_momentum=None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
         super().__init__()
         self.microclusters: List[Microcluster] = []
@@ -70,8 +70,7 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         self.dist_sum = 0.0
         
         self.min_num_mc = min_num_mc
-        
-        self.include_min_for_threshold = include_min_for_threshold
+    
         self.threshold_momentum = threshold_momentum
         self.last_threshold = 0.0
     
@@ -205,10 +204,10 @@ class TfIdfAdaptiveThresholdMicroclusterer(AdaptiveThresholdMicroclusterer):
     """Adaptive-threshold online microclusterer based on pairwise distances."""
 
     def __init__(self, distance_metric: TfIdfDistanceMetric, fader: TfIdfDampedFade, merger: TfIdfMerger, sigma=1.0,
-                 min_num_mc=5, include_min_for_threshold=False, threshold_momentum: Optional[float] = None, *args, **kwargs):
+                 min_num_mc=5, threshold_momentum: Optional[float] = None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
         super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, sigma=sigma, min_num_mc=min_num_mc,
-                         include_min_for_threshold=include_min_for_threshold, threshold_momentum=threshold_momentum, *args, **kwargs)
+                        threshold_momentum=threshold_momentum, *args, **kwargs)
         self.microclusters: List[TfIdfMicrocluster] = [] # type: ignore
         
     def _get_idf(self, additional_mc: Optional[TfIdfMicrocluster] = None) -> dict[str, float]:
@@ -241,6 +240,6 @@ class TfIdfAdaptiveThresholdMicroclusterer(AdaptiveThresholdMicroclusterer):
 class EmbeddingAdaptiveThresholdClusterer(AdaptiveThresholdMicroclusterer):
     def __init__(self,
                  distance_metric: EmbeddingDistanceMetric, fader: EmbeddingDampedFade, merger: EmbeddingMerger, sigma=1.0, 
-                 min_num_mc=15, include_min_for_threshold=True, threshold_momentum:Optional[float] = None, *args, **kwargs):
+                 min_num_mc=15, threshold_momentum:Optional[float] = None, *args, **kwargs):
         super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, sigma=sigma, min_num_mc=min_num_mc,
-                         include_min_for_threshold=include_min_for_threshold, threshold_momentum=threshold_momentum, *args, **kwargs)
+                         threshold_momentum=threshold_momentum, *args, **kwargs)

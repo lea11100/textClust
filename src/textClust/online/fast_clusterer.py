@@ -28,7 +28,7 @@ class IDFManager:
             self.term_doc_freq[term] = new_c
         self.pending_updates = {}
         
-    def recalculate(self, microclusters: List["RootMicrocluster"]):
+    def recalculate(self, microclusters: List["FastMicrocluster"]):
         self.term_doc_freq = {}
         for mc in microclusters:
             for term in mc.tf.keys():
@@ -36,7 +36,7 @@ class IDFManager:
                 
         self.total_docs = len(microclusters)
 
-class RootMicrocluster(TfIdfMicrocluster):
+class FastMicrocluster(TfIdfMicrocluster):
     def __init__(self, id, tf:dict[str, float], idf_manager: IDFManager, current_time: float, n: int, weight = 1.0):
         super().__init__(id, tf, current_time, n, weight)
        
@@ -84,14 +84,14 @@ class RootMicrocluster(TfIdfMicrocluster):
         self.weighted_tf_sum = np.sum([v ** 2 * 1/math.sqrt(self.idf_manager.term_doc_freq.get(k, 1)) for k, v in self.tf.items()])
         
 
-class RootCosineDistance(TfidfCosineDistance):
+class FastCosineDistance(TfidfCosineDistance):
     def __init__(self):
         super().__init__()
         self.requires_idf = False
         
-    def __call__(self, mc1: RootMicrocluster, mc2: RootMicrocluster, *args, **kwargs) -> float:
-        if not isinstance(mc1, RootMicrocluster) or not isinstance(mc2, RootMicrocluster):
-            raise ValueError("RootCosineDistance requires RootMicrocluster instances")
+    def __call__(self, mc1: FastMicrocluster, mc2: FastMicrocluster, *args, **kwargs) -> float:
+        if not isinstance(mc1, FastMicrocluster) or not isinstance(mc2, FastMicrocluster):
+            raise ValueError("FastCosineDistance requires FastMicrocluster instances")
         
         tf1 = mc1.tf
         tf2 = mc2.tf
@@ -124,13 +124,13 @@ class RootCosineDistance(TfidfCosineDistance):
         distance = max(0, distance)
         return distance
 
-class RootFader(TfIdfExpFade):
-    """Fader that also applies fading to TreeMicrocluster norms."""
+class FastFader(TfIdfExpFade):
+    """Fader that also applies fading to FastMicrocluster norms."""
     
     def __init__(self, decay_rate: float, term_fading: bool = True, min_weight: float = 0.5):
         super().__init__(decay_rate, term_fading, min_weight)
 
-    def __call__(self, mc: RootMicrocluster, current_time: float) -> tuple[RootMicrocluster, bool]:
+    def __call__(self, mc: FastMicrocluster, current_time: float) -> tuple[FastMicrocluster, bool]:
         factor = 2 ** (- self.decay_rate * (current_time - mc.last_update_time))
         mc.weight *= factor
         mc.last_update_time = current_time
@@ -144,15 +144,15 @@ class RootFader(TfIdfExpFade):
         is_expired = is_expired or (len(mc.tf) == 0)  # Expire if no terms left
         return mc, is_expired
 
-class RootSumMerger(SumMerger):
+class FastSumMerger(SumMerger):
     """Extension of SumMerger that also merges tree structure for TreeMicroclusters."""
 
-    def __call__(self, mc1: RootMicrocluster, mc2: RootMicrocluster, current_time: float, fader: Optional[RootFader] = None) -> TfIdfMicrocluster:
+    def __call__(self, mc1: FastMicrocluster, mc2: FastMicrocluster, current_time: float, fader: Optional[FastFader] = None) -> TfIdfMicrocluster:
         """Merge two TreeMicroclusters and combine their children."""     
         if fader is not None:
             mc1, _ = fader(mc1, current_time)
             mc2, _ = fader(mc2, current_time)
-            assert isinstance(mc1, RootMicrocluster) and isinstance(mc2, RootMicrocluster), "Fader must return RootMicroclusters"
+            assert isinstance(mc1, FastMicrocluster) and isinstance(mc2, FastMicrocluster), "Fader must return FastMicroclusters"
         
         merged_weight = mc1.weight + mc2.weight
         merged_n = mc1.n + mc2.n
@@ -163,24 +163,24 @@ class RootSumMerger(SumMerger):
         mc1.idf_manager.add_pending_updates({term: max(mc1.idf_manager.term_doc_freq.get(term, 1) - 1,1) for term in common_terms})
         mc1.idf_manager.add_pending_updates({term: 1 for term in new_terms})
         
-        merged = RootMicrocluster(mc1.id, mc1.tf, mc1.idf_manager, mc1.last_update_time, merged_n, merged_weight)
+        merged = FastMicrocluster(mc1.id, mc1.tf, mc1.idf_manager, mc1.last_update_time, merged_n, merged_weight)
         
         return merged
 
-class RootClusterer(TfIdfAdaptiveThresholdMicroclusterer):
-    def __init__(self, distance_metric: RootCosineDistance, fader: RootFader, merger: RootSumMerger, sigma=1.0,
+class FastClusterer(TfIdfAdaptiveThresholdMicroclusterer):
+    def __init__(self, distance_metric: FastCosineDistance, fader: FastFader, merger: FastSumMerger, sigma=1.0,
                  min_num_mc=5, include_min_for_threshold=False, threshold_momentum: Optional[float] = None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
         super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, sigma=sigma, min_num_mc=min_num_mc,
                          include_min_for_threshold=include_min_for_threshold, threshold_momentum=threshold_momentum, *args, **kwargs)
-        self.microclusters: List[RootMicrocluster] = [] # type: ignore
+        self.microclusters: List[FastMicrocluster] = [] # type: ignore
         self.idf_manager = IDFManager()
         
-    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[RootMicrocluster, Optional[int]]:
-        assert isinstance(mc, TfIdfMicrocluster), "RootClusterer can only update TfIdfMicrocluster"
-        mc = RootMicrocluster(mc.id, mc.tf, self.idf_manager, mc.last_update_time, mc.n, mc.weight)
+    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[FastMicrocluster, Optional[int]]:
+        assert isinstance(mc, TfIdfMicrocluster), "FastClusterer can only update TfIdfMicrocluster"
+        mc = FastMicrocluster(mc.id, mc.tf, self.idf_manager, mc.last_update_time, mc.n, mc.weight)
         new_mc, id = super()._update(mc, current_time, *args, **kwargs)
-        assert isinstance(new_mc, RootMicrocluster), "Updated microcluster must be a RootMicrocluster"
+        assert isinstance(new_mc, FastMicrocluster), "Updated microcluster must be a FastMicrocluster"
         if id is None:
             self.idf_manager.total_docs += 1
             self.idf_manager.add_pending_updates({term: self.idf_manager.term_doc_freq.get(term, 0) + 1 for term in new_mc.tf.keys()})
