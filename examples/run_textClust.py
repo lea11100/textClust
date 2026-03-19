@@ -1,3 +1,5 @@
+import time
+
 from sentence_transformers import SentenceTransformer
 
 from textClust.core.textClust import textClust
@@ -12,7 +14,8 @@ from textClust.history.manager import HistoryManager
 from textClust.offline.clusterer import SimpleMacroClusterer, TfidfToEmbeddingMacroClusterer
 
 if __name__ == "__main__":
-    wrapper = StaticJsonWrapper("examples/data/Semantic-T_peaked.json")
+    start_time = time.time()
+    wrapper = StaticJsonWrapper("examples/data/News-T.json")
     preprocessor = TFIDFPreprocessor()
     
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=100)
@@ -20,7 +23,7 @@ if __name__ == "__main__":
     metric = TfidfCosineDistance()
     fader = TfIdfExpFade(decay_rate=0.005, term_fading=False, min_weight=2 ** (-1 * 0.005 * 1100))
     merger = SumMerger()
-    micro_clusterer = TfIdfAdaptiveThresholdMicroclusterer(sigma=2, distance_metric=metric, fader=fader, merger=merger, min_num_mc=1, 
+    micro_clusterer = TfIdfAdaptiveThresholdMicroclusterer(sigma=1, distance_metric=metric, fader=fader, merger=merger, min_num_mc=1, 
                                                            threshold_momentum=None)
     history = HistoryManager()
     
@@ -29,3 +32,5 @@ if __name__ == "__main__":
     
     clusterer = textClust(wrapper, preprocessor, time_manager, micro_clusterer, macro_clusterer, history)
     clusterer.start()
+    end_time = time.time()
+    print(f"Total execution time: {end_time - start_time} seconds")

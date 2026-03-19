@@ -55,14 +55,11 @@ class SimpleMacroClusterer(MacroClusterer):
     def __init__(self, *args, **kwargs):
         """Initialize simple macroclusterer state."""
         super().__init__(*args, **kwargs)
-        self.walltime_at_clustering = []
-        self.last_eval_time = None
-        self.eval_history = []
     
     def cluster(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, *args, **kwargs) -> tuple[List[Macrocluster], Optional[dict[int, int]]]:
         """Convert each microcluster into a same-identity macrocluster."""
         now = time.time()
-        self.walltime_at_clustering.append(now)
+        history_manager.walltime_at_clustering.append(now)
         macro_clusters = []
         for mc in micro_clusters:
             if isinstance(mc, EmbeddingMicrocluster):
@@ -77,15 +74,15 @@ class SimpleMacroClusterer(MacroClusterer):
         """Compute summary stats and optional ground-truth clustering metrics."""
         macro_clusters.sort(key=lambda x: x.weight, reverse=True)
         top = macro_clusters[:top_k]
-        walltime_diff = np.diff(self.walltime_at_clustering) if len(self.walltime_at_clustering) > 1 else []
+        walltime_diff = np.diff(history_manager.walltime_at_clustering) if len(history_manager.walltime_at_clustering) > 1 else []
         
         eval_result = {"time": current_time, "k": top_k, "top_k": top, "walltime_diff": walltime_diff, "num_macro_clusters": len(macro_clusters)}
         if len(history_manager.true_assignments) > 0:
-            res = self._eval_with_ground_truth(history_manager, self.last_eval_time or 0.0)
+            res = self._eval_with_ground_truth(history_manager, history_manager.last_eval_time or 0.0)
             eval_result.update(res)
             res["time"] = current_time
-            self.eval_history.append(res)
-        self.last_eval_time = current_time
+            history_manager.eval_history.append(eval_result)
+        history_manager.last_eval_time = current_time
         return eval_result
     
     def _eval_with_ground_truth(self, history_manager: HistoryManager, last_eval_time: float) -> dict:
@@ -141,7 +138,7 @@ class SimpleMacroClusterer(MacroClusterer):
         fig1 = plots.weight_plot(history_manager, top_k=top_k)
         fig2 = plots.sankey_plot(history_manager, use_final_assignments=True)
         fig3 = plots.sankey_plot(history_manager, use_final_assignments=False)
-        fig4 = plots.metric_history_plot(self.eval_history)
+        fig4 = plots.metric_history_plot(history_manager.eval_history)
         fig5 = plots.threshold_over_time_plot(history_manager)
         fig6 = plots.labled_weight_plot(history_manager, top_k=top_k)
         fig7 = plots.long_sankey_plot(history_manager)

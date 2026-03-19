@@ -40,7 +40,11 @@ class HistoryManager:
         self.cluster_merge_history: List[tuple] = []  # time, merged_cluster_id, destination_cluster_ids
         self.texts = {}  # Optional: store text content for reference, keyed by text_id   
         self.threshold_history: List[tuple] = []  # time, threshold_value (if applicable)
-        self.preprocessor =  TFIDFPreprocessor()   
+        self.preprocessor =  TFIDFPreprocessor()  
+        
+        self.walltime_at_clustering = []
+        self.last_eval_time: float | None = None
+        self.eval_history = [] 
     
     def update_text_assignment(self, current_time: float, point: RawPoint, cluster_id: int):
         """Record predicted assignment and optional ground-truth label."""
