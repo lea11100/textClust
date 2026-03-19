@@ -4,6 +4,7 @@ import plotly.express as px
 from textClust.history.manager import HistoryManager
 
 from typing import List
+from collections import defaultdict
 
 def metric_history_plot(eval_history: List[dict]) -> go.Figure:
     """Create a Plotly figure showing evaluation metric trajectories over time."""
@@ -92,6 +93,49 @@ def sankey_plot(history_manager: HistoryManager, use_final_assignments: bool = F
                 value=values))) 
     return fig      
 
+def labled_weight_plot(history_manager: HistoryManager, top_k: int = 10):
+    """Create a Plotly figure showing weight trajectories of top clusters with labels."""
+    df_list = []
+    for s in history_manager.snapshots_macro:
+        clusters = [
+            [cid, weight, s.time, label]
+            for cid, weight, label in zip(s.macrocluster_ids, s.macrocluster_weights, s.macrocluster_labels)
+        ]
+        df_list.extend(clusters)
+
+    df = pd.DataFrame(df_list, columns=["cluster_id", "weight", "time", "label"])
+
+    # select top clusters by max weight
+    top_clusters = (
+        df.groupby("cluster_id")["weight"]
+        .max()
+        .nlargest(top_k)
+        .index
+    )
+
+    df = df[df["cluster_id"].isin(top_clusters)]
+
+    fig = px.line(
+        df,
+        x="time",
+        y="weight",
+        color="label",
+        title="Macrocluster Weight Evolution Over Time",
+        labels={
+            "time": "Time",
+            "weight": "Weight",
+            "label": "Cluster Label"
+        },
+        color_discrete_sequence=px.colors.qualitative.Alphabet
+    )
+
+    fig.update_layout(
+        template="plotly_white",
+        legend_title="Cluster Label"
+    )
+
+    return fig
+
 def weight_plot(history_manager: HistoryManager, top_k: int = 10):
     """Create a Plotly figure showing weight trajectories of top clusters."""
     df_list = []
@@ -132,6 +176,73 @@ def weight_plot(history_manager: HistoryManager, top_k: int = 10):
         template="plotly_white",
         legend_title="Cluster ID"
     )
+
+    return fig
+
+def long_sankey_plot(history_manager: HistoryManager):
+    true_map = dict(history_manager.true_assignments)
+    pred_map = dict([(x[1], x[2]) for x in history_manager.initial_text_assignments])
+    merge_map = dict([(x[1], x[2]) for x in history_manager.cluster_merge_history])  # merged_cluster_id -> destination_cluster_id
+    tweet_token_map = history_manager.texts
+    
+    flows = defaultdict(int)
+    
+    tokens_per_cluster = defaultdict(dict)
+
+    def get_merge_path(cluster_id):
+        path = [cluster_id]
+        while cluster_id in merge_map:
+            cluster_id = merge_map[cluster_id]
+            path.append(cluster_id)
+        return path
+
+    for tweet in pred_map:
+        flows[(f"T:{true_map[tweet]}", f"C:{pred_map[tweet]}")] += 1
+        for token in tweet_token_map.get(tweet, []):
+            tokens_per_cluster[f"C:{pred_map[tweet]}"][token] = tokens_per_cluster[f"C:{pred_map[tweet]}"].get(token, 0) + 1
+            tokens_per_cluster[f"T:{true_map[tweet]}"][token] = tokens_per_cluster[f"T:{true_map[tweet]}"].get(token, 0) + 1
+        path = get_merge_path(pred_map[tweet])
+        for i in range(len(path) - 1):
+            flows[(f"C:{path[i]}", f"C:{path[i+1]}")] += 1
+            for token in tweet_token_map.get(tweet, []):
+                tokens_per_cluster[f"C:{path[i+1]}"][token] = tokens_per_cluster[f"C:{path[i+1]}"].get(token, 0) + 1
+
+    
+    
+    nodes = list(set([src for src, _ in flows] + [tgt for _, tgt in flows]))
+    node_index = {node: i for i, node in enumerate(nodes)}
+    
+    top_5_tokens = {node: sorted(tokens.items(), key=lambda x: x[1], reverse=True)[:5] for node, tokens in tokens_per_cluster.items()}
+    hover_labels = []
+    for node in nodes:
+        tokens = top_5_tokens.get(node, [])
+        hover_labels.append("<br>".join(f"{term}:{count}" for term, count in tokens))
+
+    source = []
+    target = []
+    value = []
+    for (src, tgt), v in flows.items():
+        source.append(node_index[src])
+        target.append(node_index[tgt])
+        value.append(v)
+
+    fig = go.Figure(data=[go.Sankey(
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="black", width=0.5),
+            label=nodes,
+            hovertemplate="%{label}<br>%{customdata}",
+            customdata=hover_labels
+        ),
+        link=dict(
+            source=source,
+            target=target,
+            value=value
+        )
+    )])
+
+    fig.update_layout(height=1000)
 
     return fig
 

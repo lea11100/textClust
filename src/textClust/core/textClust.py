@@ -105,6 +105,7 @@ class textClust:
         self.micro_clusterer.update_with_merge_history(merge_history, current_time=self.time_manager.get_current_time())
         if merge_history is not None:
             self.history_manager.update_history(current_time=self.time_manager.get_current_time(), expired_info=[], merged_info=merge_history)
+        self.history_manager.snapshot_macro(current_time=self.time_manager.get_current_time(), macro_clusters=macro_clusters)
         results = self.macro_clusterer.evaluate(macro_clusters, self.history_manager, current_time=self.time_manager.get_current_time())
         
         if self.macro_clusterer.display is not None and self.verbose:

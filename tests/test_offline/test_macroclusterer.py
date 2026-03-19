@@ -49,9 +49,9 @@ def test_evaluate_sorts_by_weight_and_computes_walltime_diff_without_ground_trut
     ]
 
     macroclusters = [
-        MacroCluster(id=1, tf={"a": 1.0}, current_time=0.0, n=1, weight=0.5),
-        MacroCluster(id=2, tf={"b": 1.0}, current_time=0.0, n=1, weight=2.0),
-        MacroCluster(id=3, tf={"c": 1.0}, current_time=0.0, n=1, weight=1.0),
+        Macrocluster(id=1, tf={"a": 1.0}, current_time=0.0, n=1, weight=0.5),
+        Macrocluster(id=2, tf={"b": 1.0}, current_time=0.0, n=1, weight=2.0),
+        Macrocluster(id=3, tf={"c": 1.0}, current_time=0.0, n=1, weight=1.0),
     ]
 
     result = clusterer.evaluate(macroclusters, history_manager=HistoryManager(), current_time=3.0, top_k=2)
@@ -98,8 +98,8 @@ def test_evaluate_includes_ground_truth_metrics_when_available():
     history_manager.cluster_merge_history = []
 
     macroclusters = [
-        MacroCluster(id=10, tf={"x": 1.0}, current_time=0.0, n=2, weight=1.0),
-        MacroCluster(id=20, tf={"y": 1.0}, current_time=0.0, n=2, weight=2.0),
+        Macrocluster(id=10, tf={"x": 1.0}, current_time=0.0, n=2, weight=1.0),
+        Macrocluster(id=20, tf={"y": 1.0}, current_time=0.0, n=2, weight=2.0),
     ]
 
     result = clusterer.evaluate(macroclusters, history_manager=history_manager, current_time=5.0, top_k=2)

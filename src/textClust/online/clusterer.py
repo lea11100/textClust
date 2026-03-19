@@ -9,7 +9,7 @@ from textClust.online.fade import DampedFade, EmbeddingDampedFade, EmbeddingDamp
 from textClust.online.merge import EmbeddingMerger, EmbeddingMerger, Merger, TfIdfMerger
 from textClust.online.metrics import DistanceMetric, EmbeddingDistanceMetric, TfIdfDistanceMetric
 
-from textClust.offline.cluster import MacroCluster
+from textClust.offline.cluster import Macrocluster
 
 class Microclusterer:
     """Base interface for assigning points to microclusters."""
