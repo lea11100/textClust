@@ -4,6 +4,7 @@ from typing import Any
 import numpy as np
 import torch
 import torch.nn.functional as F
+import math
 
 from textClust.online.cluster import EmbeddingMicrocluster, TfIdfMicrocluster, Microcluster
 
@@ -52,7 +53,7 @@ class TfidfCosineDistance(TfIdfDistanceMetric):
         self.requires_idf = True
         
     
-    def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, idf: dict[str, float], **kwds: Any) -> float:
+    def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, idf: dict[str, float], n: int, **kwds: Any) -> float:
         """Compute TF-IDF cosine distance in the interval `[0, 1]`."""
         # Compute cosine distance between two microclusters based on their TF-IDF vectors
         tf1 = mc1.tf
@@ -75,7 +76,7 @@ class TfidfCosineDistance(TfIdfDistanceMetric):
             else:
                 inner_product += tf_val1 * tf_val2
                 
-        tfidf1, tfidf2 = self._make_tfidf_vectors(tf1, tf2, idf)
+        tfidf1, tfidf2 = self._make_tfidf_vectors(tf1, tf2, idf, n)
         norm1 = np.linalg.norm(tfidf1).astype(float)
         norm2 = np.linalg.norm(tfidf2).astype(float)
 
@@ -84,11 +85,12 @@ class TfidfCosineDistance(TfIdfDistanceMetric):
         
         return distance
     
-    def _make_tfidf_vectors(self, tf1: dict[str, float], tf2: dict[str, float], idf: dict[str, float]) -> tuple[np.ndarray, np.ndarray]:
+    def _make_tfidf_vectors(self, tf1: dict[str, float], tf2: dict[str, float], idf: dict[str, float], n:int) -> tuple[np.ndarray, np.ndarray]:
         """Build weighted vectors from term-frequency mappings."""
         if idf:
-            tfidf1 = [(idf.get(k, 1.0) * v) for k, v in tf1.items()]
-            tfidf2 = [(idf.get(k, 1.0) * v) for k, v in tf2.items()]
+            default_idf = 1 + math.log(n)
+            tfidf1 = [(idf.get(k, default_idf) * v) for k, v in tf1.items()]
+            tfidf2 = [(idf.get(k, default_idf) * v) for k, v in tf2.items()]
         else:
             tfidf1 = [v for v in tf1.values()]
             tfidf2 = [v for v in tf2.values()]

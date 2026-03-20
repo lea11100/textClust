@@ -137,7 +137,7 @@ class FastFader(TfIdfExpFade):
         is_expired = mc.weight < self.min_weight
         
         if self.term_fading:
-            mc.weighted_tf_sum *= factor
+            mc.weighted_tf_sum *= factor ** 2
             mc.add_tf({term: -weight for term, weight in mc.tf.items() if weight < self.min_weight})
             mc.idf_manager.add_pending_updates({term: mc.idf_manager.term_doc_freq.get(term, 1) - 1 for term, weight in mc.tf.items() if weight < self.min_weight})
         
@@ -156,12 +156,10 @@ class FastSumMerger(SumMerger):
         
         merged_weight = mc1.weight + mc2.weight
         merged_n = mc1.n + mc2.n
-        common_terms = set(mc1.tf.keys()) & set(mc2.tf.keys())
-        new_terms = set(mc2.tf.keys()) - set(mc1.idf_manager.term_doc_freq.keys())
+        new_terms = set(mc2.tf.keys()) - set(mc1.tf.keys())
         mc1.add_tf(mc2.tf)
         
-        mc1.idf_manager.add_pending_updates({term: max(mc1.idf_manager.term_doc_freq.get(term, 1) - 1,1) for term in common_terms})
-        mc1.idf_manager.add_pending_updates({term: 1 for term in new_terms})
+        mc1.idf_manager.add_pending_updates({term: mc1.idf_manager.term_doc_freq.get(term, 0) + 1 for term in new_terms})
         
         merged = FastMicrocluster(mc1.id, mc1.tf, mc1.idf_manager, mc1.last_update_time, merged_n, merged_weight)
         

@@ -87,14 +87,15 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
             return mc, None
         
         idf = self._get_idf() if self.distance_metric.requires_idf else None
+        n = len(self.microclusters) if self.distance_metric.requires_idf else None
         if self.distance_metric.support_batch:
             batch_fn = getattr(self.distance_metric, "batch_distance", None) 
             if batch_fn is not None:
-                distances = batch_fn(mc, self.microclusters, idf=idf, *args, **kwargs)
+                distances = batch_fn(mc, self.microclusters, idf=idf, n=n, *args, **kwargs)
             else:
                 raise ValueError("Distance metric claims to support batch distance but does not implement batch_distance()")
         else:
-            distances = [self.distance_metric(mc, existing_mc, idf=idf, *args, **kwargs) for existing_mc in self.microclusters]
+            distances = [self.distance_metric(mc, existing_mc, idf=idf, n=n, *args, **kwargs) for existing_mc in self.microclusters]
             
         if len(distances) == 0:
             self.microclusters.append(mc)
@@ -171,7 +172,8 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
                 
                 # Calculate distance
                 idf = self._get_idf() if self.distance_metric.requires_idf else None
-                m_dist = self.distance_metric(self.microclusters[i], self.microclusters[j], idf=idf)
+                n = len(self.microclusters) if self.distance_metric.requires_idf else None
+                m_dist = self.distance_metric(self.microclusters[i], self.microclusters[j], idf=idf, n=n)
                 
                 # Merge if below threshold
                 if m_dist < threshold:
