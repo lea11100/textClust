@@ -21,6 +21,10 @@ def _run_dataset(dataset: str, results_dir: Path) -> tuple[str, int]:
         dataset,
         "--output",
         str(output_file),
+        "--max-samples",
+        "2000",
+        "--device",
+        "mps",
     ]
 
     env = os.environ.copy()
