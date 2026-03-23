@@ -138,6 +138,8 @@ class FastCosineDistance(TfidfCosineDistance):
                 
         norm1 = mc1.get_norm()
         norm2 = mc2.get_norm()
+        
+        #print(f"MC{mc1.id} and MC{mc2.id}: Inner product: {inner_product}, Norm1: {norm1}, Norm2: {norm2}")
 
         similarity = inner_product / (norm1 * norm2)
         

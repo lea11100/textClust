@@ -31,9 +31,9 @@ def test_algorithm(algorithm: textClust, name: str = "textClust") -> dict:
     
     return flat_result
 
-if __name__ == "__main__":
-    dataset = "examples/data/Semantic-T_peaked.json"
-    data_loader = StaticJsonWrapper(dataset)
+def test_dataset(dataset: str):
+    print(f"Testing dataset: {dataset}")
+    data_loader = StaticJsonWrapper(dataset, max_samples=2000, do_check=True)
 
     text_clusterer = get_textClust(
         data_loader=data_loader,
@@ -74,16 +74,35 @@ if __name__ == "__main__":
     )
 
     results = []
+
+    names = ["textClust", "embClust", "fastLogClust", "fastClust"]
     
-    names = ["fastLogClust", "fastClust"]
-    # names = ["textClust", "embClust", "fastLogClust", "fastClust"]
-    
-    
-    for clusterer, name in zip([fastLog_clusterer, fast_clusterer], names):
-        result = test_algorithm(clusterer, name=name)
-        results.append(result)
         
-    df = pd.DataFrame(results)
-    print(df)
+    for clusterer, name in zip([text_clusterer, emb_clusterer, fastLog_clusterer, fast_clusterer], names):
+        result = test_algorithm(clusterer, name=name)
+        result["dataset"] = dataset
+        results.append(result)
     
+    print(f"Finished {dataset}.\n")
+    return results
+
+if __name__ == "__main__":
+    datasets = [
+        "examples/data/News-T.json",
+        "examples/data/NT.json",
+        "examples/data/NTS.json",
+        "examples/data/NTSO-T.json",
+        "examples/data/Semantic-T_peaked.json", 
+        "examples/data/Semantic-T.json", 
+        "examples/data/SO-T.json",
+        "examples/data/Trends-T_modified.json",
+        "examples/data/Trends-T.json",
+        "examples/data/Tweets-T.json",
+        ]
+    results = []
+    for dataset in datasets:
+        results.extend(test_dataset(dataset))
+    
+    df = pd.DataFrame(results)
+    df.to_csv("textClust_comparison_results.csv", index=False)
     

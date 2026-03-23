@@ -44,14 +44,14 @@ class FastMicrocluster(TfIdfMicrocluster):
         self.calc_sum()
         
     def get_norm(self):
-        sqrt_n = math.sqrt(self.idf_manager.total_docs) if self.idf_manager.total_docs > 0 else 1
-        norm_squared = self.weighted_tf_sum * sqrt_n
+        n = self.idf_manager.total_docs if self.idf_manager.total_docs > 0 else 1
+        norm_squared = self.weighted_tf_sum * n
         norm = math.sqrt(norm_squared) if norm_squared > 0 else 1.0
         
         return norm
     
     def get_norm_direct(self):
-        norm_squared = np.sum([(v * math.sqrt(math.sqrt(self.idf_manager.total_docs/self.idf_manager.term_doc_freq.get(k, 1)))) ** 2 for k, v in self.tf.items()])
+        norm_squared = np.sum([(v * math.sqrt(self.idf_manager.total_docs/self.idf_manager.term_doc_freq.get(k, 1))) ** 2 for k, v in self.tf.items()])
         norm = math.sqrt(norm_squared) if norm_squared > 0 else 1.0
         return norm
     
@@ -61,8 +61,8 @@ class FastMicrocluster(TfIdfMicrocluster):
             c = self.idf_manager.term_doc_freq.get(term, 1)
             new_weight = old_weight + weight
             
-            self.weighted_tf_sum -= old_weight ** 2 * 1/math.sqrt(c)
-            self.weighted_tf_sum += new_weight ** 2 * 1/math.sqrt(c)
+            self.weighted_tf_sum -= old_weight ** 2 * 1/c
+            self.weighted_tf_sum += new_weight ** 2 * 1/c
             
             if new_weight > 0:
                 self.tf[term] = new_weight
@@ -77,11 +77,11 @@ class FastMicrocluster(TfIdfMicrocluster):
             old_c = self.idf_manager.term_doc_freq.get(term, 1)
             weight = self.tf.get(term, 0)
             
-            self.weighted_tf_sum -= weight ** 2 * 1/math.sqrt(old_c)
-            self.weighted_tf_sum += weight ** 2 * 1/math.sqrt(new_c)
+            self.weighted_tf_sum -= weight ** 2 * 1/old_c
+            self.weighted_tf_sum += weight ** 2 * 1/new_c
             
     def calc_sum(self):
-        self.weighted_tf_sum = np.sum([v ** 2 * 1/math.sqrt(self.idf_manager.term_doc_freq.get(k, 1)) for k, v in self.tf.items()])
+        self.weighted_tf_sum = np.sum([v ** 2 * 1/self.idf_manager.term_doc_freq.get(k, 1) for k, v in self.tf.items()])
         
 
 class FastCosineDistance(TfidfCosineDistance):
@@ -106,17 +106,20 @@ class FastCosineDistance(TfidfCosineDistance):
             return 1.0
         
         inner_product = 0.0
-        sqrt_n = math.sqrt(mc1.idf_manager.total_docs) if mc1.idf_manager.total_docs > 0 else 1
+        n = mc1.idf_manager.total_docs if mc1.idf_manager.total_docs > 0 else 1
         
         for term in intersection:
             tf_val1 = tf1[term]
             tf_val2 = tf2[term]
             
             if term in mc1.idf_manager.term_doc_freq:
-                inner_product += tf_val1 * tf_val2 * sqrt_n / math.sqrt(mc1.idf_manager.term_doc_freq[term])
+                inner_product += tf_val1 * tf_val2 * n / mc1.idf_manager.term_doc_freq[term]
+             
                 
         norm1 = mc1.get_norm()
         norm2 = mc2.get_norm()
+        
+        #print(f"MC{mc1.id} and MC{mc2.id}: Inner product: {inner_product}, Norm1: {norm1}, Norm2: {norm2}")
 
         similarity = inner_product / (norm1 * norm2)
         

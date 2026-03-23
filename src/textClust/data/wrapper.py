@@ -10,7 +10,7 @@ import json
 class StaticJsonWrapper(Stream):
     """Load newline-delimited JSON records from disk as raw points."""
 
-    def __init__(self, file_path: str, max_samples: Optional[int] = None, **kwargs):
+    def __init__(self, file_path: str, max_samples: Optional[int] = None, do_check: bool = False, **kwargs):
         """Initialize the JSON wrapper.
 
         Args:
@@ -20,6 +20,7 @@ class StaticJsonWrapper(Stream):
         super().__init__(**kwargs)
         self.max_samples = max_samples
         self.file_path = file_path
+        self.do_check = do_check
     
     def load(self, **kwargs):
         """Return a generator of `RawPoint` records from `file_path`."""
@@ -43,4 +44,19 @@ class StaticJsonWrapper(Stream):
                     point = RawPoint(text=text, timestamp=timestamp, text_id=id, cluster_id=cluster_id)
                     yield point
             yield None
+            
+        if self.do_check:
+            self._check()
         return generator()
+    
+    def _check(self):
+        """Check if tweetIDs are unique"""
+        tweet_ids = set()
+        with open(self.file_path, "r") as file:
+            for l in file:
+                item = json.loads(l)
+                text_id = item.get("tweetID", None)
+                if text_id is not None:
+                    if text_id in tweet_ids:
+                        raise ValueError(f"Duplicate tweetID found: {text_id}")
+                    tweet_ids.add(text_id)
