@@ -5,7 +5,6 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --mem=16G
-#SBATCH --gres=gpu:a100:1
 #SBATCH -J "text_clust"
 #SBATCH -p cpu
 #SBATCH -A hpc-prf-dedsm
