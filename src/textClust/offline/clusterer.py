@@ -77,6 +77,9 @@ class SimpleMacroClusterer(MacroClusterer):
         walltime_diff = np.diff(history_manager.walltime_at_clustering) if len(history_manager.walltime_at_clustering) > 1 else []
         
         eval_result = {"time": current_time, "k": top_k, "top_k": top, "walltime_diff": walltime_diff, "num_macro_clusters": len(macro_clusters)}
+        not_merged, merged = self._get_num_current_non_merged_microclusters(history_manager=history_manager)
+        percent_not_merged = not_merged / (not_merged + merged) if (not_merged + merged) > 0 else 0
+        eval_result.update({"not_merged": not_merged, "merged": merged, "percent_not_merged": percent_not_merged})
         if len(history_manager.true_assignments) > 0:
             res = self._eval_with_ground_truth(history_manager, history_manager.last_eval_time or 0.0)
             eval_result.update(res)
@@ -85,6 +88,16 @@ class SimpleMacroClusterer(MacroClusterer):
         history_manager.last_eval_time = current_time
         return eval_result
     
+    def _get_num_current_non_merged_microclusters(self, history_manager: HistoryManager) -> tuple[int, int]:
+        """Helper to count how many microclusters have not been merged into macroclusters."""
+        clusters = [c_id for _, _, c_id in history_manager.initial_text_assignments]
+        num_tweets_per_cluster = np.unique_counts(clusters)
+        
+        not_merged_clusters = set(c_id for c_id, count in zip(*num_tweets_per_cluster) if count == 1)
+        merged_clusters = set(c_id for c_id, count in zip(*num_tweets_per_cluster) if count > 1)
+        
+        return len(not_merged_clusters), len(merged_clusters)
+        
     def _eval_with_ground_truth(self, history_manager: HistoryManager, last_eval_time: float) -> dict:
         """Compute homogeneity/completeness/V-measure against truth labels."""
         assert len(history_manager.true_assignments) > 0, "No ground truth available for evaluation"
@@ -126,6 +139,7 @@ class SimpleMacroClusterer(MacroClusterer):
         time_diff = res['walltime_diff'][-1] if len(res['walltime_diff']) > 0 else 0
         print(f"⏰ Time: {time_diff} sec")
         print(f"📊 Number of Micro-Clusters: {res['num_macro_clusters']}")
+        print(f"Num. of merged micro-clusters: {res['merged']}, not merged: {res['not_merged']} (Non-Merged %: {res['percent_not_merged']:.2%})")
         print("=" * 70)  
         if "homogeneity" in res:
             print(f"Evaluation Metrics:")
