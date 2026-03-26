@@ -162,6 +162,8 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         merge_history = {}
         
         removed = np.zeros(len(self.microclusters), dtype=bool)
+        idf = self._get_idf() if self.distance_metric.requires_idf else None
+        n = len(self.microclusters) if self.distance_metric.requires_idf else None
         for i in range(len(self.microclusters)):
             self.fader(self.microclusters[i], current_time)
             if removed[i]:
@@ -171,8 +173,6 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
                     continue
                 
                 # Calculate distance
-                idf = self._get_idf() if self.distance_metric.requires_idf else None
-                n = len(self.microclusters) if self.distance_metric.requires_idf else None
                 m_dist = self.distance_metric(self.microclusters[i], self.microclusters[j], idf=idf, n=n)
                 
                 # Merge if below threshold
