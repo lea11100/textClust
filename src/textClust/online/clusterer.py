@@ -4,6 +4,8 @@ from typing import List, Optional, Sequence, Tuple
 import numpy as np
 import math
 
+import warnings
+
 from textClust.online.cluster import EmbeddingMicrocluster, Microcluster, TfIdfMicrocluster
 from textClust.online.fade import DampedFade, EmbeddingDampedFade, EmbeddingDampedFade, TfIdfDampedFade
 from textClust.online.merge import EmbeddingMerger, EmbeddingMerger, Merger, TfIdfMerger
@@ -51,19 +53,32 @@ class Microclusterer:
         """Optional hook to update microclusterer state with macrocluster info."""
         pass
     
-class AdaptiveThresholdMicroclusterer(Microclusterer):
-    """Adaptive-threshold online microclusterer based on pairwise distances."""
+class ThresholdMicroclusterer(Microclusterer):
+    """Online microclusterer based on pairwise distances using adaptive or static thresholding."""
 
-    def __init__(self, distance_metric: DistanceMetric, fader: DampedFade, merger: Merger, sigma=1.0,
-                 min_num_mc=5, threshold_momentum=None, *args, **kwargs):
+    def __init__(self, distance_metric: DistanceMetric, fader: DampedFade, merger: Merger, adaptive_threshold=True, sigma: Optional[float] = 1.0, 
+                 radius: Optional[float] = None, min_num_mc=5, threshold_momentum: Optional[float] = None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
         super().__init__()
         self.microclusters: List[Microcluster] = []
-        self.sigma = sigma
         self.distance_metric = distance_metric
         self.fader = fader
         self.merger = merger
+        self.adaptive_threshold = adaptive_threshold
         
+        if adaptive_threshold:
+            assert sigma is not None, "Sigma must be provided when adaptive_threshold is True"
+            self.sigma = sigma
+            if self.radius is not None:
+                warnings.warn("Warning: Both adaptive_threshold and radius are set. Radius will be ignored in favor of adaptive thresholding.")
+        else:
+            assert radius is not None, "Radius must be provided when adaptive_threshold is False"
+            self.radius = radius
+            if self.sigma is not None:
+                warnings.warn("Warning: Both adaptive_threshold and radius are set. Sigma will be ignored in favor of fixed radius thresholding.")
+            if self.threshold_momentum is not None:
+                warnings.warn("Warning: threshold_momentum has no effect when adaptive_threshold is False.")
+            
         self.num_merged_obs = 0
         self.outlier_dist_sum = 0.0
         self.outlier_dist_squaresum = 0.0
@@ -109,9 +124,12 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         avg_dist = np.average(distances) if distances else 0.0
         std_dist = np.std(distances, ddof=1) if distances else 0.0 # Make sure to calculate empirical std (i.e. devide by N-1) to avoid underestimating with small sample sizes
         
-        threshold = avg_dist - self.sigma * std_dist
-        if self.threshold_momentum and self.last_threshold > 0:
-            threshold = self.threshold_momentum * self.last_threshold + (1 - self.threshold_momentum) * threshold
+        if self.adaptive_threshold:
+            threshold = avg_dist - self.sigma * std_dist
+            if self.threshold_momentum and self.last_threshold > 0:
+                threshold = self.threshold_momentum * self.last_threshold + (1 - self.threshold_momentum) * threshold
+        else:
+            threshold = self.radius
         self.last_threshold = threshold
         if min_dist < threshold and avg_dist < 1:
             closest_mc = self.microclusters[min_dist_idx]
@@ -154,7 +172,10 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
         Returns:
             A tuple of `(expired_cluster_ids, merge_history)`.
         """
-        threshold = self.dist_sum / self.num_merged_obs if self.num_merged_obs > 0 else 0.0
+        if self.adaptive_threshold:
+            threshold = self.dist_sum / self.num_merged_obs if self.num_merged_obs > 0 else 0.0
+        else:
+            threshold = self.radius
         self.num_merged_obs = 0
         self.dist_sum = 0.0
         
@@ -202,13 +223,15 @@ class AdaptiveThresholdMicroclusterer(Microclusterer):
                 del mc_dict[c_id]
         self.microclusters = list(mc_dict.values())
     
-class TfIdfAdaptiveThresholdMicroclusterer(AdaptiveThresholdMicroclusterer):
-    """Adaptive-threshold online microclusterer based on pairwise distances."""
+class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
+    """Online microclusterer based on pairwise distances using adaptive or static thresholding, with TF-IDF vector representation."""
 
-    def __init__(self, distance_metric: TfIdfDistanceMetric, fader: TfIdfDampedFade, merger: TfIdfMerger, sigma=1.0,
+    def __init__(self, distance_metric: TfIdfDistanceMetric, fader: TfIdfDampedFade, merger: TfIdfMerger, 
+                 adaptive_threshold=True, sigma: Optional[float] = 1.0, radius: Optional[float] = None,
                  min_num_mc=5, threshold_momentum: Optional[float] = None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
         super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, sigma=sigma, min_num_mc=min_num_mc,
+                        adaptive_threshold=adaptive_threshold, radius=radius,
                         threshold_momentum=threshold_momentum, *args, **kwargs)
         self.microclusters: List[TfIdfMicrocluster] = [] # type: ignore
         
@@ -239,9 +262,12 @@ class TfIdfAdaptiveThresholdMicroclusterer(AdaptiveThresholdMicroclusterer):
         
         return result
     
-class EmbeddingAdaptiveThresholdClusterer(AdaptiveThresholdMicroclusterer):
+class EmbeddingThresholdClusterer(ThresholdMicroclusterer):
+    """Online microclusterer based on pairwise distances using adaptive or static thresholding, with LLM embedding representation."""
     def __init__(self,
-                 distance_metric: EmbeddingDistanceMetric, fader: EmbeddingDampedFade, merger: EmbeddingMerger, sigma=1.0, 
+                 distance_metric: EmbeddingDistanceMetric, fader: EmbeddingDampedFade, merger: EmbeddingMerger,
+                 adaptive_threshold=True, sigma: Optional[float] = 1.0, radius: Optional[float] = None,
                  min_num_mc=15, threshold_momentum:Optional[float] = None, *args, **kwargs):
         super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, sigma=sigma, min_num_mc=min_num_mc,
+                         adaptive_threshold=adaptive_threshold, radius=radius,
                          threshold_momentum=threshold_momentum, *args, **kwargs)

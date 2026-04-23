@@ -1,7 +1,9 @@
 """Cluster fading strategies for time-decay behavior."""
 
+import warnings
+
 from textClust.online.cluster import Microcluster, TfIdfMicrocluster, EmbeddingMicrocluster
-from typing import Tuple
+from typing import Optional, Tuple
 
 class DampedFade:
     """Base callable for applying time-based fading to a microcluster."""
@@ -35,11 +37,20 @@ class EmbeddingDampedFade(DampedFade):
 class TfIdfExpFade(TfIdfDampedFade):
     """Exponential fading based on elapsed time since last update."""
 
-    def __init__(self, decay_rate, term_fading=True, min_weight=0.5):
+    def __init__(self, decay_rate, term_fading=True, use_heuristic = False, min_weight: Optional[float] = None, time_gap: Optional[float] = None):
         """Initialize exponential fading parameters."""
         self.decay_rate = decay_rate
         self.term_fading = term_fading
-        self.min_weight = min_weight
+        
+        if use_heuristic:
+            assert time_gap is not None, "time_gap must be provided when use_heuristic is True"
+            # Warn if min_weight is provided but will be overridden by heuristic
+            if min_weight is not None:
+                warnings.warn("Warning: min_weight will be overridden by heuristic calculation based on time_gap.")
+            self.min_weight = 2 ** (-1 * decay_rate * time_gap)
+        else:
+            assert min_weight is not None, "min_weight must be provided when use_heuristic is False"
+            self.min_weight = min_weight
         
     def __call__(self, mc: TfIdfMicrocluster, current_time: float, *args, **kwargs) -> Tuple[TfIdfMicrocluster, bool]:
         """Exponentially decay cluster weight and optionally term weights."""
@@ -58,10 +69,19 @@ class TfIdfExpFade(TfIdfDampedFade):
 class EmbeddingExpFader(EmbeddingDampedFade):
     """Exponential fading based on elapsed time since last update."""
 
-    def __init__(self, decay_rate, min_weight=0.5):
+    def __init__(self, decay_rate, use_heuristic = False, min_weight: Optional[float] = None, time_gap: Optional[float] = None):
         """Initialize exponential fading parameters."""
         self.decay_rate = decay_rate
-        self.min_weight = min_weight
+        
+        if use_heuristic:
+            assert time_gap is not None, "time_gap must be provided when use_heuristic is True"
+            # Warn if min_weight is provided but will be overridden by heuristic
+            if min_weight is not None:
+                warnings.warn("Warning: min_weight will be overridden by heuristic calculation based on time_gap.")
+            self.min_weight = 2 ** (-1 * decay_rate * time_gap)
+        else:
+            assert min_weight is not None, "min_weight must be provided when use_heuristic is False"
+            self.min_weight = min_weight
         
     def __call__(self, mc: EmbeddingMicrocluster, current_time: float, *args, **kwargs) -> Tuple[EmbeddingMicrocluster, bool]:
         """Exponentially decay cluster weight and optionally term weights."""

@@ -4,11 +4,11 @@ from sentence_transformers import SentenceTransformer
 
 from textClust.core.textClust import textClust
 from textClust.preprocessing.preprocessor import TFIDFPreprocessor, EmbeddingPreprocessor
-from textClust.online.clusterer import EmbeddingAdaptiveThresholdClusterer
+from textClust.online.clusterer import EmbeddingThresholdClusterer
 from textClust.online.metrics import EmbeddingCosineDistance
 from textClust.online.fade import EmbeddingExpFader
 from textClust.online.merge import WeightedSumMerger
-from textClust.online.clusterer import TfIdfAdaptiveThresholdMicroclusterer
+from textClust.online.clusterer import TfIdfThresholdMicroclusterer
 from textClust.online.metrics import TfidfCosineDistance
 from textClust.online.fade import TfIdfExpFade
 from textClust.online.merge import SumMerger
@@ -26,10 +26,10 @@ def get_textClust(data_loader: Stream, clean_interval: int, cluster_interval: in
         data_loader=data_loader,
         preprocessor=TFIDFPreprocessor(),
         time_manager=FixedIntervalTimeManager(clean_interval=clean_interval, cluster_interval=cluster_interval, log_interval=log_interval),
-        micro_clusterer=TfIdfAdaptiveThresholdMicroclusterer(
+        micro_clusterer=TfIdfThresholdMicroclusterer(
             sigma=sigma, 
             distance_metric=TfidfCosineDistance(), 
-            fader=TfIdfExpFade(decay_rate=decay_rate, term_fading=False, min_weight=2 ** (-1 * decay_rate * cluster_interval)), 
+            fader=TfIdfExpFade(decay_rate=decay_rate, term_fading=False, use_heuristic=True, time_gap=cluster_interval), 
             merger=SumMerger(), 
             min_num_mc=1, 
             threshold_momentum=None),
@@ -42,10 +42,10 @@ def get_embClust(data_loader: Stream, embedding_model_name: str, clean_interval:
         data_loader=data_loader,
         preprocessor=EmbeddingPreprocessor(SentenceTransformer(embedding_model_name, device=device)),
         time_manager=FixedIntervalTimeManager(clean_interval=clean_interval, cluster_interval=cluster_interval, log_interval=log_interval),
-        micro_clusterer=EmbeddingAdaptiveThresholdClusterer(
+        micro_clusterer=EmbeddingThresholdClusterer(
             sigma=sigma, 
             distance_metric=EmbeddingCosineDistance(), 
-            fader=EmbeddingExpFader(decay_rate=decay_rate, min_weight=2 ** (-1 * decay_rate * cluster_interval)), 
+            fader=EmbeddingExpFader(decay_rate=decay_rate, use_heuristic=True, time_gap=cluster_interval), 
             merger=WeightedSumMerger(), 
             min_num_mc=5,
             threshold_momentum=None),
@@ -61,7 +61,7 @@ def get_fastClust(data_loader: Stream, clean_interval: int, cluster_interval: in
         micro_clusterer=FastClusterer(
             sigma=sigma, 
             distance_metric=FastCosineDistance(), 
-            fader=FastFader(decay_rate=decay_rate, term_fading=False, min_weight=2 ** (-1 * decay_rate * cluster_interval)), 
+            fader=FastFader(decay_rate=decay_rate, term_fading=False, use_heuristic=True, time_gap=cluster_interval), 
             merger=FastSumMerger(), 
             min_num_mc=1, 
             threshold_momentum=None),
@@ -77,7 +77,7 @@ def get_fastLogClust(data_loader: Stream, clean_interval: int, cluster_interval:
         micro_clusterer=FastLogCluster(
             sigma=sigma, 
             distance_metric=FastLogCosineDistance(), 
-            fader=FastLogMerger(decay_rate=decay_rate, term_fading=False, min_weight=2 ** (-1 * decay_rate * cluster_interval)), 
+            fader=FastLogMerger(decay_rate=decay_rate, term_fading=False, use_heuristic=True, time_gap=cluster_interval), 
             merger=FastLogSumMerger(), 
             min_num_mc=1, 
             threshold_momentum=None),

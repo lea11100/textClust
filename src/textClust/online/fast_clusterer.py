@@ -1,5 +1,5 @@
 from textClust.online.cluster import Microcluster, TfIdfMicrocluster
-from textClust.online.clusterer import Microclusterer, TfIdfAdaptiveThresholdMicroclusterer
+from textClust.online.clusterer import Microclusterer, TfIdfThresholdMicroclusterer
 
 import math
 import numpy as np
@@ -130,8 +130,8 @@ class FastCosineDistance(TfidfCosineDistance):
 class FastFader(TfIdfExpFade):
     """Fader that also applies fading to FastMicrocluster norms."""
     
-    def __init__(self, decay_rate: float, term_fading: bool = True, min_weight: float = 0.5):
-        super().__init__(decay_rate, term_fading, min_weight)
+    def __init__(self, decay_rate: float, term_fading: bool = True, use_heuristic: bool = False, min_weight: Optional[float] = None, time_gap: Optional[float] = None):
+        super().__init__(decay_rate, term_fading, use_heuristic, min_weight, time_gap)
 
     def __call__(self, mc: FastMicrocluster, current_time: float) -> tuple[FastMicrocluster, bool]:
         factor = 2 ** (- self.decay_rate * (current_time - mc.last_update_time))
@@ -168,12 +168,13 @@ class FastSumMerger(SumMerger):
         
         return merged
 
-class FastClusterer(TfIdfAdaptiveThresholdMicroclusterer):
-    def __init__(self, distance_metric: FastCosineDistance, fader: FastFader, merger: FastSumMerger, sigma=1.0,
+class FastClusterer(TfIdfThresholdMicroclusterer):
+    def __init__(self, distance_metric: FastCosineDistance, fader: FastFader, merger: FastSumMerger, 
+                 adaptive_threshold=True, sigma: Optional[float] = 1.0, radius: Optional[float] = None,
                  min_num_mc=5, include_min_for_threshold=False, threshold_momentum: Optional[float] = None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
-        super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, sigma=sigma, min_num_mc=min_num_mc,
-                         include_min_for_threshold=include_min_for_threshold, threshold_momentum=threshold_momentum, *args, **kwargs)
+        super().__init__(distance_metric=distance_metric, fader=fader, merger=merger, adaptive_threshold=adaptive_threshold, sigma=sigma, radius=radius,
+                         min_num_mc=min_num_mc, include_min_for_threshold=include_min_for_threshold, threshold_momentum=threshold_momentum, *args, **kwargs)
         self.microclusters: List[FastMicrocluster] = [] # type: ignore
         self.idf_manager = IDFManager()
         
