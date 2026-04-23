@@ -25,6 +25,7 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import textClust.offline.plots as plots
+from textClust.utils.eval import eval_against_truth
 
 class MacroClusterer:
     """Base interface for macro-clustering and evaluation components."""
@@ -81,7 +82,12 @@ class SimpleMacroClusterer(MacroClusterer):
         percent_not_merged = not_merged / (not_merged + merged) if (not_merged + merged) > 0 else 0
         eval_result.update({"not_merged": not_merged, "merged": merged, "percent_not_merged": percent_not_merged})
         if len(history_manager.true_assignments) > 0:
-            res = self._eval_with_ground_truth(history_manager, history_manager.last_eval_time or 0.0)
+            res = eval_against_truth(
+                initial_text_assignments=history_manager.initial_text_assignments,
+                final_text_assignments=history_manager.get_final_assignments(),
+                true_assignments=history_manager.true_assignments,
+                last_eval_time=history_manager.last_eval_time or 0.0
+            )
             eval_result.update(res)
             res["time"] = current_time
             history_manager.eval_history.append(eval_result)
@@ -96,41 +102,7 @@ class SimpleMacroClusterer(MacroClusterer):
         not_merged_clusters = set(c_id for c_id, count in zip(*num_tweets_per_cluster) if count == 1)
         merged_clusters = set(c_id for c_id, count in zip(*num_tweets_per_cluster) if count > 1)
         
-        return len(not_merged_clusters), len(merged_clusters)
-        
-    def _eval_with_ground_truth(self, history_manager: HistoryManager, last_eval_time: float) -> dict:
-        """Compute homogeneity/completeness/V-measure against truth labels."""
-        assert len(history_manager.true_assignments) > 0, "No ground truth available for evaluation"
-        initial_assignments = np.array(history_manager.initial_text_assignments)
-        final_assignments = np.array(history_manager.get_final_assignments())
-        true_assignments = np.array(history_manager.true_assignments)
-        
-        initial_assignments = initial_assignments[initial_assignments[:, 1].argsort()]  # sort by point_id
-        final_assignments = final_assignments[final_assignments[:, 0].argsort()]  # sort by point_id
-        true_assignments = true_assignments[true_assignments[:, 0].argsort()]  # sort by point_id
-        
-        after_last_eval_mask = initial_assignments[:, 0].astype(float) > last_eval_time
-        initial_assignments = initial_assignments[after_last_eval_mask]
-        final_assignments = final_assignments[after_last_eval_mask]
-        true_assignments = true_assignments[after_last_eval_mask]
-        
-        assert np.array_equal(initial_assignments[:, 1], true_assignments[:, 0]), "Mismatch in point IDs between initial and true assignments"
-        assert np.array_equal(final_assignments[:, 0], true_assignments[:, 0]), "Mismatch in point IDs between final and true assignments"
-        
-        y_pred_init = initial_assignments[:, 2].astype(int)
-        y_pred_final = final_assignments[:, 1].astype(int)
-        y_true = true_assignments[:, 1].astype(int)
-        
-        homogeneity, completeness, v_measure = homogeneity_completeness_v_measure(y_true, y_pred_init)
-        homogeneity_final, completeness_final, v_measure_final = homogeneity_completeness_v_measure(y_true, y_pred_final)
-        return {
-            "homogeneity": homogeneity,
-            "completeness": completeness,
-            "v_measure": v_measure,
-            "homogeneity_final": homogeneity_final,
-            "completeness_final": completeness_final,
-            "v_measure_final": v_measure_final
-        }      
+        return len(not_merged_clusters), len(merged_clusters)     
     
     def display(self, evaluation_result: dict) -> None:
         """Print a textual summary of current top macroclusters and metrics."""

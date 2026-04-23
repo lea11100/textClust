@@ -48,7 +48,7 @@ def metric_history_plot(eval_history: List[dict]) -> go.Figure:
     
 def sankey_plot(history_manager: HistoryManager, use_final_assignments: bool = False) -> go.Figure:
     """Create a Plotly Sankey diagram showing cluster merges over time."""
-    true_assignments = [int(c_id) for _, c_id in sorted(history_manager.true_assignments, key=lambda x: x[0])]  # sort by text_id
+    true_assignments = [c_id for _, c_id in sorted(history_manager.true_assignments, key=lambda x: x[0])]  # sort by text_id
     if use_final_assignments:
         predicted_assignments = [int(c_id) for _, c_id in sorted(history_manager.get_final_assignments(), key=lambda x: x[0])]
     else:

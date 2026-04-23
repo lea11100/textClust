@@ -69,14 +69,14 @@ class ThresholdMicroclusterer(Microclusterer):
         if adaptive_threshold:
             assert sigma is not None, "Sigma must be provided when adaptive_threshold is True"
             self.sigma = sigma
-            if self.radius is not None:
+            if radius is not None:
                 warnings.warn("Warning: Both adaptive_threshold and radius are set. Radius will be ignored in favor of adaptive thresholding.")
         else:
             assert radius is not None, "Radius must be provided when adaptive_threshold is False"
             self.radius = radius
-            if self.sigma is not None:
+            if sigma is not None:
                 warnings.warn("Warning: Both adaptive_threshold and radius are set. Sigma will be ignored in favor of fixed radius thresholding.")
-            if self.threshold_momentum is not None:
+            if threshold_momentum is not None:
                 warnings.warn("Warning: threshold_momentum has no effect when adaptive_threshold is False.")
             
         self.num_merged_obs = 0

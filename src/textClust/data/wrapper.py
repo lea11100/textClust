@@ -40,7 +40,7 @@ class StaticJsonWrapper(Stream):
                             timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
                             timestamp = timestamp.timestamp()
                     id = item.get("tweetID", None)
-                    cluster_id = item.get("clusterNo", None)
+                    cluster_id = item.get("clusterNo", None) or item.get("topic", None)
                     point = RawPoint(text=text, timestamp=timestamp, text_id=id, cluster_id=cluster_id)
                     yield point
             yield None
