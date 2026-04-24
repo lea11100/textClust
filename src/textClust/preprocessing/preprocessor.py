@@ -94,5 +94,5 @@ class EmbeddingPreprocessor(Preprocessor):
     
     def __call__(self, point: RawPoint) -> Point:
         """Generate an embedding for the input point text and return a `Point`."""
-        embedding = self.embedding_model.encode(point.text, convert_to_tensor=True)
+        embedding = self.embedding_model.encode(point.text, convert_to_tensor=True, show_progress_bar=False)
         return point_from_raw_point(point, embedding=embedding)
