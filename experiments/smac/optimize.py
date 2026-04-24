@@ -46,7 +46,7 @@ if __name__ == "__main__":
     scenario = Scenario(
         configuration, 
         instances=datasets, instance_features={name:[i] for i, name in enumerate(datasets)},  # Map instance names to indices
-        deterministic=True, n_trials=10, walltime_limit=60)
+        deterministic=True, n_trials=10, walltime_limit=60, n_workers=4)
 
     # Use SMAC to find the best configuration/hyperparameters
     smac = HyperparameterOptimizationFacade(scenario, train)
