@@ -15,9 +15,17 @@ from textClust.utils.eval import eval_against_truth
 
 datasets = [
     "examples/data/Semantic10-T.json",
+    "examples/data/Semantic5-T.json",
+    "examples/data/NT.json",
+    "examples/data/NTS.json",
+    "examples/data/NTSO.json",
+    "examples/data/SO-T.json",
+    "examples/data/News-T.json",
+    "examples/data/Trends-T.json",
+    "examples/data/Tweets-T.json",
 ]
 
-embedding_model_name = 'sentence-transformers/paraphrase-MiniLM-L3-v2'
+embedding_model_name = 'ibm-granite/granite-embedding-107m-multilingual'
 embedding_model = SentenceTransformer(embedding_model_name, device="cpu")
 
 def train(config: Configuration, seed: int = 1, instance:str = "") -> float:
@@ -46,7 +54,7 @@ if __name__ == "__main__":
     scenario = Scenario(
         configuration, 
         instances=datasets, instance_features={name:[i] for i, name in enumerate(datasets)},  # Map instance names to indices
-        deterministic=True, n_trials=10, walltime_limit=60, n_workers=4)
+        deterministic=True, walltime_limit=12 * 60 * 60)
 
     # Use SMAC to find the best configuration/hyperparameters
     smac = HyperparameterOptimizationFacade(scenario, train)
