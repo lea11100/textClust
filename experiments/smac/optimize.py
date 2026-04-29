@@ -13,23 +13,24 @@ from textClust.algorithms.presets import get_embClust
 from textClust.data.wrapper import StaticJsonWrapper
 from textClust.utils.eval import eval_against_truth
 
-datasets = [
-    "examples/data/Semantic10-T.json",
-    "examples/data/Semantic5-T.json",
-    "examples/data/NT.json",
-    "examples/data/NTS.json",
-    "examples/data/NTSO.json",
-    "examples/data/SO-T.json",
-    "examples/data/News-T.json",
-    "examples/data/Trends-T.json",
-    "examples/data/Tweets-T.json",
-]
+datasets = {
+    "Semantic10-T": "examples/data/Semantic10-T.json",
+    "Semantic40-T": "examples/data/Semantic40-T.json",
+    "Semantic5-T": "examples/data/Semantic5-T.json",
+    "NT": "examples/data/NT.json",
+    "NTS": "examples/data/NTS.json",
+    "NTSO": "examples/data/NTSO.json",
+    "SO-T": "examples/data/SO-T.json",
+    "News-T": "examples/data/News-T.json",
+    "Trends-T": "examples/data/Trends-T.json",
+    "Tweets-T": "examples/data/Tweets-T.json",
+}
 
 embedding_model_name = 'ibm-granite/granite-embedding-107m-multilingual'
 embedding_model = SentenceTransformer(embedding_model_name, device="cpu")
 
 def train(config: Configuration, seed: int = 1, instance:str = "") -> float:
-    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance),
+    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=2000),
                              embedding_model=embedding_model,
                              log_interval=1000,
                              **config)
@@ -43,18 +44,34 @@ def train(config: Configuration, seed: int = 1, instance:str = "") -> float:
     )
     return -1 * result.get("v_measure_final", 0.0)
     
-    
 
+# Add args for seed and instance selection if needed
+args = argparse.ArgumentParser()
+args.add_argument("--seed", type=int, default=1, help="Random seed for SMAC (default: 1).")
+args.add_argument("--loo_dataset", type=str, default="none", help="Dataset to leave out for evaluation (default: 'none').")
     
 if __name__ == "__main__":
+    parsed_args = args.parse_args()
+
+    if parsed_args.loo_dataset == "none":
+        selected_datasets = list(datasets.values())
+    else:
+        selected_datasets = [path for name, path in datasets.items() if name != parsed_args.loo_dataset]
+
     with open(f'experiments/smac/params.pcs', 'r') as f:
         configuration = pcs.read(f)
 
     # Scenario object specifying the optimization environment
     scenario = Scenario(
         configuration, 
-        instances=datasets, instance_features={name:[i] for i, name in enumerate(datasets)},  # Map instance names to indices
-        deterministic=True, walltime_limit=12 * 60 * 60)
+        instances=selected_datasets,
+        instance_features={name: [i] for i, name in enumerate(selected_datasets)},  # Map instance names to indices
+        deterministic=True,
+        walltime_limit=10 * 60,
+        n_trials=250,
+        seed=parsed_args.seed,
+        output_directory=os.path.join("smac3_output", f"loo_{parsed_args.loo_dataset}_seed_{parsed_args.seed}")
+    )
 
     # Use SMAC to find the best configuration/hyperparameters
     smac = HyperparameterOptimizationFacade(scenario, train)
