@@ -30,7 +30,7 @@ embedding_model_name = 'ibm-granite/granite-embedding-107m-multilingual'
 embedding_model = SentenceTransformer(embedding_model_name, device="cpu")
 
 def train(config: Configuration, seed: int = 1, instance:str = "") -> float:
-    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=2000),
+    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance),
                              embedding_model=embedding_model,
                              log_interval=1000,
                              **config)
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         instances=selected_datasets,
         instance_features={name: [i] for i, name in enumerate(selected_datasets)},  # Map instance names to indices
         deterministic=True,
-        walltime_limit=10 * 60,
+        walltime_limit=60 * 60 * 24 * 7 ,
         n_trials=250,
         seed=parsed_args.seed,
         output_directory=os.path.join("smac3_output", f"loo_{parsed_args.loo_dataset}_seed_{parsed_args.seed}")
@@ -78,3 +78,9 @@ if __name__ == "__main__":
     incumbent = smac.optimize()
 
     print("Best found configuration:", incumbent)
+    
+    #Store the best configuration in a JSON file for later use
+    best_config_path = os.path.join("smac3_results", f"best_config_loo_{parsed_args.loo_dataset}_seed_{parsed_args.seed}.json")
+    os.makedirs(os.path.dirname(best_config_path), exist_ok=True)
+    with open(best_config_path, 'w') as f:
+        json.dump(dict(incumbent.items()), f, indent=4)

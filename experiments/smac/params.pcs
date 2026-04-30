@@ -1,7 +1,7 @@
 clean_interval integer [20,500] [100]
 cluster_interval integer [100,5000] [1000]
 
-decay_rate real [0.0005,0.05] [0.005] log
+decay_rate real [0.00005,0.05] [0.0005] log
 min_num_mc integer [1,30] [5]
 
 adaptive_threshold integer [0,1] [1]
