@@ -75,12 +75,9 @@ class SimpleMacroClusterer(MacroClusterer):
         """Compute summary stats and optional ground-truth clustering metrics."""
         macro_clusters.sort(key=lambda x: x.weight, reverse=True)
         top = macro_clusters[:top_k]
-        walltime_diff = np.diff(history_manager.walltime_at_clustering) if len(history_manager.walltime_at_clustering) > 1 else []
+        walltime_diff = history_manager.walltime_at_clustering[-1] - history_manager.walltime_at_clustering[-2] if len(history_manager.walltime_at_clustering) > 1 else 1
         
         eval_result = {"time": current_time, "k": top_k, "top_k": top, "walltime_diff": walltime_diff, "num_macro_clusters": len(macro_clusters)}
-        not_merged, merged = self._get_num_current_non_merged_microclusters(history_manager=history_manager)
-        percent_not_merged = not_merged / (not_merged + merged) if (not_merged + merged) > 0 else 0
-        eval_result.update({"not_merged": not_merged, "merged": merged, "percent_not_merged": percent_not_merged})
         if len(history_manager.true_assignments) > 0:
             res = eval_against_truth(
                 initial_text_assignments=history_manager.initial_text_assignments,
@@ -88,35 +85,29 @@ class SimpleMacroClusterer(MacroClusterer):
                 true_assignments=history_manager.true_assignments,
                 last_eval_time=history_manager.last_eval_time or 0.0
             )
-            eval_result.update(res)
             res["time"] = current_time
+            res["throughput"] = res.get("num_evaluated_points", 0) / walltime_diff
+            eval_result.update(res)   
             history_manager.eval_history.append(eval_result)
         history_manager.last_eval_time = current_time
         return eval_result
-    
-    def _get_num_current_non_merged_microclusters(self, history_manager: HistoryManager) -> tuple[int, int]:
-        """Helper to count how many microclusters have not been merged into macroclusters."""
-        clusters = [c_id for _, _, c_id in history_manager.initial_text_assignments]
-        num_tweets_per_cluster = np.unique_counts(clusters)
-        
-        not_merged_clusters = set(c_id for c_id, count in zip(*num_tweets_per_cluster) if count == 1)
-        merged_clusters = set(c_id for c_id, count in zip(*num_tweets_per_cluster) if count > 1)
-        
-        return len(not_merged_clusters), len(merged_clusters)     
     
     def display(self, evaluation_result: dict) -> None:
         """Print a textual summary of current top macroclusters and metrics."""
         res = evaluation_result
         print("=" * 70)  
-        time_diff = res['walltime_diff'][-1] if len(res['walltime_diff']) > 0 else 0
+        time_diff = res['walltime_diff']
         print(f"⏰ Time: {time_diff} sec")
         print(f"📊 Number of Micro-Clusters: {res['num_macro_clusters']}")
-        print(f"Num. of merged micro-clusters: {res['merged']}, not merged: {res['not_merged']} (Non-Merged %: {res['percent_not_merged']:.2%})")
         print("=" * 70)  
         if "homogeneity" in res:
             print(f"Evaluation Metrics:")
             print(f"  Initial Clustering - Homogeneity: {res['homogeneity']:.4f}, Completeness: {res['completeness']:.4f}, V-measure: {res['v_measure']:.4f}")
             print(f"  Final Clustering   - Homogeneity: {res['homogeneity_final']:.4f}, Completeness: {res['completeness_final']:.4f}, V-measure: {res['v_measure_final']:.4f}")
+            print("=" * 70)
+            
+        if "throughput" in res:
+            print(f"Throughput: {res['throughput']:.2f} points/sec")
             print("=" * 70)
         
     def display_final(self, micro_clusters: List[Microcluster], history_manager: HistoryManager, current_time: float, top_k: int = 20, *args, **kwargs) -> None:

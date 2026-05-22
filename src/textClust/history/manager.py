@@ -1,5 +1,7 @@
 """History tracking utilities for assignments and cluster lifecycle events."""
 
+import time
+
 from textClust.data.point import RawPoint, Point
 from textClust.online.cluster import Microcluster
 from textClust.online.clusterer import Microclusterer
@@ -42,7 +44,7 @@ class HistoryManager:
         self.threshold_history: List[tuple] = []  # time, threshold_value (if applicable)
         self.preprocessor =  TFIDFPreprocessor()  
         
-        self.walltime_at_clustering = []
+        self.walltime_at_clustering = [time.time()]
         self.last_eval_time: float | None = None
         self.eval_history = [] 
     

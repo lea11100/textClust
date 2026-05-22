@@ -38,5 +38,6 @@ def eval_against_truth(initial_text_assignments, final_text_assignments, true_as
             "homogeneity_final": homogeneity_final,
             "completeness_final": completeness_final,
             "v_measure_final": v_measure_final,
-            "nmi_final": nmi_final
+            "nmi_final": nmi_final,
+            "num_evaluated_points": np.count_nonzero(initial_assignments[:, 0].astype(float) > last_eval_time) if last_eval_time is not None else len(initial_assignments)
         }    

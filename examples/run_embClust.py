@@ -4,12 +4,14 @@ from textClust.algorithms.presets import get_embClust
 
 if __name__ == "__main__":
     clusterer = get_embClust(
-        data_loader=StaticJsonWrapper("examples/data/Semantic5-T.json"),
+        data_loader=StaticJsonWrapper("examples/data/Semantic10-T.json"),
         embedding_model_name='sentence-transformers/paraphrase-MiniLM-L3-v2',
         clean_interval=100,
         cluster_interval=1000,
         log_interval=100,
         decay_rate=0.005,
-        sigma=1
+        sigma=1,
+        time_gap=100,
+        device="mps"
     )
     clusterer.start()

@@ -46,7 +46,7 @@ if __name__ == "__main__":
     for d in datasets.values():
         tasks.append((default_config, d, "default", "none", "none"))
 
-    with ProcessPoolExecutor(max_workers=os.cpu_count() or 1) as executor:
+    with ProcessPoolExecutor(max_workers=1 or 1) as executor:
         results = list(executor.map(_evaluate_task, tasks))
 
     df = pd.DataFrame(results)

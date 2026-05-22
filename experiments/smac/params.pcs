@@ -1,3 +1,5 @@
+model categorical {sentenceTransformers, minishlab, clips, maniac} [sentenceTransformers]
+
 clean_interval integer [20,500] [100]
 cluster_interval integer [100,5000] [1000]
 
