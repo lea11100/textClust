@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 from typing import List
 
-from ipykernel import embed
+
 
 from textClust.history.manager import HistoryManager
 from textClust.offline.cluster import Macrocluster
@@ -26,6 +26,8 @@ from textClust.algorithms.presets import get_embClust
 from textClust.data.wrapper import StaticJsonWrapper
 from textClust.utils.eval import eval_against_truth
 from textClust.offline.clusterer import SimpleMacroClusterer
+from textClust.history.manager import HistoryManager
+from textClust.online.clusterer import Microclusterer
 
 datasets = {
     "Semantic10-T": "examples/data/Semantic10-T.json",
@@ -44,31 +46,35 @@ datasets = {
 # embedding_model = SentenceTransformer(embedding_model_name, device="cpu")
 
 models = {
-    "sentenceTransformers": SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1', device="mps"),
-    "minishlab": SentenceTransformer('minishlab/potion-base-32M', device="mps"),
-    "clips": SentenceTransformer('clips/e5-base-trm-nl', device="mps"),
-    "maniac": SentenceTransformer('ManiacLabs/miniac-embed', device="mps"),
+    "sentenceTransformers": SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1', device="cpu"),
+    "minishlab": SentenceTransformer('minishlab/potion-base-32M', device="cpu"),
+    "clips": SentenceTransformer('clips/e5-base-trm-nl', device="cpu"),
+    "maniac": SentenceTransformer('ManiacLabs/miniac-embed', device="cpu"),
     }
 
-class ThoughputLimitClusterer(SimpleMacroClusterer):
-    def __init__(self, lower_bound: float, *args, **kwargs):
+class ThroughputLimitHistoryManager(HistoryManager):
+    def __init__(self, lower_bound: float, num_points: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.current_time = time.time()
         self.lower_bound = lower_bound
+        self.num_points = num_points
 
-    def evaluate(self, macro_clusters: List[Macrocluster], history_manager: HistoryManager, current_time: float, top_k=5, *args, **kwargs) -> dict:
-        res = super().evaluate(macro_clusters, history_manager, current_time, top_k, *args, **kwargs)
-        if res.get("throughput", float('inf')) < self.lower_bound and res.get("num_evaluated_points", 0) > 0:
-            raise RuntimeError(f"Throughput {res['throughput']:.2f} is below the lower bound of {self.lower_bound}. Terminating optimization.")
-        return res
+    def snapshot(self, current_time: float, clusterer: Microclusterer):
+        super().snapshot(current_time, clusterer)
+        elapsed_time = time.time() - self.current_time
+        throughput = self.num_points / elapsed_time if elapsed_time > 0 else float('inf')
+        if throughput < self.lower_bound:
+            raise RuntimeError(f"Throughput {throughput:.2f} is below the lower bound of {self.lower_bound}. Terminating optimization.")
+        self.current_time = time.time()  # Reset timer for next snapshot
 
 def train(config: Configuration, seed: int = 1, instance:str = "") -> dict[str, float]:
     embedding_model = models.get(config.get("model", "sentenceTransformers"), models["sentenceTransformers"])
-    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=1000),
+    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=5000),
                              embedding_model=embedding_model,
                              log_interval=1000,
                              **config)
     algorithm.verbose = False
-    algorithm.macro_clusterer = ThoughputLimitClusterer(lower_bound=20)  # Set a lower bound for throughput (e.g., 10 points/sec)
+    algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=15, num_points=1000)  # Set a lower bound for throughput (e.g., 10 points/sec)
     start_time = time.time()
     algorithm.start()
     end_time = time.time()
@@ -105,7 +111,7 @@ if __name__ == "__main__":
         instances=selected_datasets,
         instance_features={name: [i] for i, name in enumerate(selected_datasets)},  # Map instance names to indices
         deterministic=True,
-        walltime_limit=60 * 3,
+        walltime_limit=60 * 15,
         n_trials=250,
         seed=parsed_args.seed,
         crash_cost = [2.0, 2.0],  # Cost for crashing runs (e.g., due to low throughput)
