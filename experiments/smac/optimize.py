@@ -69,7 +69,7 @@ class ThroughputLimitHistoryManager(HistoryManager):
 
 def train(config: Configuration, seed: int = 1, instance:str = "") -> dict[str, float]:
     embedding_model = models.get(config.get("model", "sentenceTransformers"), models["sentenceTransformers"])
-    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=5000),
+    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance),
                              embedding_model=embedding_model,
                              log_interval=1000,
                              **config)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         instances=selected_datasets,
         instance_features={name: [i] for i, name in enumerate(selected_datasets)},  # Map instance names to indices
         deterministic=True,
-        walltime_limit=60 * 15,
+        walltime_limit=60 * 60 * 24 * 7,
         n_trials=250,
         seed=parsed_args.seed,
         crash_cost = [2.0, 2.0],  # Cost for crashing runs (e.g., due to low throughput)
