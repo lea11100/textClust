@@ -74,7 +74,7 @@ def train(config: Configuration, seed: int = 1, instance:str = "") -> dict[str, 
                              log_interval=1000,
                              **config)
     algorithm.verbose = False
-    algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=15, num_points=1000)  # Set a lower bound for throughput (e.g., 10 points/sec)
+    algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=0, num_points=1000)  # Set a lower bound for throughput (e.g., 10 points/sec)
     start_time = time.time()
     algorithm.start()
     end_time = time.time()

@@ -34,7 +34,7 @@ experiment_list = []
 
 for filename in sorted(os.listdir("smac3_results")):
     if filename.endswith(".json"):
-        experiment_list.append(f" {filename} --output-csv smac3_results_eval/{filename}")
+        experiment_list.append(f"\"{filename} --output-csv smac3_results_eval/{filename}\"")
 
 experiment_list.append("--use-default-config")  # Add the default configuration as the last experiment
 

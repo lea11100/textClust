@@ -3,11 +3,13 @@ import os
 import pandas as pd
 from pathlib import Path
 import argparse
+import time
 
-
+print("Base modules loaded at", pd.Timestamp.now())
 
 from optimize import datasets, train
 
+print("All modules loaded at", time.ctime(time.time())) # Fomatted into human readable time
 
 default_config = {
     "clean_interval": 100,
@@ -68,7 +70,7 @@ def evaluate_config(config, config_name="loaded_config", output_csv="final_loo_p
             tasks.append((c, dataset_name, config_name, i, loo_dataset, seed))
 
     results = [_evaluate_task(task) for task in tasks]
-
+    print(f"Finished evaluation at {time.ctime(time.time())}")
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
     return df
@@ -85,9 +87,10 @@ def main(config_path=None, output_csv="final_loo_performances.csv", use_default_
     else:
         if config_path is None:
             raise ValueError("Provide a config_path or pass --use-default-config to evaluate the built-in configuration.")
-        config = load_config(f"SMAC3_results/{config_path}")
+        config = load_config(f"smac3_results/{config_path}")
         config_name = Path(config_path).name
-
+    print(f"Evaluating configuration '{config_name}' on all datasets...")
+    print(f"Evaluation started at {time.ctime(time.time())}")
     return evaluate_config(config, config_name=config_name, output_csv=output_csv)
 
 if __name__ == "__main__":
