@@ -1,0 +1,62 @@
+[
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 262,
+        "cluster_interval": 4655,
+        "decay_rate": 0.000448880866,
+        "min_num_mc": 23,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "sigma": 2.6040988119164,
+        "threshold_momentum": 0.6459196348817,
+        "time_gap": 1000.0
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 260,
+        "cluster_interval": 1309,
+        "decay_rate": 0.013546333775,
+        "min_num_mc": 23,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 0.2195431669002,
+        "threshold_momentum": 0.0939068169976,
+        "time_gap": 4167.785498230078
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 319,
+        "cluster_interval": 2860,
+        "decay_rate": 6.72671441e-05,
+        "min_num_mc": 17,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.000951392086,
+        "sigma": 2.8144625569546,
+        "threshold_momentum": 0.911250284957
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 316,
+        "cluster_interval": 2381,
+        "decay_rate": 0.0081011514234,
+        "min_num_mc": 24,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 2.5580259674974,
+        "threshold_momentum": 0.729463039983,
+        "time_gap": 381.6269129291782
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 364,
+        "cluster_interval": 4094,
+        "decay_rate": 0.0039910545017,
+        "min_num_mc": 22,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 2.523464420681,
+        "threshold_momentum": 0.7687226931442,
+        "time_gap": 392.1037352830458
+    }
+]

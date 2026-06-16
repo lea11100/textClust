@@ -1,0 +1,4638 @@
+{
+  "stats": {
+    "submitted": 250,
+    "finished": 250,
+    "running": 0
+  },
+  "data": [
+    {
+      "config_id": 1,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.3653944022972473,
+        -89.05688607656306
+      ],
+      "time": 337.145183801651,
+      "cpu_time": 324.49468198700004,
+      "status": 1,
+      "starttime": 1781250996.925271,
+      "endtime": 1781251334.072067,
+      "additional_info": {}
+    },
+    {
+      "config_id": 1,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.31361312559821086,
+        -82.7513827781742
+      ],
+      "time": 362.8595714569092,
+      "cpu_time": 355.64670996899997,
+      "status": 1,
+      "starttime": 1781251334.2099116,
+      "endtime": 1781251697.1326525,
+      "additional_info": {}
+    },
+    {
+      "config_id": 2,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        2.0,
+        2.0
+      ],
+      "time": 0.0,
+      "cpu_time": 690.406086228,
+      "status": 2,
+      "starttime": 1781251698.6341357,
+      "endtime": 1781252920.621653,
+      "additional_info": {
+        "traceback": "Traceback (most recent call last):\n  File \"/scratch/hpc-prf-dedsm/sussekl/textClust/experiments/smac/../ext_lib/mosmac/smac/runner/target_function_runner.py\", line 196, in run\n    rval = self(config_copy, target_function, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/hpc-prf-dedsm/sussekl/textClust/experiments/smac/../ext_lib/mosmac/smac/runner/target_function_runner.py\", line 270, in __call__\n    return algorithm(config, **algorithm_kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/hpc-prf-dedsm/sussekl/textClust/experiments/smac/optimize.py\", line 79, in train\n    algorithm.start()\n  File \"/scratch/hpc-prf-dedsm/sussekl/textClust/src/textClust/core/textClust.py\", line 65, in start\n    self.log()\n  File \"/scratch/hpc-prf-dedsm/sussekl/textClust/src/textClust/core/textClust.py\", line 85, in log\n    self.history_manager.snapshot(current_time=time, clusterer=self.micro_clusterer)\n  File \"/scratch/hpc-prf-dedsm/sussekl/textClust/experiments/smac/optimize.py\", line 67, in snapshot\n    raise RuntimeError(f\"Throughput {throughput:.2f} is below the lower bound of {self.lower_bound}. Terminating optimization.\")\nRuntimeError: Throughput 1.49 is below the lower bound of 2. Terminating optimization.\n",
+        "error": "RuntimeError('Throughput 1.49 is below the lower bound of 2. Terminating optimization.')"
+      }
+    },
+    {
+      "config_id": 1,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8741828875456792,
+        -79.56594505940602
+      ],
+      "time": 363.28724217414856,
+      "cpu_time": 353.8060324359999,
+      "status": 1,
+      "starttime": 1781252920.94719,
+      "endtime": 1781253284.4576466,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7602487259187153,
+        -15.001167159291766
+      ],
+      "time": 2000.196496963501,
+      "cpu_time": 1966.5829980159997,
+      "status": 1,
+      "starttime": 1781253287.605969,
+      "endtime": 1781255287.8043756,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9212874764517741,
+        -5.528276565222995
+      ],
+      "time": 5427.055817127228,
+      "cpu_time": 5365.481342661001,
+      "status": 1,
+      "starttime": 1781255287.9252264,
+      "endtime": 1781260715.0076818,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.35465824284615755,
+        -18.440795981405625
+      ],
+      "time": 1566.8219983577728,
+      "cpu_time": 1537.3801034810003,
+      "status": 1,
+      "starttime": 1781260715.1743314,
+      "endtime": 1781262282.1056857,
+      "additional_info": {}
+    },
+    {
+      "config_id": 1,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.12841478971742515,
+        -85.52320074329513
+      ],
+      "time": 351.0438594818115,
+      "cpu_time": 343.73568414700094,
+      "status": 1,
+      "starttime": 1781262282.4041004,
+      "endtime": 1781262633.495927,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8029989369854802,
+        -1099.5972001261325
+      ],
+      "time": 27.561338424682617,
+      "cpu_time": 26.048267644999214,
+      "status": 1,
+      "starttime": 1781262633.6839209,
+      "endtime": 1781262661.24684,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.09839559908720884,
+        -1186.7262435135144
+      ],
+      "time": 25.57766318321228,
+      "cpu_time": 25.353521648001333,
+      "status": 1,
+      "starttime": 1781262661.334582,
+      "endtime": 1781262686.913801,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8387857747436277,
+        -1288.1731104404232
+      ],
+      "time": 22.685497045516968,
+      "cpu_time": 22.55058168100004,
+      "status": 1,
+      "starttime": 1781262686.9985135,
+      "endtime": 1781262709.6855206,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.44811172952585937,
+        -13.799361751277814
+      ],
+      "time": 1853.6955189704895,
+      "cpu_time": 1824.8311584999992,
+      "status": 1,
+      "starttime": 1781262709.8088799,
+      "endtime": 1781264563.5196686,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7596043304092706,
+        -1321.4013551499906
+      ],
+      "time": 22.993297576904297,
+      "cpu_time": 22.111764188999587,
+      "status": 1,
+      "starttime": 1781264563.8410227,
+      "endtime": 1781264586.8686137,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.10715257360667811,
+        -1415.434094445042
+      ],
+      "time": 21.500667572021484,
+      "cpu_time": 21.378018035000423,
+      "status": 1,
+      "starttime": 1781264586.9336379,
+      "endtime": 1781264608.435788,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8451365795235044,
+        -1460.7636454050587
+      ],
+      "time": 20.044894695281982,
+      "cpu_time": 19.922648723000748,
+      "status": 1,
+      "starttime": 1781264608.5146563,
+      "endtime": 1781264628.561122,
+      "additional_info": {}
+    },
+    {
+      "config_id": 4,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6303685554840053,
+        -1273.573398582665
+      ],
+      "time": 20.307068824768066,
+      "cpu_time": 20.187756432998867,
+      "status": 1,
+      "starttime": 1781264628.624081,
+      "endtime": 1781264648.9326634,
+      "additional_info": {}
+    },
+    {
+      "config_id": 6,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6654775653449004,
+        -793.2479785185049
+      ],
+      "time": 36.69246816635132,
+      "cpu_time": 36.49689699999908,
+      "status": 1,
+      "starttime": 1781264648.9983482,
+      "endtime": 1781264685.6921525,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6908380603331645,
+        -1442.2804000671492
+      ],
+      "time": 17.958259344100952,
+      "cpu_time": 17.84912652499952,
+      "status": 1,
+      "starttime": 1781264685.763207,
+      "endtime": 1781264703.722872,
+      "additional_info": {}
+    },
+    {
+      "config_id": 7,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7316715938449201,
+        -929.2868745335117
+      ],
+      "time": 32.56308078765869,
+      "cpu_time": 32.39166868299981,
+      "status": 1,
+      "starttime": 1781264703.8014727,
+      "endtime": 1781264736.365925,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7694303780748449,
+        -20.326098218007875
+      ],
+      "time": 1476.3354449272156,
+      "cpu_time": 1456.285236482001,
+      "status": 1,
+      "starttime": 1781264736.452895,
+      "endtime": 1781266212.7898517,
+      "additional_info": {}
+    },
+    {
+      "config_id": 8,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7733595000075961,
+        -33.48562485659387
+      ],
+      "time": 862.9624669551849,
+      "cpu_time": 845.6050040540013,
+      "status": 1,
+      "starttime": 1781266213.0694559,
+      "endtime": 1781267076.0482147,
+      "additional_info": {}
+    },
+    {
+      "config_id": 8,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.008375432423738385,
+        -36.08019450638279
+      ],
+      "time": 831.9569532871246,
+      "cpu_time": 818.0694062309994,
+      "status": 1,
+      "starttime": 1781267076.320227,
+      "endtime": 1781267908.3166497,
+      "additional_info": {}
+    },
+    {
+      "config_id": 8,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.08718467465849168,
+        -36.82131958861514
+      ],
+      "time": 815.099348783493,
+      "cpu_time": 796.5263823649984,
+      "status": 1,
+      "starttime": 1781267908.4148967,
+      "endtime": 1781268723.5176888,
+      "additional_info": {}
+    },
+    {
+      "config_id": 8,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9310635005335284,
+        -33.85939236292834
+      ],
+      "time": 755.6403257846832,
+      "cpu_time": 738.6720996180011,
+      "status": 1,
+      "starttime": 1781268723.6231863,
+      "endtime": 1781269479.3263764,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7357513600308073,
+        -1231.4696313383977
+      ],
+      "time": 24.776453733444214,
+      "cpu_time": 21.968911097999808,
+      "status": 1,
+      "starttime": 1781269479.5315545,
+      "endtime": 1781269504.3674471,
+      "additional_info": {}
+    },
+    {
+      "config_id": 9,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0024690107680738166,
+        -3.7914303921472943
+      ],
+      "time": 7912.927804470062,
+      "cpu_time": 7754.112185065998,
+      "status": 1,
+      "starttime": 1781269504.467727,
+      "endtime": 1781277417.3995786,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9168156363245252,
+        -5.269838999688129
+      ],
+      "time": 5693.22770690918,
+      "cpu_time": 5622.934064610003,
+      "status": 1,
+      "starttime": 1781277417.7170534,
+      "endtime": 1781283110.979751,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2881687392631461,
+        -1326.6499286690043
+      ],
+      "time": 22.95118021965027,
+      "cpu_time": 20.00653503400099,
+      "status": 1,
+      "starttime": 1781283112.538916,
+      "endtime": 1781283135.5027118,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8501963651163286,
+        -1478.326812009385
+      ],
+      "time": 19.83455181121826,
+      "cpu_time": 19.65552494000076,
+      "status": 1,
+      "starttime": 1781283135.80539,
+      "endtime": 1781283155.6778972,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4949576540059615,
+        -1498.2059266359515
+      ],
+      "time": 20.320537090301514,
+      "cpu_time": 20.133147052001732,
+      "status": 1,
+      "starttime": 1781283155.7851052,
+      "endtime": 1781283176.1077151,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.10789186253606702,
+        -1451.8995179736044
+      ],
+      "time": 21.028568744659424,
+      "cpu_time": 20.78068461300063,
+      "status": 1,
+      "starttime": 1781283176.1761951,
+      "endtime": 1781283197.218214,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8010273917238845,
+        -1465.2170909269119
+      ],
+      "time": 17.773759603500366,
+      "cpu_time": 17.638532796998334,
+      "status": 1,
+      "starttime": 1781283197.285183,
+      "endtime": 1781283215.0604749,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.003943107736661433,
+        -1500.9127922893933
+      ],
+      "time": 20.308964252471924,
+      "cpu_time": 20.16697550200115,
+      "status": 1,
+      "starttime": 1781283215.1442125,
+      "endtime": 1781283235.4551985,
+      "additional_info": {}
+    },
+    {
+      "config_id": 11,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7694000956587838,
+        -517.335500190599
+      ],
+      "time": 58.28702664375305,
+      "cpu_time": 55.65763567199974,
+      "status": 1,
+      "starttime": 1781283235.611704,
+      "endtime": 1781283293.900341,
+      "additional_info": {}
+    },
+    {
+      "config_id": 11,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9145024610624009,
+        -124.73618108241119
+      ],
+      "time": 240.94872975349426,
+      "cpu_time": 238.20671113999924,
+      "status": 1,
+      "starttime": 1781283293.9672863,
+      "endtime": 1781283534.9330275,
+      "additional_info": {}
+    },
+    {
+      "config_id": 11,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.37600595765369704,
+        -136.77955803829363
+      ],
+      "time": 187.57765126228333,
+      "cpu_time": 183.92652991100113,
+      "status": 1,
+      "starttime": 1781283535.1592817,
+      "endtime": 1781283722.7993054,
+      "additional_info": {}
+    },
+    {
+      "config_id": 11,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7403311239475855,
+        -245.2245225598336
+      ],
+      "time": 122.8392424583435,
+      "cpu_time": 120.07246113099973,
+      "status": 1,
+      "starttime": 1781283722.8776505,
+      "endtime": 1781283845.731725,
+      "additional_info": {}
+    },
+    {
+      "config_id": 11,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.26632243679323964,
+        -150.1452714566291
+      ],
+      "time": 192.75360012054443,
+      "cpu_time": 188.9033441310021,
+      "status": 1,
+      "starttime": 1781283845.9274817,
+      "endtime": 1781284038.717775,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0037701715457694684,
+        -1415.1314656541379
+      ],
+      "time": 21.58712911605835,
+      "cpu_time": 20.465913866999472,
+      "status": 1,
+      "starttime": 1781284039.9356463,
+      "endtime": 1781284061.612331,
+      "additional_info": {}
+    },
+    {
+      "config_id": 12,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.26202109408030294,
+        -3.304790692031431
+      ],
+      "time": 8741.307929754257,
+      "cpu_time": 8574.761800187003,
+      "status": 1,
+      "starttime": 1781284061.8436413,
+      "endtime": 1781292803.1776123,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7729319541926142,
+        -20.54761026281134
+      ],
+      "time": 1460.3465456962585,
+      "cpu_time": 1436.0196360250047,
+      "status": 1,
+      "starttime": 1781292803.4601245,
+      "endtime": 1781294263.8836715,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6917713381593927,
+        -1345.289430573103
+      ],
+      "time": 19.316063165664673,
+      "cpu_time": 18.53885948900279,
+      "status": 1,
+      "starttime": 1781294266.954301,
+      "endtime": 1781294286.2719324,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.846567224665526,
+        -1319.209195314994
+      ],
+      "time": 22.311381101608276,
+      "cpu_time": 22.083107725004083,
+      "status": 1,
+      "starttime": 1781294286.4053366,
+      "endtime": 1781294308.71812,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.008715106418523196,
+        -1332.7961578934814
+      ],
+      "time": 22.923518180847168,
+      "cpu_time": 22.669341526001517,
+      "status": 1,
+      "starttime": 1781294308.7839777,
+      "endtime": 1781294331.7099595,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.11122544599274514,
+        -1265.6953787391324
+      ],
+      "time": 24.073591470718384,
+      "cpu_time": 23.852755189000163,
+      "status": 1,
+      "starttime": 1781294331.7844987,
+      "endtime": 1781294355.8608317,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8133934928289639,
+        -1230.2034290466581
+      ],
+      "time": 24.703670024871826,
+      "cpu_time": 24.5118934839993,
+      "status": 1,
+      "starttime": 1781294355.9194832,
+      "endtime": 1781294380.6245353,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8096225155696429,
+        -1288.3361392527559
+      ],
+      "time": 23.584166765213013,
+      "cpu_time": 23.380870342996786,
+      "status": 1,
+      "starttime": 1781294380.6913393,
+      "endtime": 1781294404.2772036,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7227897959531111,
+        -1312.1825094181534
+      ],
+      "time": 23.326417207717896,
+      "cpu_time": 21.63082339099492,
+      "status": 1,
+      "starttime": 1781294404.4259758,
+      "endtime": 1781294427.7557716,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.851717391510689,
+        -63.433463020355234
+      ],
+      "time": 455.6570553779602,
+      "cpu_time": 445.1149578650002,
+      "status": 1,
+      "starttime": 1781294428.0117464,
+      "endtime": 1781294883.7676709,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.795147954250593,
+        -69.3620737262085
+      ],
+      "time": 432.8355779647827,
+      "cpu_time": 425.1588329119986,
+      "status": 1,
+      "starttime": 1781294883.835832,
+      "endtime": 1781295316.719389,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.787721978200018,
+        -70.92429936236597
+      ],
+      "time": 423.27203607559204,
+      "cpu_time": 411.33257812299416,
+      "status": 1,
+      "starttime": 1781295316.889577,
+      "endtime": 1781295740.2116501,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.3707878636737061,
+        -66.67490993971789
+      ],
+      "time": 450.31806230545044,
+      "cpu_time": 438.54611913300323,
+      "status": 1,
+      "starttime": 1781295740.3462188,
+      "endtime": 1781296190.735989,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4611432073482617,
+        -65.6180926083926
+      ],
+      "time": 457.5562438964844,
+      "cpu_time": 445.59796562200063,
+      "status": 1,
+      "starttime": 1781296190.9433258,
+      "endtime": 1781296648.5814126,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7746662767971934,
+        -64.98426226877994
+      ],
+      "time": 393.8459222316742,
+      "cpu_time": 383.801677594005,
+      "status": 1,
+      "starttime": 1781296648.7242324,
+      "endtime": 1781297042.7026322,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6733767873432752,
+        -1482.835566279572
+      ],
+      "time": 20.512675285339355,
+      "cpu_time": 19.86836243399739,
+      "status": 1,
+      "starttime": 1781297042.9363883,
+      "endtime": 1781297063.522049,
+      "additional_info": {}
+    },
+    {
+      "config_id": 15,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7662527885058934,
+        -68.6080220614321
+      ],
+      "time": 437.5951397418976,
+      "cpu_time": 424.50880452399724,
+      "status": 1,
+      "starttime": 1781297063.700446,
+      "endtime": 1781297501.306119,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8148223533441925,
+        -1290.9408232814922
+      ],
+      "time": 23.570858478546143,
+      "cpu_time": 22.500397279996832,
+      "status": 1,
+      "starttime": 1781297501.491786,
+      "endtime": 1781297525.128729,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2672268738120005,
+        -67.45903034314549
+      ],
+      "time": 379.3605706691742,
+      "cpu_time": 368.9586885230019,
+      "status": 1,
+      "starttime": 1781297525.3286686,
+      "endtime": 1781297904.6927927,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.3829544724562476,
+        -66.48033304835123
+      ],
+      "time": 451.65442657470703,
+      "cpu_time": 442.93193765100295,
+      "status": 1,
+      "starttime": 1781297904.990506,
+      "endtime": 1781298356.679396,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.26975141331599833,
+        -64.16487934127437
+      ],
+      "time": 467.9707250595093,
+      "cpu_time": 454.84834698799386,
+      "status": 1,
+      "starttime": 1781298356.7497694,
+      "endtime": 1781298824.739999,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4693681089621588,
+        -65.50318866946468
+      ],
+      "time": 441.38015961647034,
+      "cpu_time": 433.37788262600225,
+      "status": 1,
+      "starttime": 1781298824.9043536,
+      "endtime": 1781299266.3844333,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7563741386117366,
+        -69.3821357069444
+      ],
+      "time": 432.75053882598877,
+      "cpu_time": 421.8764160819992,
+      "status": 1,
+      "starttime": 1781299266.602503,
+      "endtime": 1781299699.4213529,
+      "additional_info": {}
+    },
+    {
+      "config_id": 16,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8332865731075795,
+        -75.70057186517825
+      ],
+      "time": 396.57313346862793,
+      "cpu_time": 386.73965574799513,
+      "status": 1,
+      "starttime": 1781299699.5314763,
+      "endtime": 1781300096.131402,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7805119634005317,
+        -72.57524039627846
+      ],
+      "time": 413.6914207935333,
+      "cpu_time": 378.2900291459955,
+      "status": 1,
+      "starttime": 1781300096.31343,
+      "endtime": 1781300510.090449,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7980768209106627,
+        -1287.2272973070849
+      ],
+      "time": 23.6896390914917,
+      "cpu_time": 22.558212586998707,
+      "status": 1,
+      "starttime": 1781300510.3865504,
+      "endtime": 1781300534.1095207,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8028332408162776,
+        -1355.3834423055023
+      ],
+      "time": 22.446306228637695,
+      "cpu_time": 22.275765995997062,
+      "status": 1,
+      "starttime": 1781300534.1751797,
+      "endtime": 1781300556.6230211,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.46910695534411706,
+        -1407.8226452058034
+      ],
+      "time": 18.41452646255493,
+      "cpu_time": 18.20255724999879,
+      "status": 1,
+      "starttime": 1781300556.655537,
+      "endtime": 1781300575.071394,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.06160484605779658,
+        -1269.3706094089862
+      ],
+      "time": 23.982561826705933,
+      "cpu_time": 23.283077674001106,
+      "status": 1,
+      "starttime": 1781300575.114345,
+      "endtime": 1781300599.0985017,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7823654252367908,
+        -1280.9662989736578
+      ],
+      "time": 22.91824984550476,
+      "cpu_time": 21.022833964998426,
+      "status": 1,
+      "starttime": 1781300599.1629553,
+      "endtime": 1781300622.0826206,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.780636801258606,
+        -1407.1209788074893
+      ],
+      "time": 21.59493064880371,
+      "cpu_time": 21.43171259600058,
+      "status": 1,
+      "starttime": 1781300622.1806288,
+      "endtime": 1781300643.8005714,
+      "additional_info": {}
+    },
+    {
+      "config_id": 17,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.009763982946261416,
+        -1423.1292593022415
+      ],
+      "time": 21.417909145355225,
+      "cpu_time": 21.23904172499897,
+      "status": 1,
+      "starttime": 1781300643.8354368,
+      "endtime": 1781300665.2549543,
+      "additional_info": {}
+    },
+    {
+      "config_id": 3,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7541250071721112,
+        -17.891310868604805
+      ],
+      "time": 621.1200177669525,
+      "cpu_time": 614.6070937969998,
+      "status": 1,
+      "starttime": 1781300665.3636787,
+      "endtime": 1781301286.497194,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.1255043940243516,
+        -1292.3125159088142
+      ],
+      "time": 23.6281840801239,
+      "cpu_time": 22.82895948800433,
+      "status": 1,
+      "starttime": 1781301291.1306324,
+      "endtime": 1781301314.7615228,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.022965131682830642,
+        -1344.0156496939435
+      ],
+      "time": 22.64703369140625,
+      "cpu_time": 22.351030294994416,
+      "status": 1,
+      "starttime": 1781301314.8682568,
+      "endtime": 1781301337.517771,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8180493464620271,
+        -1260.6451106989193
+      ],
+      "time": 20.54590606689453,
+      "cpu_time": 20.324264964998292,
+      "status": 1,
+      "starttime": 1781301337.6020768,
+      "endtime": 1781301358.1494212,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7192982480650489,
+        -1251.2005090829707
+      ],
+      "time": 24.304121017456055,
+      "cpu_time": 24.08855061200302,
+      "status": 1,
+      "starttime": 1781301358.215471,
+      "endtime": 1781301382.5213783,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7011932137470474,
+        -1213.1176701036325
+      ],
+      "time": 25.250852584838867,
+      "cpu_time": 23.944463111001824,
+      "status": 1,
+      "starttime": 1781301382.5832062,
+      "endtime": 1781301407.835688,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8140314255375662,
+        -1342.9903324003851
+      ],
+      "time": 21.788513898849487,
+      "cpu_time": 21.31522968399804,
+      "status": 1,
+      "starttime": 1781301407.8808458,
+      "endtime": 1781301429.6723292,
+      "additional_info": {}
+    },
+    {
+      "config_id": 18,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7258784550409217,
+        -1305.1418509196249
+      ],
+      "time": 23.317943572998047,
+      "cpu_time": 23.124794800001837,
+      "status": 1,
+      "starttime": 1781301429.76446,
+      "endtime": 1781301453.0848885,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6442829003651266,
+        -1475.3300611352383
+      ],
+      "time": 7.644770383834839,
+      "cpu_time": 7.550060941000993,
+      "status": 1,
+      "starttime": 1781301453.1511757,
+      "endtime": 1781301460.7973535,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7604494116445994,
+        -1258.0426988257009
+      ],
+      "time": 24.105745553970337,
+      "cpu_time": 23.697426055994583,
+      "status": 1,
+      "starttime": 1781301460.8876379,
+      "endtime": 1781301484.9950528,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.005792060195087245,
+        -1378.6784500543697
+      ],
+      "time": 22.107271671295166,
+      "cpu_time": 21.929789775000245,
+      "status": 1,
+      "starttime": 1781301485.0610695,
+      "endtime": 1781301507.169821,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7668156087706163,
+        -1172.2915517957163
+      ],
+      "time": 25.957252979278564,
+      "cpu_time": 23.539716939005302,
+      "status": 1,
+      "starttime": 1781301507.2400308,
+      "endtime": 1781301533.1987376,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7673422773369684,
+        -1303.978147731011
+      ],
+      "time": 23.373698711395264,
+      "cpu_time": 23.145137003004493,
+      "status": 1,
+      "starttime": 1781301533.2384973,
+      "endtime": 1781301556.6382854,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.10897564702248932,
+        -1343.2786108495395
+      ],
+      "time": 22.665730476379395,
+      "cpu_time": 22.47617544500099,
+      "status": 1,
+      "starttime": 1781301556.7041678,
+      "endtime": 1781301579.3715212,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8329205399390577,
+        -1347.1898803407885
+      ],
+      "time": 21.788278102874756,
+      "cpu_time": 21.57926490799582,
+      "status": 1,
+      "starttime": 1781301579.4364467,
+      "endtime": 1781301601.2526572,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7194724488392839,
+        -1362.8274277509822
+      ],
+      "time": 19.029728889465332,
+      "cpu_time": 18.85830069000076,
+      "status": 1,
+      "starttime": 1781301601.3473942,
+      "endtime": 1781301620.4020643,
+      "additional_info": {}
+    },
+    {
+      "config_id": 10,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.36736595728913074,
+        -1537.033742779958
+      ],
+      "time": 7.354844093322754,
+      "cpu_time": 7.241920569998911,
+      "status": 1,
+      "starttime": 1781301620.489822,
+      "endtime": 1781301627.8469098,
+      "additional_info": {}
+    },
+    {
+      "config_id": 20,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.006248827294235162,
+        -1323.735686291111
+      ],
+      "time": 23.142598867416382,
+      "cpu_time": 22.775340646003315,
+      "status": 1,
+      "starttime": 1781301627.900012,
+      "endtime": 1781301651.0441198,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7789347272037803,
+        -1333.852713499847
+      ],
+      "time": 8.44501519203186,
+      "cpu_time": 8.378400314002647,
+      "status": 1,
+      "starttime": 1781301651.1360002,
+      "endtime": 1781301659.5826607,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8920684677800839,
+        -9.146836399776497
+      ],
+      "time": 3280.3195888996124,
+      "cpu_time": 3239.720177354,
+      "status": 1,
+      "starttime": 1781301659.6318638,
+      "endtime": 1781304939.9906626,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5108211687716457,
+        -26.655193217944625
+      ],
+      "time": 959.9732666015625,
+      "cpu_time": 946.084483462997,
+      "status": 1,
+      "starttime": 1781304940.226964,
+      "endtime": 1781305900.2823985,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8382714943431901,
+        -10.31706280441116
+      ],
+      "time": 2908.2718110084534,
+      "cpu_time": 2872.3144495660017,
+      "status": 1,
+      "starttime": 1781305900.5339053,
+      "endtime": 1781308808.9225643,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.44918119761711794,
+        -47.95022505610492
+      ],
+      "time": 602.7588307857513,
+      "cpu_time": 594.2535493029936,
+      "status": 1,
+      "starttime": 1781308809.0845752,
+      "endtime": 1781309411.9018784,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8450353436210059,
+        -26.24758974366775
+      ],
+      "time": 1143.265794992447,
+      "cpu_time": 1124.7546374859958,
+      "status": 1,
+      "starttime": 1781309412.0136561,
+      "endtime": 1781310555.2845302,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8369195602535786,
+        -25.48706758754559
+      ],
+      "time": 1177.4082200527191,
+      "cpu_time": 1158.8684187229956,
+      "status": 1,
+      "starttime": 1781310555.4104066,
+      "endtime": 1781311732.87164,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.834854853069429,
+        -36.66235783390261
+      ],
+      "time": 818.6196527481079,
+      "cpu_time": 805.4801655780029,
+      "status": 1,
+      "starttime": 1781311732.9855263,
+      "endtime": 1781312551.6185849,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6886464456754056,
+        -93.44819606173283
+      ],
+      "time": 118.99307203292847,
+      "cpu_time": 116.95276370999636,
+      "status": 1,
+      "starttime": 1781312551.8775704,
+      "endtime": 1781312670.874703,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.33399295413202007,
+        -82.56917319248387
+      ],
+      "time": 363.64450764656067,
+      "cpu_time": 355.82135905100586,
+      "status": 1,
+      "starttime": 1781312671.1697462,
+      "endtime": 1781313034.881857,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6316643834575765,
+        -87.59138261281198
+      ],
+      "time": 292.20848417282104,
+      "cpu_time": 286.0486183870016,
+      "status": 1,
+      "starttime": 1781313035.1155336,
+      "endtime": 1781313327.3937676,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7641884428735012,
+        -86.11838167971544
+      ],
+      "time": 335.6871099472046,
+      "cpu_time": 327.32559933599987,
+      "status": 1,
+      "starttime": 1781313327.6766207,
+      "endtime": 1781313663.402677,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8490723622560336,
+        -90.57551679884251
+      ],
+      "time": 331.4714665412903,
+      "cpu_time": 321.93691361300444,
+      "status": 1,
+      "starttime": 1781313663.6023657,
+      "endtime": 1781313995.1094391,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.1885589839014814,
+        -84.11996687550075
+      ],
+      "time": 356.92588925361633,
+      "cpu_time": 348.8828139209945,
+      "status": 1,
+      "starttime": 1781313995.3234677,
+      "endtime": 1781314352.29993,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8850059910650976,
+        -89.54494293148723
+      ],
+      "time": 335.2554852962494,
+      "cpu_time": 327.3525803100056,
+      "status": 1,
+      "starttime": 1781314352.3620803,
+      "endtime": 1781314687.6353824,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8451342399572939,
+        -86.81661524630395
+      ],
+      "time": 345.8279185295105,
+      "cpu_time": 337.97279941799934,
+      "status": 1,
+      "starttime": 1781314687.730444,
+      "endtime": 1781315033.5959454,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7103124859180391,
+        -1388.6481755667423
+      ],
+      "time": 8.097673892974854,
+      "cpu_time": 7.262074197002221,
+      "status": 1,
+      "starttime": 1781315034.0167065,
+      "endtime": 1781315042.2041795,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9168283770424813,
+        -3.807604913201529
+      ],
+      "time": 7879.320178985596,
+      "cpu_time": 7811.860262709008,
+      "status": 1,
+      "starttime": 1781315042.377496,
+      "endtime": 1781322921.700275,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7139892453402827,
+        -5.844089938106137
+      ],
+      "time": 5133.676535367966,
+      "cpu_time": 5112.025387142014,
+      "status": 1,
+      "starttime": 1781322921.728898,
+      "endtime": 1781328055.4081573,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.3815433150700002,
+        -4.334748326165256
+      ],
+      "time": 5900.452162981033,
+      "cpu_time": 5873.999606735,
+      "status": 1,
+      "starttime": 1781328055.427267,
+      "endtime": 1781333955.8807251,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.915736526915322,
+        -3.6832412103619925
+      ],
+      "time": 8145.349640607834,
+      "cpu_time": 8102.507588747991,
+      "status": 1,
+      "starttime": 1781333955.9042346,
+      "endtime": 1781342101.2554731,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6999961382410522,
+        -3.8874933843621258
+      ],
+      "time": 7717.6256268024445,
+      "cpu_time": 7679.337763882999,
+      "status": 1,
+      "starttime": 1781342101.2802954,
+      "endtime": 1781349818.9094603,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.277989538078133,
+        -4.47741614869838
+      ],
+      "time": 6452.022517204285,
+      "cpu_time": 6419.079750377001,
+      "status": 1,
+      "starttime": 1781349818.9561815,
+      "endtime": 1781356270.9827414,
+      "additional_info": {}
+    },
+    {
+      "config_id": 23,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7139684279664946,
+        -5.732106242082814
+      ],
+      "time": 5234.063809394836,
+      "cpu_time": 5186.2368386419985,
+      "status": 1,
+      "starttime": 1781356271.0078487,
+      "endtime": 1781361505.0756912,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8196267669575512,
+        -70.10969506601917
+      ],
+      "time": 158.58540177345276,
+      "cpu_time": 157.75952968800266,
+      "status": 1,
+      "starttime": 1781361505.1103163,
+      "endtime": 1781361663.715672,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.915214513420063,
+        -13.252752763768381
+      ],
+      "time": 2264.260926246643,
+      "cpu_time": 2223.095879626999,
+      "status": 1,
+      "starttime": 1781361663.92565,
+      "endtime": 1781363928.1986358,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6778739842881281,
+        -16.331367905458347
+      ],
+      "time": 1837.2708246707916,
+      "cpu_time": 1815.6067642080016,
+      "status": 1,
+      "starttime": 1781363928.3643296,
+      "endtime": 1781365765.7010431,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.36968095348542357,
+        -13.586444970174417
+      ],
+      "time": 1882.8080053329468,
+      "cpu_time": 1850.0407885780005,
+      "status": 1,
+      "starttime": 1781365765.9485538,
+      "endtime": 1781367648.8606274,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.26180861436468683,
+        -15.495343526408845
+      ],
+      "time": 1864.5551228523254,
+      "cpu_time": 1852.364391480005,
+      "status": 1,
+      "starttime": 1781367648.9804747,
+      "endtime": 1781369513.6132863,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6942524506772674,
+        -21.67432814107739
+      ],
+      "time": 1384.3810925483704,
+      "cpu_time": 1379.161948087989,
+      "status": 1,
+      "starttime": 1781369513.640283,
+      "endtime": 1781370898.0321653,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6920270231520363,
+        -21.68284034348221
+      ],
+      "time": 1383.8284792900085,
+      "cpu_time": 1378.5043769920012,
+      "status": 1,
+      "starttime": 1781370898.0553243,
+      "endtime": 1781372281.889304,
+      "additional_info": {}
+    },
+    {
+      "config_id": 24,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9148180745907928,
+        -16.50747571414779
+      ],
+      "time": 1817.6739830970764,
+      "cpu_time": 1809.613966252,
+      "status": 1,
+      "starttime": 1781372281.9096813,
+      "endtime": 1781374099.5917192,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7522528183274186,
+        -94.8679973202545
+      ],
+      "time": 117.20615410804749,
+      "cpu_time": 116.57604455300316,
+      "status": 1,
+      "starttime": 1781374099.6157098,
+      "endtime": 1781374216.8263736,
+      "additional_info": {}
+    },
+    {
+      "config_id": 25,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0008604174513625178,
+        -3.5285542476519614
+      ],
+      "time": 7248.501336574554,
+      "cpu_time": 7216.140780015005,
+      "status": 1,
+      "starttime": 1781374216.8504786,
+      "endtime": 1781381465.3561423,
+      "additional_info": {}
+    },
+    {
+      "config_id": 5,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7921625971288792,
+        -1461.737592162253
+      ],
+      "time": 20.777848482131958,
+      "cpu_time": 20.517867861010018,
+      "status": 1,
+      "starttime": 1781381465.5013194,
+      "endtime": 1781381486.2850506,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0006092622966197758,
+        -1663.2432229799933
+      ],
+      "time": 18.315455675125122,
+      "cpu_time": 18.159239942004206,
+      "status": 1,
+      "starttime": 1781381489.5714374,
+      "endtime": 1781381507.888042,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6746561071581081,
+        -1645.908579217527
+      ],
+      "time": 18.435953617095947,
+      "cpu_time": 18.346776990001672,
+      "status": 1,
+      "starttime": 1781381507.9008927,
+      "endtime": 1781381526.3380492,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5680292622905362,
+        -1633.2418903579905
+      ],
+      "time": 18.611388683319092,
+      "cpu_time": 18.439781706998474,
+      "status": 1,
+      "starttime": 1781381526.3507993,
+      "endtime": 1781381544.9633424,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5838644525357365,
+        -1622.901669424574
+      ],
+      "time": 18.741660118103027,
+      "cpu_time": 18.62315677400329,
+      "status": 1,
+      "starttime": 1781381544.9740338,
+      "endtime": 1781381563.7169168,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8507926684947454,
+        -1644.673696298225
+      ],
+      "time": 17.802661418914795,
+      "cpu_time": 17.67292169899156,
+      "status": 1,
+      "starttime": 1781381563.7290215,
+      "endtime": 1781381581.5328674,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.44703069544195684,
+        -1693.4390435843952
+      ],
+      "time": 6.6529340744018555,
+      "cpu_time": 6.616288614997757,
+      "status": 1,
+      "starttime": 1781381581.5428846,
+      "endtime": 1781381588.197012,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.10403421350996975,
+        -1600.9841661902149
+      ],
+      "time": 19.016454696655273,
+      "cpu_time": 18.881823424002505,
+      "status": 1,
+      "starttime": 1781381588.2067242,
+      "endtime": 1781381607.225033,
+      "additional_info": {}
+    },
+    {
+      "config_id": 26,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.787296609448552,
+        -1611.1068907546164
+      ],
+      "time": 16.0791916847229,
+      "cpu_time": 15.984262444006163,
+      "status": 1,
+      "starttime": 1781381607.235555,
+      "endtime": 1781381623.3163757,
+      "additional_info": {}
+    },
+    {
+      "config_id": 13,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7815104829891337,
+        -1357.6561384802114
+      ],
+      "time": 22.346364498138428,
+      "cpu_time": 22.24252548099321,
+      "status": 1,
+      "starttime": 1781381623.3331182,
+      "endtime": 1781381645.680694,
+      "additional_info": {}
+    },
+    {
+      "config_id": 27,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.029030540923313346,
+        -1543.478541664957
+      ],
+      "time": 19.713223218917847,
+      "cpu_time": 19.616441449994454,
+      "status": 1,
+      "starttime": 1781381645.6954758,
+      "endtime": 1781381665.4099782,
+      "additional_info": {}
+    },
+    {
+      "config_id": 14,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.814383125195153,
+        -69.24925887282629
+      ],
+      "time": 433.4715065956116,
+      "cpu_time": 428.89244892699935,
+      "status": 1,
+      "starttime": 1781381665.4249687,
+      "endtime": 1781382098.9006655,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.00853590193737045,
+        -1614.372772916899
+      ],
+      "time": 18.870295524597168,
+      "cpu_time": 18.32054121600231,
+      "status": 1,
+      "starttime": 1781382098.928447,
+      "endtime": 1781382117.8018517,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7497651679946056,
+        -1563.8711932837011
+      ],
+      "time": 19.422452449798584,
+      "cpu_time": 19.235311319993343,
+      "status": 1,
+      "starttime": 1781382117.8176413,
+      "endtime": 1781382137.2413166,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8348009632581854,
+        -1636.1755530449523
+      ],
+      "time": 17.899712085723877,
+      "cpu_time": 17.778350391992717,
+      "status": 1,
+      "starttime": 1781382137.25442,
+      "endtime": 1781382155.1554444,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7518111224866335,
+        -1542.102524369508
+      ],
+      "time": 19.71994185447693,
+      "cpu_time": 19.595294190003187,
+      "status": 1,
+      "starttime": 1781382155.1660662,
+      "endtime": 1781382174.887249,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7544714632376797,
+        -1580.6574513219612
+      ],
+      "time": 19.226203203201294,
+      "cpu_time": 19.098625622995314,
+      "status": 1,
+      "starttime": 1781382174.8995616,
+      "endtime": 1781382194.1269612,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6718234379224546,
+        -1596.6122494407873
+      ],
+      "time": 16.21996831893921,
+      "cpu_time": 16.113880246004555,
+      "status": 1,
+      "starttime": 1781382194.138389,
+      "endtime": 1781382210.3595922,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5861019624486296,
+        -1673.94594703343
+      ],
+      "time": 6.730733871459961,
+      "cpu_time": 6.677489313005935,
+      "status": 1,
+      "starttime": 1781382210.3702893,
+      "endtime": 1781382217.102239,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.10879418615032757,
+        -1592.9932216480672
+      ],
+      "time": 19.113523483276367,
+      "cpu_time": 18.97223034700437,
+      "status": 1,
+      "starttime": 1781382217.113251,
+      "endtime": 1781382236.228015,
+      "additional_info": {}
+    },
+    {
+      "config_id": 19,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7902496708534076,
+        -1387.5258426152272
+      ],
+      "time": 21.87088704109192,
+      "cpu_time": 21.733463240001583,
+      "status": 1,
+      "starttime": 1781382236.3146012,
+      "endtime": 1781382258.186697,
+      "additional_info": {}
+    },
+    {
+      "config_id": 29,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.00032156850632586095,
+        -4.283974491006858
+      ],
+      "time": 7003.120463609695,
+      "cpu_time": 6974.656815501003,
+      "status": 1,
+      "starttime": 1781382258.203008,
+      "endtime": 1781389261.3275878,
+      "additional_info": {}
+    },
+    {
+      "config_id": 21,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.41142954347696153,
+        -21.88367898704288
+      ],
+      "time": 1371.1850628852844,
+      "cpu_time": 1364.9018675539992,
+      "status": 1,
+      "starttime": 1781389261.354921,
+      "endtime": 1781390632.544389,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7618723497173081,
+        -1597.7238237791878
+      ],
+      "time": 19.027193069458008,
+      "cpu_time": 18.88969215101679,
+      "status": 1,
+      "starttime": 1781390632.570547,
+      "endtime": 1781390651.6000116,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.773503451627268,
+        -1632.9266465740125
+      ],
+      "time": 17.93151092529297,
+      "cpu_time": 17.80891121100285,
+      "status": 1,
+      "starttime": 1781390651.6189518,
+      "endtime": 1781390669.5516605,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0877854923466517,
+        -1569.2955787834044
+      ],
+      "time": 19.39686131477356,
+      "cpu_time": 19.190621792018646,
+      "status": 1,
+      "starttime": 1781390669.5662909,
+      "endtime": 1781390688.9643455,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5861192399014454,
+        -1600.6614662219658
+      ],
+      "time": 16.179152727127075,
+      "cpu_time": 16.085817854997003,
+      "status": 1,
+      "starttime": 1781390688.9801524,
+      "endtime": 1781390705.160564,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7258475825468179,
+        -1602.0217164009848
+      ],
+      "time": 18.970770359039307,
+      "cpu_time": 18.828668261005078,
+      "status": 1,
+      "starttime": 1781390705.2319229,
+      "endtime": 1781390724.203896,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7438348110116387,
+        -1564.6259704560043
+      ],
+      "time": 19.433432579040527,
+      "cpu_time": 19.311156643001596,
+      "status": 1,
+      "starttime": 1781390724.214792,
+      "endtime": 1781390743.6494825,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5727625996750595,
+        -1639.3755305419368
+      ],
+      "time": 6.8680009841918945,
+      "cpu_time": 6.6822315260069445,
+      "status": 1,
+      "starttime": 1781390743.660952,
+      "endtime": 1781390750.5314832,
+      "additional_info": {}
+    },
+    {
+      "config_id": 30,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0060308770763649235,
+        -1648.303600390251
+      ],
+      "time": 18.480926036834717,
+      "cpu_time": 18.392029973998433,
+      "status": 1,
+      "starttime": 1781390750.5425892,
+      "endtime": 1781390769.026176,
+      "additional_info": {}
+    },
+    {
+      "config_id": 22,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6893107325593694,
+        -67.66777582884174
+      ],
+      "time": 443.606342792511,
+      "cpu_time": 441.1303315060213,
+      "status": 1,
+      "starttime": 1781390769.0432076,
+      "endtime": 1781391212.6518228,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0061090707553033835,
+        -1654.2970406492273
+      ],
+      "time": 18.418314695358276,
+      "cpu_time": 18.222786320984596,
+      "status": 1,
+      "starttime": 1781391212.6734333,
+      "endtime": 1781391231.093735,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7776487891986393,
+        -1652.2697703734968
+      ],
+      "time": 17.725778102874756,
+      "cpu_time": 17.599651348020416,
+      "status": 1,
+      "starttime": 1781391231.1117713,
+      "endtime": 1781391248.8387964,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.5389468435115826,
+        -1633.6315353549394
+      ],
+      "time": 15.864641904830933,
+      "cpu_time": 15.759581927995896,
+      "status": 1,
+      "starttime": 1781391248.8547423,
+      "endtime": 1781391264.7215998,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6497107154531198,
+        -1698.9255488894667
+      ],
+      "time": 6.637365341186523,
+      "cpu_time": 6.585945159982657,
+      "status": 1,
+      "starttime": 1781391264.734611,
+      "endtime": 1781391271.3732169,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8087539302280939,
+        -1674.6886049613267
+      ],
+      "time": 18.159414052963257,
+      "cpu_time": 18.070829820993822,
+      "status": 1,
+      "starttime": 1781391271.3882005,
+      "endtime": 1781391289.5498807,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.06468869571731198,
+        -1578.941285798741
+      ],
+      "time": 19.28991985321045,
+      "cpu_time": 19.107640150003135,
+      "status": 1,
+      "starttime": 1781391289.5635226,
+      "endtime": 1781391308.8559027,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8058859193773883,
+        -1674.0337928361841
+      ],
+      "time": 18.166407346725464,
+      "cpu_time": 18.03870919800829,
+      "status": 1,
+      "starttime": 1781391308.8677433,
+      "endtime": 1781391327.0353775,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7733941949230431,
+        -1637.8932128070842
+      ],
+      "time": 18.577031135559082,
+      "cpu_time": 18.44191828800831,
+      "status": 1,
+      "starttime": 1781391327.0482764,
+      "endtime": 1781391345.6265311,
+      "additional_info": {}
+    },
+    {
+      "config_id": 28,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.740477259812666,
+        -1553.3603185128168
+      ],
+      "time": 19.563818216323853,
+      "cpu_time": 19.445015495002735,
+      "status": 1,
+      "starttime": 1781391345.6451004,
+      "endtime": 1781391365.2109818,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8154868634752446,
+        -1396.1381769048483
+      ],
+      "time": 21.751302003860474,
+      "cpu_time": 21.636538015998667,
+      "status": 1,
+      "starttime": 1781391365.226348,
+      "endtime": 1781391386.9788914,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6961370997587354,
+        -1513.8786393213486
+      ],
+      "time": 17.10082244873047,
+      "cpu_time": 17.01622858000337,
+      "status": 1,
+      "starttime": 1781391386.9942105,
+      "endtime": 1781391404.0962534,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7654216636183534,
+        -1474.9613492861029
+      ],
+      "time": 7.630614280700684,
+      "cpu_time": 7.5912561349978205,
+      "status": 1,
+      "starttime": 1781391404.1102996,
+      "endtime": 1781391411.7422767,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8212099731022849,
+        -1451.204284236891
+      ],
+      "time": 20.916138410568237,
+      "cpu_time": 20.81570615200326,
+      "status": 1,
+      "starttime": 1781391411.753992,
+      "endtime": 1781391432.6713738,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7935221090073358,
+        -1448.504293452929
+      ],
+      "time": 20.946271896362305,
+      "cpu_time": 20.754839544999413,
+      "status": 1,
+      "starttime": 1781391432.6855435,
+      "endtime": 1781391453.6330516,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.011464037842657707,
+        -1458.6979983075832
+      ],
+      "time": 20.849851608276367,
+      "cpu_time": 20.648013987985905,
+      "status": 1,
+      "starttime": 1781391453.6449463,
+      "endtime": 1781391474.4960341,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8245449256014638,
+        -1522.6949262898224
+      ],
+      "time": 19.21629238128662,
+      "cpu_time": 19.015398512012325,
+      "status": 1,
+      "starttime": 1781391474.5082164,
+      "endtime": 1781391493.7260845,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.11938482420276963,
+        -1411.1664770444013
+      ],
+      "time": 21.542283296585083,
+      "cpu_time": 21.436502853001002,
+      "status": 1,
+      "starttime": 1781391493.739652,
+      "endtime": 1781391515.2849991,
+      "additional_info": {}
+    },
+    {
+      "config_id": 31,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.736859115277114,
+        -1555.8171833896072
+      ],
+      "time": 19.53649091720581,
+      "cpu_time": 19.440480989025673,
+      "status": 1,
+      "starttime": 1781391515.305686,
+      "endtime": 1781391534.8454783,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7442772985830156,
+        -1554.8938392297725
+      ],
+      "time": 19.55273461341858,
+      "cpu_time": 19.45341264398303,
+      "status": 1,
+      "starttime": 1781391534.8674686,
+      "endtime": 1781391554.422297,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6688603738997252,
+        -1642.2864716188176
+      ],
+      "time": 6.865734100341797,
+      "cpu_time": 6.8276348060171586,
+      "status": 1,
+      "starttime": 1781391554.4435997,
+      "endtime": 1781391561.310535,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.002066061592916089,
+        -1639.142053267031
+      ],
+      "time": 18.5894033908844,
+      "cpu_time": 18.499280516,
+      "status": 1,
+      "starttime": 1781391561.324574,
+      "endtime": 1781391579.9161923,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4584459023606607,
+        -1624.9466665374064
+      ],
+      "time": 15.944390058517456,
+      "cpu_time": 15.81235495902365,
+      "status": 1,
+      "starttime": 1781391579.9341311,
+      "endtime": 1781391595.8808403,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7702449302808104,
+        -1649.1194395951884
+      ],
+      "time": 17.761688947677612,
+      "cpu_time": 17.67354836600134,
+      "status": 1,
+      "starttime": 1781391595.8954027,
+      "endtime": 1781391613.6582937,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.047802666629490384,
+        -1549.574591202788
+      ],
+      "time": 19.641300916671753,
+      "cpu_time": 19.505050109000877,
+      "status": 1,
+      "starttime": 1781391613.6707988,
+      "endtime": 1781391633.3133113,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7708787091081583,
+        -1592.4444783446095
+      ],
+      "time": 19.082937717437744,
+      "cpu_time": 18.904850175022148,
+      "status": 1,
+      "starttime": 1781391633.3259773,
+      "endtime": 1781391652.4101422,
+      "additional_info": {}
+    },
+    {
+      "config_id": 33,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7812571217421366,
+        -1630.2397373501262
+      ],
+      "time": 18.649834632873535,
+      "cpu_time": 18.558866787992883,
+      "status": 1,
+      "starttime": 1781391652.4233038,
+      "endtime": 1781391671.0743678,
+      "additional_info": {}
+    },
+    {
+      "config_id": 32,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8123240826521447,
+        -1347.9419568684696
+      ],
+      "time": 22.507807970046997,
+      "cpu_time": 22.398084051994374,
+      "status": 1,
+      "starttime": 1781391671.0908036,
+      "endtime": 1781391693.599817,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8345071120215778,
+        -1539.1330457383626
+      ],
+      "time": 19.01594853401184,
+      "cpu_time": 18.918196964019444,
+      "status": 1,
+      "starttime": 1781391696.3315158,
+      "endtime": 1781391715.348678,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7883579564069947,
+        -1481.1323874757
+      ],
+      "time": 7.6003828048706055,
+      "cpu_time": 7.562349507003091,
+      "status": 1,
+      "starttime": 1781391715.363814,
+      "endtime": 1781391722.9654062,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8165668537192405,
+        -1402.9738771974387
+      ],
+      "time": 21.64476227760315,
+      "cpu_time": 21.52786094500334,
+      "status": 1,
+      "starttime": 1781391722.9795032,
+      "endtime": 1781391744.625497,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8312065178389146,
+        -1438.4653092281917
+      ],
+      "time": 21.101336002349854,
+      "cpu_time": 20.996427909994964,
+      "status": 1,
+      "starttime": 1781391744.638379,
+      "endtime": 1781391765.7409737,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0076867226906875115,
+        -1480.0293617860098
+      ],
+      "time": 20.555422067642212,
+      "cpu_time": 20.394836905994453,
+      "status": 1,
+      "starttime": 1781391765.7555103,
+      "endtime": 1781391786.313645,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6779932687522733,
+        -1513.316325045338
+      ],
+      "time": 17.105405569076538,
+      "cpu_time": 16.990283469000133,
+      "status": 1,
+      "starttime": 1781391786.3267775,
+      "endtime": 1781391803.4345791,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.11654920703027272,
+        -1417.9191800923882
+      ],
+      "time": 21.43527317047119,
+      "cpu_time": 21.327240393991815,
+      "status": 1,
+      "starttime": 1781391803.4468815,
+      "endtime": 1781391824.8847485,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7802476619093205,
+        -1352.8457567007458
+      ],
+      "time": 22.428128480911255,
+      "cpu_time": 22.320603239990305,
+      "status": 1,
+      "starttime": 1781391824.9020786,
+      "endtime": 1781391847.3327591,
+      "additional_info": {}
+    },
+    {
+      "config_id": 34,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.813931123245912,
+        -1451.7014243121505
+      ],
+      "time": 20.91327667236328,
+      "cpu_time": 20.775962331012124,
+      "status": 1,
+      "starttime": 1781391847.3487084,
+      "endtime": 1781391868.2632186,
+      "additional_info": {}
+    },
+    {
+      "config_id": 35,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.011850409263555118,
+        -4.695565418563438
+      ],
+      "time": 6389.2177584171295,
+      "cpu_time": 6360.7264033219835,
+      "status": 1,
+      "starttime": 1781391868.2912855,
+      "endtime": 1781398257.5137017,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2102704941429237,
+        -95.71191401751692
+      ],
+      "time": 313.6728844642639,
+      "cpu_time": 312.0326577060041,
+      "status": 1,
+      "starttime": 1781398257.5602348,
+      "endtime": 1781398571.2386384,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.853509252833034,
+        -73.04164988517267
+      ],
+      "time": 410.9785759449005,
+      "cpu_time": 408.864764819009,
+      "status": 1,
+      "starttime": 1781398571.2612317,
+      "endtime": 1781398982.2477562,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7756262733928477,
+        -87.21406413698216
+      ],
+      "time": 293.4664387702942,
+      "cpu_time": 291.8636876880191,
+      "status": 1,
+      "starttime": 1781398982.2701638,
+      "endtime": 1781399275.7441914,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.06329515915209197,
+        -95.04230032067495
+      ],
+      "time": 315.8588500022888,
+      "cpu_time": 314.2513070720015,
+      "status": 1,
+      "starttime": 1781399275.7592404,
+      "endtime": 1781399591.622584,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4188214635107522,
+        -82.83207230687623
+      ],
+      "time": 362.4468472003937,
+      "cpu_time": 360.4581967080012,
+      "status": 1,
+      "starttime": 1781399591.6382577,
+      "endtime": 1781399954.0870533,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8708079795854639,
+        -87.40365865396882
+      ],
+      "time": 330.7263493537903,
+      "cpu_time": 329.0508755800256,
+      "status": 1,
+      "starttime": 1781399954.103463,
+      "endtime": 1781400284.8338268,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2755184491354659,
+        -88.20294987537525
+      ],
+      "time": 340.5185749530792,
+      "cpu_time": 338.7744693229906,
+      "status": 1,
+      "starttime": 1781400284.850835,
+      "endtime": 1781400625.372479,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2295342195867137,
+        -95.46185013414976
+      ],
+      "time": 314.48903727531433,
+      "cpu_time": 312.8834360220062,
+      "status": 1,
+      "starttime": 1781400625.3880012,
+      "endtime": 1781400939.8849416,
+      "additional_info": {}
+    },
+    {
+      "config_id": 36,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2905725527058619,
+        -100.73729043707729
+      ],
+      "time": 110.37080645561218,
+      "cpu_time": 109.77305451899883,
+      "status": 1,
+      "starttime": 1781400939.9407375,
+      "endtime": 1781401050.3152227,
+      "additional_info": {}
+    },
+    {
+      "config_id": 37,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.39977277457237975,
+        -8.500539942535022
+      ],
+      "time": 3008.9716370105743,
+      "cpu_time": 2996.5609486909816,
+      "status": 1,
+      "starttime": 1781401050.3445387,
+      "endtime": 1781404059.3182006,
+      "additional_info": {}
+    },
+    {
+      "config_id": 38,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7499563655926206,
+        -51.97583722714131
+      ],
+      "time": 577.664395570755,
+      "cpu_time": 575.1764098679996,
+      "status": 1,
+      "starttime": 1781404059.355991,
+      "endtime": 1781404637.0242317,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9170457851865562,
+        -5.212037537024826
+      ],
+      "time": 5756.221469402313,
+      "cpu_time": 5732.347440148005,
+      "status": 1,
+      "starttime": 1781404637.0604303,
+      "endtime": 1781410393.285638,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7436257518255732,
+        -33.957686793085166
+      ],
+      "time": 883.7102062702179,
+      "cpu_time": 879.3939404390112,
+      "status": 1,
+      "starttime": 1781410393.3123157,
+      "endtime": 1781411277.0269039,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9155075916122773,
+        -5.238640097033293
+      ],
+      "time": 5726.989328622818,
+      "cpu_time": 5701.557143889018,
+      "status": 1,
+      "starttime": 1781411277.0524592,
+      "endtime": 1781417004.0466862,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7459430681014585,
+        -36.15403783132856
+      ],
+      "time": 830.041913986206,
+      "cpu_time": 826.1757957569789,
+      "status": 1,
+      "starttime": 1781417004.069477,
+      "endtime": 1781417834.1188009,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.38789820747074827,
+        -7.201925375875418
+      ],
+      "time": 3551.501848220825,
+      "cpu_time": 3466.412912308995,
+      "status": 1,
+      "starttime": 1781417834.1409357,
+      "endtime": 1781421385.650684,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7261865556194088,
+        -13.519254257428813
+      ],
+      "time": 2219.4275023937225,
+      "cpu_time": 2182.925382157002,
+      "status": 1,
+      "starttime": 1781421385.703997,
+      "endtime": 1781423605.1367896,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7242630408612662,
+        -17.81622206298842
+      ],
+      "time": 623.6395509243011,
+      "cpu_time": 620.988822321,
+      "status": 1,
+      "starttime": 1781423605.1583383,
+      "endtime": 1781424228.8045814,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.2827098218728805,
+        -9.673880900078819
+      ],
+      "time": 2986.345473051071,
+      "cpu_time": 2972.6604162829753,
+      "status": 1,
+      "starttime": 1781424228.8272655,
+      "endtime": 1781427215.178876,
+      "additional_info": {}
+    },
+    {
+      "config_id": 39,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.33200553690508805,
+        -8.001892385298888
+      ],
+      "time": 3749.6331219673157,
+      "cpu_time": 3720.615151148988,
+      "status": 1,
+      "starttime": 1781427215.2053113,
+      "endtime": 1781430964.8428423,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7180061023827887,
+        -100.43562246634161
+      ],
+      "time": 110.70153021812439,
+      "cpu_time": 110.11884006799664,
+      "status": 1,
+      "starttime": 1781430964.8843029,
+      "endtime": 1781431075.5882807,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8324341147841646,
+        -96.98691235053691
+      ],
+      "time": 309.5270848274231,
+      "cpu_time": 307.81901275200653,
+      "status": 1,
+      "starttime": 1781431075.6099339,
+      "endtime": 1781431385.1408117,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8088686820131067,
+        -96.98459886208407
+      ],
+      "time": 309.53810262680054,
+      "cpu_time": 307.76843282199115,
+      "status": 1,
+      "starttime": 1781431385.2346642,
+      "endtime": 1781431694.7808287,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4105488943003809,
+        -88.01962463404465
+      ],
+      "time": 341.1013343334198,
+      "cpu_time": 339.2315309949918,
+      "status": 1,
+      "starttime": 1781431694.795924,
+      "endtime": 1781432035.9050596,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.29807730711195424,
+        -89.79259249660976
+      ],
+      "time": 334.35845708847046,
+      "cpu_time": 332.44876532501075,
+      "status": 1,
+      "starttime": 1781432035.926173,
+      "endtime": 1781432370.2919958,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8589821334592723,
+        -89.15477157871096
+      ],
+      "time": 324.2216725349426,
+      "cpu_time": 322.4258187339874,
+      "status": 1,
+      "starttime": 1781432370.307532,
+      "endtime": 1781432694.536773,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7523444926223132,
+        -86.73640028633118
+      ],
+      "time": 295.0465712547302,
+      "cpu_time": 293.56961499300087,
+      "status": 1,
+      "starttime": 1781432694.5530715,
+      "endtime": 1781432989.6196613,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8101250094670049,
+        -72.55698575878162
+      ],
+      "time": 413.6974267959595,
+      "cpu_time": 411.4771218440146,
+      "status": 1,
+      "starttime": 1781432989.6350317,
+      "endtime": 1781433403.3373997,
+      "additional_info": {}
+    },
+    {
+      "config_id": 40,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8208372897972792,
+        -95.15818669365932
+      ],
+      "time": 315.49145340919495,
+      "cpu_time": 313.74858711397974,
+      "status": 1,
+      "starttime": 1781433403.3595967,
+      "endtime": 1781433718.857075,
+      "additional_info": {}
+    },
+    {
+      "config_id": 41,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7890439049086879,
+        -29.145999285397462
+      ],
+      "time": 381.25556802749634,
+      "cpu_time": 379.59277911600657,
+      "status": 1,
+      "starttime": 1781433718.9445143,
+      "endtime": 1781434100.2054243,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.842918528123352,
+        -1401.5699768350444
+      ],
+      "time": 20.82318091392517,
+      "cpu_time": 20.68705383100314,
+      "status": 1,
+      "starttime": 1781434102.9443724,
+      "endtime": 1781434123.7686546,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7973957968932347,
+        -1330.9290344162378
+      ],
+      "time": 22.747345447540283,
+      "cpu_time": 22.545799247018294,
+      "status": 1,
+      "starttime": 1781434123.785312,
+      "endtime": 1781434146.5337965,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.820938951525355,
+        -1234.6528089435842
+      ],
+      "time": 24.520164012908936,
+      "cpu_time": 24.297833001997788,
+      "status": 1,
+      "starttime": 1781434146.5484998,
+      "endtime": 1781434171.0698426,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6984150145693061,
+        -1400.0376616178348
+      ],
+      "time": 18.44097638130188,
+      "cpu_time": 18.349772601999575,
+      "status": 1,
+      "starttime": 1781434171.085182,
+      "endtime": 1781434189.5274456,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0059395448336648,
+        -1368.5583553535403
+      ],
+      "time": 22.170369625091553,
+      "cpu_time": 22.02154579400667,
+      "status": 1,
+      "starttime": 1781434189.543273,
+      "endtime": 1781434211.714789,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7772621599086723,
+        -1457.0690630285526
+      ],
+      "time": 7.70763087272644,
+      "cpu_time": 7.668782567983726,
+      "status": 1,
+      "starttime": 1781434211.7278676,
+      "endtime": 1781434219.4366474,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8038617413768208,
+        -1280.0046354334536
+      ],
+      "time": 23.664046049118042,
+      "cpu_time": 23.322035393997794,
+      "status": 1,
+      "starttime": 1781434219.451193,
+      "endtime": 1781434243.116735,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.810361839929757,
+        -1339.0091628964403
+      ],
+      "time": 22.6115300655365,
+      "cpu_time": 22.47103428398259,
+      "status": 1,
+      "starttime": 1781434243.1305742,
+      "endtime": 1781434265.7444117,
+      "additional_info": {}
+    },
+    {
+      "config_id": 42,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.10490575759472635,
+        -1317.3004095332722
+      ],
+      "time": 23.01218056678772,
+      "cpu_time": 22.860411535017192,
+      "status": 1,
+      "starttime": 1781434265.76042,
+      "endtime": 1781434288.7748532,
+      "additional_info": {}
+    },
+    {
+      "config_id": 43,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7626128414317834,
+        -66.12942253361564
+      ],
+      "time": 453.9048402309418,
+      "cpu_time": 451.5840129770222,
+      "status": 1,
+      "starttime": 1781434288.8061504,
+      "endtime": 1781434742.7175038,
+      "additional_info": {}
+    },
+    {
+      "config_id": 44,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.0014153887110523095,
+        -4.3025789043993266
+      ],
+      "time": 6972.824000835419,
+      "cpu_time": 6942.923128789,
+      "status": 1,
+      "starttime": 1781434742.761771,
+      "endtime": 1781441715.5929,
+      "additional_info": {}
+    },
+    {
+      "config_id": 45,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.14727110121293152,
+        -3.813973398907255
+      ],
+      "time": 7574.342174530029,
+      "cpu_time": 7545.665706991975,
+      "status": 1,
+      "starttime": 1781441715.641213,
+      "endtime": 1781449289.98939,
+      "additional_info": {}
+    },
+    {
+      "config_id": 46,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8061355684940147,
+        -1445.3474116033733
+      ],
+      "time": 20.983776807785034,
+      "cpu_time": 20.747466225002427,
+      "status": 1,
+      "starttime": 1781449290.0451107,
+      "endtime": 1781449311.031903,
+      "additional_info": {}
+    },
+    {
+      "config_id": 47,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.09406955185611195,
+        -4.438169993943256
+      ],
+      "time": 6759.811554908752,
+      "cpu_time": 6737.985842327005,
+      "status": 1,
+      "starttime": 1781449311.0619931,
+      "endtime": 1781456070.9323008,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/Semantic5-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8348290198893052,
+        -1065.8773100171188
+      ],
+      "time": 27.420450687408447,
+      "cpu_time": 25.641031090985052,
+      "status": 1,
+      "starttime": 1781456071.0478334,
+      "endtime": 1781456098.4932528,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.6739103736399745,
+        -1136.8022510722649
+      ],
+      "time": 22.722443342208862,
+      "cpu_time": 22.400252924009692,
+      "status": 1,
+      "starttime": 1781456098.513765,
+      "endtime": 1781456121.237493,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/Tweets-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.805488725210623,
+        -1046.941602016066
+      ],
+      "time": 28.96767497062683,
+      "cpu_time": 28.56895349099068,
+      "status": 1,
+      "starttime": 1781456121.2598786,
+      "endtime": 1781456150.2299595,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/NT.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8260268757328534,
+        -1056.0420944025147
+      ],
+      "time": 28.669328689575195,
+      "cpu_time": 28.18667464100872,
+      "status": 1,
+      "starttime": 1781456150.2481341,
+      "endtime": 1781456178.919861,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7960501620247618,
+        -1202.8429342625604
+      ],
+      "time": 9.367220878601074,
+      "cpu_time": 9.216665925021516,
+      "status": 1,
+      "starttime": 1781456178.9408143,
+      "endtime": 1781456188.3093216,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.11288454456508011,
+        -1034.4114675905555
+      ],
+      "time": 29.33326292037964,
+      "cpu_time": 28.618058327992912,
+      "status": 1,
+      "starttime": 1781456188.3536408,
+      "endtime": 1781456217.6882448,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.014634833393695467,
+        -1098.1157056210732
+      ],
+      "time": 27.676685094833374,
+      "cpu_time": 27.247754689014982,
+      "status": 1,
+      "starttime": 1781456217.7050998,
+      "endtime": 1781456245.3836074,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/NTS.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8018820864202642,
+        -1058.8991727383875
+      ],
+      "time": 28.596708297729492,
+      "cpu_time": 27.875813272985397,
+      "status": 1,
+      "starttime": 1781456245.4141426,
+      "endtime": 1781456274.0476625,
+      "additional_info": {}
+    },
+    {
+      "config_id": 48,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7699454333973721,
+        -1006.1347301307171
+      ],
+      "time": 30.09876585006714,
+      "cpu_time": 29.598204543988686,
+      "status": 1,
+      "starttime": 1781456274.159401,
+      "endtime": 1781456304.2935007,
+      "additional_info": {}
+    },
+    {
+      "config_id": 49,
+      "instance": "examples/data/NTSO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.9122772244364328,
+        -6.743756597933767
+      ],
+      "time": 4448.931212425232,
+      "cpu_time": 4293.919489688997,
+      "status": 1,
+      "starttime": 1781456304.3295894,
+      "endtime": 1781460753.2806718,
+      "additional_info": {}
+    },
+    {
+      "config_id": 49,
+      "instance": "examples/data/Trends-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.37512758150397973,
+        -12.4549607866556
+      ],
+      "time": 2409.0641775131226,
+      "cpu_time": 2323.850771234982,
+      "status": 1,
+      "starttime": 1781460753.57438,
+      "endtime": 1781463162.746707,
+      "additional_info": {}
+    },
+    {
+      "config_id": 49,
+      "instance": "examples/data/News-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.7906300897228444,
+        -37.79460538250687
+      ],
+      "time": 294.1100478172302,
+      "cpu_time": 284.0701870629855,
+      "status": 1,
+      "starttime": 1781463162.9863987,
+      "endtime": 1781463457.2266383,
+      "additional_info": {}
+    },
+    {
+      "config_id": 49,
+      "instance": "examples/data/SO-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.8867829835362131,
+        -7.395340318131654
+      ],
+      "time": 4057.012844324112,
+      "cpu_time": 3939.8248606929847,
+      "status": 1,
+      "starttime": 1781463457.3463175,
+      "endtime": 1781467514.4576778,
+      "additional_info": {}
+    },
+    {
+      "config_id": 49,
+      "instance": "examples/data/Semantic10-T.json",
+      "seed": 44556670,
+      "budget": null,
+      "cost": [
+        -0.4521953010178701,
+        -15.838843332878122
+      ],
+      "time": 1615.0593042373657,
+      "cpu_time": 1571.882322450023,
+      "status": 1,
+      "starttime": 1781467514.7614856,
+      "endtime": 1781469129.9346762,
+      "additional_info": {}
+    }
+  ],
+  "configs": {
+    "1": {
+      "adaptive_threshold": 1,
+      "clean_interval": 100,
+      "cluster_interval": 1000,
+      "decay_rate": 0.0005,
+      "min_num_mc": 5,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "sigma": 1.0,
+      "threshold_momentum": 0.5,
+      "time_gap": 1000.0
+    },
+    "2": {
+      "adaptive_threshold": 0,
+      "clean_interval": 76,
+      "cluster_interval": 4632,
+      "decay_rate": 0.0005438334599,
+      "min_num_mc": 25,
+      "model": "sentenceTransformers",
+      "use_heuristic": 0,
+      "min_weight": 0.075169484191,
+      "radius": 0.1440126434912
+    },
+    "3": {
+      "adaptive_threshold": 0,
+      "clean_interval": 488,
+      "cluster_interval": 1236,
+      "decay_rate": 0.0004420626283,
+      "min_num_mc": 21,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "radius": 0.2153925041543,
+      "time_gap": 3609.543677265313
+    },
+    "4": {
+      "adaptive_threshold": 1,
+      "clean_interval": 302,
+      "cluster_interval": 601,
+      "decay_rate": 0.0021230002416,
+      "min_num_mc": 10,
+      "model": "minishlab",
+      "use_heuristic": 0,
+      "min_weight": 0.0002049422984,
+      "sigma": 1.9335739670854,
+      "threshold_momentum": 0.2400423881295
+    },
+    "5": {
+      "adaptive_threshold": 1,
+      "clean_interval": 323,
+      "cluster_interval": 3024,
+      "decay_rate": 0.0006118437002,
+      "min_num_mc": 1,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.350959373776,
+      "threshold_momentum": 0.3999952835278,
+      "time_gap": 3674.9097492784094
+    },
+    "6": {
+      "adaptive_threshold": 1,
+      "clean_interval": 486,
+      "cluster_interval": 4314,
+      "decay_rate": 0.0105502553634,
+      "min_num_mc": 27,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 2.7562595981614,
+      "threshold_momentum": 0.7597970546867,
+      "time_gap": 3446.7226582352973
+    },
+    "7": {
+      "adaptive_threshold": 1,
+      "clean_interval": 85,
+      "cluster_interval": 1240,
+      "decay_rate": 5.5095756e-05,
+      "min_num_mc": 15,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 2.0319642622487,
+      "threshold_momentum": 0.6114604015638,
+      "time_gap": 272.7692946940271
+    },
+    "8": {
+      "adaptive_threshold": 1,
+      "clean_interval": 304,
+      "cluster_interval": 1863,
+      "decay_rate": 0.0001722112859,
+      "min_num_mc": 24,
+      "model": "maniac",
+      "use_heuristic": 1,
+      "sigma": 2.5481220236438,
+      "threshold_momentum": 0.8166182092614,
+      "time_gap": 1832.3270412085087
+    },
+    "9": {
+      "adaptive_threshold": 1,
+      "clean_interval": 160,
+      "cluster_interval": 2005,
+      "decay_rate": 0.0003184094862,
+      "min_num_mc": 21,
+      "model": "clips",
+      "use_heuristic": 0,
+      "min_weight": 0.0014783932502,
+      "sigma": 1.9077393666848,
+      "threshold_momentum": 0.6210748988015
+    },
+    "10": {
+      "adaptive_threshold": 1,
+      "clean_interval": 367,
+      "cluster_interval": 4454,
+      "decay_rate": 0.0002970731584,
+      "min_num_mc": 9,
+      "model": "minishlab",
+      "use_heuristic": 0,
+      "min_weight": 0.0696465004143,
+      "sigma": 0.7721513152265,
+      "threshold_momentum": 0.3411614184371
+    },
+    "11": {
+      "adaptive_threshold": 0,
+      "clean_interval": 237,
+      "cluster_interval": 1428,
+      "decay_rate": 0.0310678499287,
+      "min_num_mc": 20,
+      "model": "minishlab",
+      "use_heuristic": 0,
+      "min_weight": 2.29782677e-05,
+      "radius": 0.2473658480616
+    },
+    "12": {
+      "adaptive_threshold": 0,
+      "clean_interval": 281,
+      "cluster_interval": 1730,
+      "decay_rate": 0.0132974008223,
+      "min_num_mc": 1,
+      "model": "clips",
+      "use_heuristic": 0,
+      "min_weight": 0.0121537789534,
+      "radius": 0.0855570624478
+    },
+    "13": {
+      "adaptive_threshold": 1,
+      "clean_interval": 489,
+      "cluster_interval": 1236,
+      "decay_rate": 0.001132410254,
+      "min_num_mc": 12,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.9442817617456,
+      "threshold_momentum": 0.2908419254536,
+      "time_gap": 3690.765688613804
+    },
+    "14": {
+      "adaptive_threshold": 1,
+      "clean_interval": 354,
+      "cluster_interval": 1243,
+      "decay_rate": 0.0011282842331,
+      "min_num_mc": 8,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "sigma": 1.9246810535759,
+      "threshold_momentum": 0.3152429727848,
+      "time_gap": 3679.232083973843
+    },
+    "15": {
+      "adaptive_threshold": 1,
+      "clean_interval": 329,
+      "cluster_interval": 3336,
+      "decay_rate": 8.75316176e-05,
+      "min_num_mc": 4,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "sigma": 2.2919054117917,
+      "threshold_momentum": 0.1324461081086,
+      "time_gap": 529.7638182816335
+    },
+    "16": {
+      "adaptive_threshold": 1,
+      "clean_interval": 344,
+      "cluster_interval": 1248,
+      "decay_rate": 0.034187005792,
+      "min_num_mc": 10,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "sigma": 1.9270861301951,
+      "threshold_momentum": 0.0293862543654,
+      "time_gap": 4342.495529064753
+    },
+    "17": {
+      "adaptive_threshold": 1,
+      "clean_interval": 345,
+      "cluster_interval": 1298,
+      "decay_rate": 0.0096788182344,
+      "min_num_mc": 12,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.5571509867275,
+      "threshold_momentum": 0.2989402293285,
+      "time_gap": 3619.579360003732
+    },
+    "18": {
+      "adaptive_threshold": 1,
+      "clean_interval": 393,
+      "cluster_interval": 840,
+      "decay_rate": 0.0002829383003,
+      "min_num_mc": 17,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.7420997779411,
+      "threshold_momentum": 0.188453932489,
+      "time_gap": 199.454036622033
+    },
+    "19": {
+      "adaptive_threshold": 1,
+      "clean_interval": 373,
+      "cluster_interval": 1268,
+      "decay_rate": 0.0004606910322,
+      "min_num_mc": 16,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.7442591811205,
+      "threshold_momentum": 0.2035197743543,
+      "time_gap": 4491.9949932521295
+    },
+    "20": {
+      "adaptive_threshold": 1,
+      "clean_interval": 373,
+      "cluster_interval": 1270,
+      "decay_rate": 7.41323117e-05,
+      "min_num_mc": 16,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.8136490992422,
+      "threshold_momentum": 0.204757367487,
+      "time_gap": 3981.6431043050793
+    },
+    "21": {
+      "adaptive_threshold": 0,
+      "clean_interval": 488,
+      "cluster_interval": 523,
+      "decay_rate": 7.28034257e-05,
+      "min_num_mc": 16,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.3396376403599,
+      "time_gap": 3059.2693091568926
+    },
+    "22": {
+      "adaptive_threshold": 1,
+      "clean_interval": 159,
+      "cluster_interval": 965,
+      "decay_rate": 0.0244579689328,
+      "min_num_mc": 15,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "sigma": 2.0225248361679,
+      "threshold_momentum": 0.872660485754,
+      "time_gap": 4070.385784867747
+    },
+    "23": {
+      "adaptive_threshold": 0,
+      "clean_interval": 463,
+      "cluster_interval": 1185,
+      "decay_rate": 0.0001319198797,
+      "min_num_mc": 17,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.1532427560668,
+      "time_gap": 4553.861177188
+    },
+    "24": {
+      "adaptive_threshold": 0,
+      "clean_interval": 497,
+      "cluster_interval": 802,
+      "decay_rate": 0.0003899356436,
+      "min_num_mc": 17,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.0846152364173,
+      "time_gap": 2216.575050920414
+    },
+    "25": {
+      "adaptive_threshold": 1,
+      "clean_interval": 256,
+      "cluster_interval": 2186,
+      "decay_rate": 0.0081784189442,
+      "min_num_mc": 1,
+      "model": "clips",
+      "use_heuristic": 1,
+      "sigma": 0.537634031178,
+      "threshold_momentum": 0.5792608041938,
+      "time_gap": 2227.094497909698
+    },
+    "26": {
+      "adaptive_threshold": 1,
+      "clean_interval": 357,
+      "cluster_interval": 3913,
+      "decay_rate": 0.0003679852739,
+      "min_num_mc": 7,
+      "model": "minishlab",
+      "use_heuristic": 0,
+      "min_weight": 1.21212743e-05,
+      "sigma": 0.9481257570071,
+      "threshold_momentum": 0.3281020225486
+    },
+    "27": {
+      "adaptive_threshold": 1,
+      "clean_interval": 358,
+      "cluster_interval": 4225,
+      "decay_rate": 0.0150852339801,
+      "min_num_mc": 14,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.0560946321273,
+      "threshold_momentum": 0.6960050395178,
+      "time_gap": 3830.5763680686655
+    },
+    "28": {
+      "adaptive_threshold": 1,
+      "clean_interval": 484,
+      "cluster_interval": 3742,
+      "decay_rate": 0.001223826985,
+      "min_num_mc": 13,
+      "model": "minishlab",
+      "use_heuristic": 0,
+      "min_weight": 8.7623329e-05,
+      "sigma": 0.9471729462342,
+      "threshold_momentum": 0.2000922583769
+    },
+    "29": {
+      "adaptive_threshold": 0,
+      "clean_interval": 197,
+      "cluster_interval": 3429,
+      "decay_rate": 0.0128544610571,
+      "min_num_mc": 6,
+      "model": "clips",
+      "use_heuristic": 0,
+      "min_weight": 0.0047844799123,
+      "radius": 0.5399108904475
+    },
+    "30": {
+      "adaptive_threshold": 1,
+      "clean_interval": 358,
+      "cluster_interval": 2893,
+      "decay_rate": 0.0030302206046,
+      "min_num_mc": 16,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 0.9633812639576,
+      "threshold_momentum": 0.305889042463,
+      "time_gap": 3854.7631069114063
+    },
+    "31": {
+      "adaptive_threshold": 1,
+      "clean_interval": 358,
+      "cluster_interval": 3796,
+      "decay_rate": 0.0038938933912,
+      "min_num_mc": 13,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 0.9697522027445,
+      "threshold_momentum": 0.3020128916064,
+      "time_gap": 756.5736476505016
+    },
+    "32": {
+      "adaptive_threshold": 1,
+      "clean_interval": 486,
+      "cluster_interval": 1236,
+      "decay_rate": 0.0014536237776,
+      "min_num_mc": 15,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.9366001962312,
+      "threshold_momentum": 0.3235958473434,
+      "time_gap": 4196.737423087381
+    },
+    "33": {
+      "adaptive_threshold": 1,
+      "clean_interval": 357,
+      "cluster_interval": 2935,
+      "decay_rate": 0.0130130006119,
+      "min_num_mc": 14,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.0497078155464,
+      "threshold_momentum": 0.2839946234902,
+      "time_gap": 3695.66448977374
+    },
+    "34": {
+      "adaptive_threshold": 1,
+      "clean_interval": 489,
+      "cluster_interval": 1191,
+      "decay_rate": 0.0010061501774,
+      "min_num_mc": 9,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.8928151036066,
+      "threshold_momentum": 0.3126658713305,
+      "time_gap": 3660.3266752663462
+    },
+    "35": {
+      "adaptive_threshold": 1,
+      "clean_interval": 206,
+      "cluster_interval": 996,
+      "decay_rate": 0.0001507330376,
+      "min_num_mc": 26,
+      "model": "clips",
+      "use_heuristic": 1,
+      "sigma": 1.5939000215742,
+      "threshold_momentum": 0.9585535305438,
+      "time_gap": 4525.058575619356
+    },
+    "36": {
+      "adaptive_threshold": 1,
+      "clean_interval": 62,
+      "cluster_interval": 4092,
+      "decay_rate": 0.0008031582099,
+      "min_num_mc": 4,
+      "model": "sentenceTransformers",
+      "use_heuristic": 0,
+      "min_weight": 0.0093839430282,
+      "sigma": 0.3592416759658,
+      "threshold_momentum": 0.9031669248854
+    },
+    "37": {
+      "adaptive_threshold": 0,
+      "clean_interval": 493,
+      "cluster_interval": 3294,
+      "decay_rate": 0.0004190057708,
+      "min_num_mc": 16,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.2127890878054,
+      "time_gap": 4000.840350371372
+    },
+    "38": {
+      "adaptive_threshold": 0,
+      "clean_interval": 493,
+      "cluster_interval": 2805,
+      "decay_rate": 0.0291207862194,
+      "min_num_mc": 7,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.2194926708854,
+      "time_gap": 3451.5009205707834
+    },
+    "39": {
+      "adaptive_threshold": 0,
+      "clean_interval": 489,
+      "cluster_interval": 2847,
+      "decay_rate": 0.0295349988462,
+      "min_num_mc": 6,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.207657899709,
+      "time_gap": 4183.900296815265
+    },
+    "40": {
+      "adaptive_threshold": 1,
+      "clean_interval": 474,
+      "cluster_interval": 3479,
+      "decay_rate": 0.0034743886799,
+      "min_num_mc": 9,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "sigma": 1.5585206477932,
+      "threshold_momentum": 0.5837321534348,
+      "time_gap": 1080.9894781426292
+    },
+    "41": {
+      "adaptive_threshold": 0,
+      "clean_interval": 472,
+      "cluster_interval": 3759,
+      "decay_rate": 0.0002256060489,
+      "min_num_mc": 11,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "radius": 0.2600091760753,
+      "time_gap": 3414.671377618407
+    },
+    "42": {
+      "adaptive_threshold": 1,
+      "clean_interval": 476,
+      "cluster_interval": 315,
+      "decay_rate": 0.0008560987964,
+      "min_num_mc": 9,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.826113907938,
+      "threshold_momentum": 0.3296452337143,
+      "time_gap": 3338.9687961033774
+    },
+    "43": {
+      "adaptive_threshold": 0,
+      "clean_interval": 425,
+      "cluster_interval": 3800,
+      "decay_rate": 0.0002484174167,
+      "min_num_mc": 26,
+      "model": "sentenceTransformers",
+      "use_heuristic": 1,
+      "radius": 0.2325628352392,
+      "time_gap": 337.5643323992102
+    },
+    "44": {
+      "adaptive_threshold": 0,
+      "clean_interval": 385,
+      "cluster_interval": 4450,
+      "decay_rate": 0.0023346181075,
+      "min_num_mc": 15,
+      "model": "clips",
+      "use_heuristic": 0,
+      "min_weight": 0.0008157000459,
+      "radius": 0.3630630650097
+    },
+    "45": {
+      "adaptive_threshold": 1,
+      "clean_interval": 159,
+      "cluster_interval": 2955,
+      "decay_rate": 0.0135246021854,
+      "min_num_mc": 12,
+      "model": "clips",
+      "use_heuristic": 0,
+      "min_weight": 0.0702270063931,
+      "sigma": 2.9648444319626,
+      "threshold_momentum": 0.2149639536088
+    },
+    "46": {
+      "adaptive_threshold": 1,
+      "clean_interval": 445,
+      "cluster_interval": 690,
+      "decay_rate": 0.0008800288336,
+      "min_num_mc": 8,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.8641743711601,
+      "threshold_momentum": 0.356410434912,
+      "time_gap": 3086.9760415669252
+    },
+    "47": {
+      "adaptive_threshold": 1,
+      "clean_interval": 247,
+      "cluster_interval": 1409,
+      "decay_rate": 0.0157279372356,
+      "min_num_mc": 19,
+      "model": "clips",
+      "use_heuristic": 1,
+      "sigma": 1.8899220684415,
+      "threshold_momentum": 0.744985732283,
+      "time_gap": 4427.975292274878
+    },
+    "48": {
+      "adaptive_threshold": 1,
+      "clean_interval": 429,
+      "cluster_interval": 230,
+      "decay_rate": 0.0008207412832,
+      "min_num_mc": 9,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "sigma": 1.9366001962312,
+      "threshold_momentum": 0.3433393471541,
+      "time_gap": 3311.9250097901036
+    },
+    "49": {
+      "adaptive_threshold": 0,
+      "clean_interval": 486,
+      "cluster_interval": 489,
+      "decay_rate": 0.0005190471501,
+      "min_num_mc": 19,
+      "model": "minishlab",
+      "use_heuristic": 1,
+      "radius": 0.2911340836527,
+      "time_gap": 3626.1185863765586
+    }
+  },
+  "config_origins": {
+    "1": "Initial Design: Default",
+    "2": "Random Search",
+    "3": "Acquisition Function Maximizer: Local Search",
+    "4": "Random Search",
+    "5": "Random Search",
+    "6": "Random Search",
+    "7": "Random Search",
+    "8": "Random Search",
+    "9": "Random Search",
+    "10": "Random Search",
+    "11": "Random Search",
+    "12": "Random Search",
+    "13": "Acquisition Function Maximizer: Local Search",
+    "14": "Acquisition Function Maximizer: Local Search",
+    "15": "Random Search",
+    "16": "Acquisition Function Maximizer: Local Search",
+    "17": "Acquisition Function Maximizer: Local Search",
+    "18": "Acquisition Function Maximizer: Local Search",
+    "19": "Acquisition Function Maximizer: Local Search",
+    "20": "Acquisition Function Maximizer: Local Search",
+    "21": "Acquisition Function Maximizer: Local Search",
+    "22": "Random Search",
+    "23": "Acquisition Function Maximizer: Local Search",
+    "24": "Acquisition Function Maximizer: Local Search",
+    "25": "Random Search",
+    "26": "Acquisition Function Maximizer: Local Search",
+    "27": "Acquisition Function Maximizer: Local Search",
+    "28": "Acquisition Function Maximizer: Local Search",
+    "29": "Random Search",
+    "30": "Acquisition Function Maximizer: Local Search",
+    "31": "Acquisition Function Maximizer: Local Search",
+    "32": "Acquisition Function Maximizer: Local Search",
+    "33": "Acquisition Function Maximizer: Local Search",
+    "34": "Acquisition Function Maximizer: Local Search",
+    "35": "Random Search",
+    "36": "Random Search",
+    "37": "Acquisition Function Maximizer: Local Search",
+    "38": "Acquisition Function Maximizer: Local Search",
+    "39": "Acquisition Function Maximizer: Local Search",
+    "40": "Random Search",
+    "41": "Random Search",
+    "42": "Acquisition Function Maximizer: Local Search",
+    "43": "Random Search",
+    "44": "Random Search",
+    "45": "Random Search",
+    "46": "Acquisition Function Maximizer: Local Search",
+    "47": "Random Search",
+    "48": "Acquisition Function Maximizer: Local Search",
+    "49": "Acquisition Function Maximizer: Local Search"
+  }
+}

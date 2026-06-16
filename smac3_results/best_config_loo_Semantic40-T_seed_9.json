@@ -1,0 +1,73 @@
+[
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 354,
+        "cluster_interval": 1243,
+        "decay_rate": 0.0011282842331,
+        "min_num_mc": 8,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "sigma": 1.9246810535759,
+        "threshold_momentum": 0.3152429727848,
+        "time_gap": 3679.232083973843
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 488,
+        "cluster_interval": 523,
+        "decay_rate": 7.28034257e-05,
+        "min_num_mc": 16,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "radius": 0.3396376403599,
+        "time_gap": 3059.2693091568926
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 484,
+        "cluster_interval": 3742,
+        "decay_rate": 0.001223826985,
+        "min_num_mc": 13,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 8.7623329e-05,
+        "sigma": 0.9471729462342,
+        "threshold_momentum": 0.2000922583769
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 358,
+        "cluster_interval": 3796,
+        "decay_rate": 0.0038938933912,
+        "min_num_mc": 13,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 0.9697522027445,
+        "threshold_momentum": 0.3020128916064,
+        "time_gap": 756.5736476505016
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 489,
+        "cluster_interval": 1191,
+        "decay_rate": 0.0010061501774,
+        "min_num_mc": 9,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 1.8928151036066,
+        "threshold_momentum": 0.3126658713305,
+        "time_gap": 3660.3266752663462
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 474,
+        "cluster_interval": 3479,
+        "decay_rate": 0.0034743886799,
+        "min_num_mc": 9,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "sigma": 1.5585206477932,
+        "threshold_momentum": 0.5837321534348,
+        "time_gap": 1080.9894781426292
+    }
+]

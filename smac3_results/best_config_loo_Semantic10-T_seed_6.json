@@ -1,0 +1,109 @@
+[
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 474,
+        "cluster_interval": 3050,
+        "decay_rate": 0.0095554364224,
+        "min_num_mc": 11,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.0145455258392,
+        "sigma": 2.9402580371968,
+        "threshold_momentum": 0.8725913877176
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 444,
+        "cluster_interval": 1999,
+        "decay_rate": 0.023203953712,
+        "min_num_mc": 16,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 8.56542862e-05,
+        "sigma": 2.0813744418988,
+        "threshold_momentum": 0.7105963773245
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 456,
+        "cluster_interval": 618,
+        "decay_rate": 0.0093828744424,
+        "min_num_mc": 21,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 2.7449661884547,
+        "threshold_momentum": 0.8563859282264,
+        "time_gap": 1000.0
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 497,
+        "cluster_interval": 2979,
+        "decay_rate": 0.0089627033419,
+        "min_num_mc": 23,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "sigma": 2.2793846126162,
+        "threshold_momentum": 0.795690287902,
+        "time_gap": 1000.0
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 491,
+        "cluster_interval": 4119,
+        "decay_rate": 0.0172928432177,
+        "min_num_mc": 25,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0194067154762,
+        "sigma": 0.9716392821125,
+        "threshold_momentum": 0.7553318204
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 489,
+        "cluster_interval": 1523,
+        "decay_rate": 0.0012431517503,
+        "min_num_mc": 5,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "sigma": 1.6983406074789,
+        "threshold_momentum": 0.6399399166278,
+        "time_gap": 750.975139168609
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 491,
+        "cluster_interval": 3071,
+        "decay_rate": 0.0134534376226,
+        "min_num_mc": 25,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0158412756805,
+        "sigma": 2.1678653848246,
+        "threshold_momentum": 0.7611997584023
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 491,
+        "cluster_interval": 2883,
+        "decay_rate": 0.0134325967294,
+        "min_num_mc": 25,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0123797874139,
+        "sigma": 2.1619386712253,
+        "threshold_momentum": 0.7537917856439
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 336,
+        "cluster_interval": 3209,
+        "decay_rate": 0.0020144850061,
+        "min_num_mc": 3,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "radius": 0.5451050300846,
+        "time_gap": 188.4465099525532
+    }
+]

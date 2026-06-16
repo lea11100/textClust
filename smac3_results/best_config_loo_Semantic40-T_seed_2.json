@@ -1,0 +1,47 @@
+[
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 372,
+        "cluster_interval": 4544,
+        "decay_rate": 0.0062100312425,
+        "min_num_mc": 15,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 4.82463255e-05,
+        "radius": 0.5481894163528
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 378,
+        "cluster_interval": 3582,
+        "decay_rate": 0.0001004636528,
+        "min_num_mc": 11,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 2.4396106300918,
+        "threshold_momentum": 0.6050112307438,
+        "time_gap": 674.0763045920388
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 132,
+        "cluster_interval": 503,
+        "decay_rate": 0.0026976452598,
+        "min_num_mc": 17,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "radius": 0.4498552581069,
+        "time_gap": 52.328381064384
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 464,
+        "cluster_interval": 4887,
+        "decay_rate": 0.0147944618811,
+        "min_num_mc": 24,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "radius": 0.4311470106745,
+        "time_gap": 3908.67889565262
+    }
+]

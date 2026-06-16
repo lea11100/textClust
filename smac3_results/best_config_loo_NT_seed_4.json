@@ -1,0 +1,73 @@
+[
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 418,
+        "cluster_interval": 3411,
+        "decay_rate": 0.0147911248091,
+        "min_num_mc": 7,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.361804431928,
+        "sigma": 2.6698885799584,
+        "threshold_momentum": 0.4995368642253
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 22,
+        "cluster_interval": 2043,
+        "decay_rate": 0.0283995957923,
+        "min_num_mc": 1,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.0094747358481,
+        "radius": 0.5134029444178
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 385,
+        "cluster_interval": 2701,
+        "decay_rate": 0.002174861298,
+        "min_num_mc": 16,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "sigma": 1.579124465402,
+        "threshold_momentum": 0.5738949866529,
+        "time_gap": 2587.471524367944
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 400,
+        "cluster_interval": 2007,
+        "decay_rate": 0.0023932223566,
+        "min_num_mc": 16,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0457395676989,
+        "sigma": 1.5271154620501,
+        "threshold_momentum": 0.9851899794736
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 401,
+        "cluster_interval": 3244,
+        "decay_rate": 0.0023322063257,
+        "min_num_mc": 18,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.1440449353314,
+        "sigma": 1.2320538018638,
+        "threshold_momentum": 0.998226142409
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 420,
+        "cluster_interval": 2627,
+        "decay_rate": 0.0176877272847,
+        "min_num_mc": 4,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0086334421782,
+        "sigma": 2.7891875180955,
+        "threshold_momentum": 0.9874636690658
+    }
+]

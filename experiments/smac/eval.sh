@@ -110,7 +110,7 @@ experiment=("best_config_loo_NTSO_seed_0.json --output-csv smac3_results_eval/be
 "best_config_loo_Tweets-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_7.json" \
 "best_config_loo_Tweets-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_8.json" \
 "best_config_loo_Tweets-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_9.json" \
-"--use-default-config")
+"--use-default-config --output-csv smac3_results_eval/default_performances.json")
 
 echo "START runexperiment call at $(date '+%Y-%m-%d %H:%M:%S')"
 

@@ -1,0 +1,73 @@
+[
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 363,
+        "cluster_interval": 1179,
+        "decay_rate": 0.0307855055107,
+        "min_num_mc": 10,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.006708686806,
+        "sigma": 2.0697970323878,
+        "threshold_momentum": 0.6968436465854
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 307,
+        "cluster_interval": 1019,
+        "decay_rate": 0.024733096301,
+        "min_num_mc": 3,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.0001814715184,
+        "sigma": 2.3076099267981,
+        "threshold_momentum": 0.6612160661152
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 441,
+        "cluster_interval": 2881,
+        "decay_rate": 0.0085141127649,
+        "min_num_mc": 10,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "sigma": 0.8630002946797,
+        "threshold_momentum": 0.8056495233672,
+        "time_gap": 47.8966881562192
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 445,
+        "cluster_interval": 3228,
+        "decay_rate": 0.0134160385737,
+        "min_num_mc": 15,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0688382545926,
+        "sigma": 2.3292299487925,
+        "threshold_momentum": 0.7462456167392
+    },
+    {
+        "adaptive_threshold": 1,
+        "clean_interval": 494,
+        "cluster_interval": 3525,
+        "decay_rate": 0.0270176135333,
+        "min_num_mc": 23,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0067269716851,
+        "sigma": 2.0628653114705,
+        "threshold_momentum": 0.809645164619
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 80,
+        "cluster_interval": 1681,
+        "decay_rate": 0.0177742541077,
+        "min_num_mc": 2,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0347696060058,
+        "radius": 0.3312534923961
+    }
+]
