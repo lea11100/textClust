@@ -1,26 +1,48 @@
 [
     {
         "adaptive_threshold": 0,
-        "clean_interval": 372,
-        "cluster_interval": 4544,
-        "decay_rate": 0.0062100312425,
-        "min_num_mc": 15,
+        "clean_interval": 395,
+        "cluster_interval": 4936,
+        "decay_rate": 0.0023937007171,
+        "min_num_mc": 2,
         "model": "sentenceTransformers",
-        "use_heuristic": 0,
-        "min_weight": 4.82463255e-05,
-        "radius": 0.5481894163528
+        "use_heuristic": 1,
+        "radius": 0.4443330281342,
+        "time_gap": 378.7345955453066
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 382,
+        "cluster_interval": 4285,
+        "decay_rate": 0.0038268034964,
+        "min_num_mc": 2,
+        "model": "sentenceTransformers",
+        "use_heuristic": 1,
+        "radius": 0.460220479734,
+        "time_gap": 719.2131175400069
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 499,
+        "cluster_interval": 4930,
+        "decay_rate": 0.0439835689527,
+        "min_num_mc": 2,
+        "model": "minishlab",
+        "use_heuristic": 1,
+        "radius": 0.4078167607137,
+        "time_gap": 20.3031381244411
     },
     {
         "adaptive_threshold": 1,
-        "clean_interval": 378,
-        "cluster_interval": 3582,
-        "decay_rate": 0.0001004636528,
-        "min_num_mc": 11,
-        "model": "minishlab",
-        "use_heuristic": 1,
-        "sigma": 2.4396106300918,
-        "threshold_momentum": 0.6050112307438,
-        "time_gap": 674.0763045920388
+        "clean_interval": 195,
+        "cluster_interval": 4895,
+        "decay_rate": 0.0017357791067,
+        "min_num_mc": 18,
+        "model": "sentenceTransformers",
+        "use_heuristic": 0,
+        "min_weight": 0.275953234457,
+        "sigma": 2.8355679548784,
+        "threshold_momentum": 0.841005580585
     },
     {
         "adaptive_threshold": 0,
@@ -35,13 +57,13 @@
     },
     {
         "adaptive_threshold": 0,
-        "clean_interval": 464,
-        "cluster_interval": 4887,
-        "decay_rate": 0.0147944618811,
-        "min_num_mc": 24,
+        "clean_interval": 500,
+        "cluster_interval": 4844,
+        "decay_rate": 0.0022003484857,
+        "min_num_mc": 2,
         "model": "minishlab",
         "use_heuristic": 1,
-        "radius": 0.4311470106745,
-        "time_gap": 3908.67889565262
+        "radius": 0.4526589320822,
+        "time_gap": 299.406331047623
     }
 ]

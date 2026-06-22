@@ -1,39 +1,27 @@
 [
     {
         "adaptive_threshold": 1,
-        "clean_interval": 427,
-        "cluster_interval": 3156,
-        "decay_rate": 0.0242905102574,
-        "min_num_mc": 17,
-        "model": "sentenceTransformers",
+        "clean_interval": 498,
+        "cluster_interval": 3259,
+        "decay_rate": 0.0169690019441,
+        "min_num_mc": 25,
+        "model": "minishlab",
         "use_heuristic": 0,
-        "min_weight": 0.008452119433,
-        "sigma": 1.698363550793,
-        "threshold_momentum": 0.7731682983855
+        "min_weight": 1.1039591e-05,
+        "sigma": 1.1711466153933,
+        "threshold_momentum": 0.7025749528025
     },
     {
         "adaptive_threshold": 1,
-        "clean_interval": 475,
-        "cluster_interval": 4598,
-        "decay_rate": 0.023177457164,
-        "min_num_mc": 10,
-        "model": "sentenceTransformers",
+        "clean_interval": 463,
+        "cluster_interval": 3166,
+        "decay_rate": 0.0308694166569,
+        "min_num_mc": 24,
+        "model": "minishlab",
         "use_heuristic": 0,
-        "min_weight": 2.99951476e-05,
-        "sigma": 2.6413542553513,
-        "threshold_momentum": 0.6970860073719
-    },
-    {
-        "adaptive_threshold": 1,
-        "clean_interval": 472,
-        "cluster_interval": 3080,
-        "decay_rate": 0.0237191659501,
-        "min_num_mc": 10,
-        "model": "sentenceTransformers",
-        "use_heuristic": 0,
-        "min_weight": 0.0004026167558,
-        "sigma": 2.4495802107447,
-        "threshold_momentum": 0.6988626749566
+        "min_weight": 0.0029100238841,
+        "sigma": 1.7875431757159,
+        "threshold_momentum": 0.6801102360856
     },
     {
         "adaptive_threshold": 0,
@@ -48,14 +36,25 @@
     },
     {
         "adaptive_threshold": 1,
-        "clean_interval": 470,
-        "cluster_interval": 3756,
-        "decay_rate": 0.0242905102574,
-        "min_num_mc": 9,
+        "clean_interval": 431,
+        "cluster_interval": 2813,
+        "decay_rate": 0.0107892982801,
+        "min_num_mc": 28,
         "model": "minishlab",
         "use_heuristic": 0,
-        "min_weight": 0.0170965396796,
-        "sigma": 1.8176166259195,
-        "threshold_momentum": 0.8192930897621
+        "min_weight": 0.0020842749044,
+        "sigma": 2.7993741508773,
+        "threshold_momentum": 0.6474094042807
+    },
+    {
+        "adaptive_threshold": 0,
+        "clean_interval": 411,
+        "cluster_interval": 2573,
+        "decay_rate": 0.0146130883226,
+        "min_num_mc": 24,
+        "model": "minishlab",
+        "use_heuristic": 0,
+        "min_weight": 0.0019193720465,
+        "radius": 0.4215295633239
     }
 ]

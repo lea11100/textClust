@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=12:00:00
+#SBATCH --time=7-12
 #SBATCH --mem=4G
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=sussekl@mail.uni-paderborn.de
@@ -8,7 +8,7 @@
 #SBATCH --partition=normal
 #SBATCH --account=hpc-prf-dedsm
 #SBATCH --output=output/smac/%a.out
-#SBATCH --array=0-101
+#SBATCH --array=0-109
 
 experiment=("best_config_loo_NTSO_seed_0.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_0.json" \
 "best_config_loo_NTSO_seed_1.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_1.json" \
