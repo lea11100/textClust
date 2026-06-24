@@ -5,11 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "experiments/smac/optimize.py",
+            "console": "integratedTerminal",
+            "args": "--loo_dataset Tweets-T --seed 9 --algorithm textClust"
+        },
+        {
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-        }
+        },
     ]
 }

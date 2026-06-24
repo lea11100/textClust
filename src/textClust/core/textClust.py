@@ -63,7 +63,7 @@ class textClust:
                 self.cluster()
             if self.time_manager.time_to_log():
                 self.log()
-            
+         
         self.end()
             
     
@@ -113,6 +113,7 @@ class textClust:
         
     def end(self):
         """Finalize processing and emit final visualization/report if enabled."""
-        self.cluster()
+        if not self.time_manager.time_to_cluster(): # No clustering performend in the last loop so do it now
+            self.cluster()
         if self.macro_clusterer.display_final is not None and self.verbose:
             self.macro_clusterer.display_final(micro_clusters=list(self.micro_clusterer.get_clusters()), history_manager=self.history_manager, current_time=self.time_manager.get_current_time())
