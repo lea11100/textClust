@@ -70,12 +70,12 @@ class ThroughputLimitHistoryManager(HistoryManager):
 
 def train(config: Configuration, seed: int = 1, instance:str = "") -> dict[str, float]:
     embedding_model = models.get(config.get("model", "sentenceTransformers"), models["sentenceTransformers"])
-    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=30_000),
+    algorithm = get_embClust(data_loader=StaticJsonWrapper(instance),
                              embedding_model=embedding_model,
                              log_interval=1000,
                              **config)
     algorithm.verbose = False
-    algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=2, num_points=1000)  # Set a lower bound for throughput (e.g., 10 points/sec)
+    algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=0, num_points=1000)  # Set a lower bound for throughput (e.g., 10 points/sec)
     start_time = time.time()
     algorithm.start()
     end_time = time.time()
