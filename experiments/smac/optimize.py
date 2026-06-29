@@ -68,7 +68,7 @@ class ThroughputLimitHistoryManager(HistoryManager):
             raise RuntimeError(f"Throughput {throughput:.2f} is below the lower bound of {self.lower_bound}. Terminating optimization.")
         self.current_time = time.time()  # Reset timer for next snapshot
 
-def make_train_function(algorithm: str, max_samples:Optional[int]=3000, throughput_limit: float = 2.0, num_points: int = 1000):
+def make_train_function(algorithm: str, max_samples:Optional[int]=30_000, throughput_limit: float = 2.0, num_points: int = 1000):
     
     def get_algorithm(config: Configuration, instance:str = ""):
         if algorithm == "embClust":
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         instance_features={name: [i] for i, name in enumerate(selected_datasets)},  # Map instance names to indices
         deterministic=True,
         walltime_limit=60 * 60 * 24 * 7,
-        n_trials=3,
+        n_trials=250,
         seed=parsed_args.seed,
         crash_cost = [2.0, 2.0],  # Cost for crashing runs (e.g., due to low throughput)
         output_directory=os.path.join(f"smac3_output/{parsed_args.algorithm}", f"loo_{parsed_args.loo_dataset}_seed_{parsed_args.seed}")
