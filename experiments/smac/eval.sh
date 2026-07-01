@@ -8,121 +8,38 @@
 #SBATCH --partition=normal
 #SBATCH --account=hpc-prf-dedsm
 #SBATCH --output=output/smac/%a.out
-#SBATCH --array=0-109
+#SBATCH --array=0-200
 
-experiment=("best_config_loo_NTSO_seed_0.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_0.json" \
-"best_config_loo_NTSO_seed_1.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_1.json" \
-"best_config_loo_NTSO_seed_2.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_2.json" \
-"best_config_loo_NTSO_seed_3.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_3.json" \
-"best_config_loo_NTSO_seed_4.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_4.json" \
-"best_config_loo_NTSO_seed_5.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_5.json" \
-"best_config_loo_NTSO_seed_6.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_6.json" \
-"best_config_loo_NTSO_seed_7.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_7.json" \
-"best_config_loo_NTSO_seed_8.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_8.json" \
-"best_config_loo_NTSO_seed_9.json --output-csv smac3_results_eval/best_config_loo_NTSO_seed_9.json" \
-"best_config_loo_NTS_seed_0.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_0.json" \
-"best_config_loo_NTS_seed_1.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_1.json" \
-"best_config_loo_NTS_seed_2.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_2.json" \
-"best_config_loo_NTS_seed_3.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_3.json" \
-"best_config_loo_NTS_seed_4.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_4.json" \
-"best_config_loo_NTS_seed_5.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_5.json" \
-"best_config_loo_NTS_seed_6.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_6.json" \
-"best_config_loo_NTS_seed_7.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_7.json" \
-"best_config_loo_NTS_seed_8.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_8.json" \
-"best_config_loo_NTS_seed_9.json --output-csv smac3_results_eval/best_config_loo_NTS_seed_9.json" \
-"best_config_loo_NT_seed_0.json --output-csv smac3_results_eval/best_config_loo_NT_seed_0.json" \
-"best_config_loo_NT_seed_1.json --output-csv smac3_results_eval/best_config_loo_NT_seed_1.json" \
-"best_config_loo_NT_seed_2.json --output-csv smac3_results_eval/best_config_loo_NT_seed_2.json" \
-"best_config_loo_NT_seed_3.json --output-csv smac3_results_eval/best_config_loo_NT_seed_3.json" \
-"best_config_loo_NT_seed_4.json --output-csv smac3_results_eval/best_config_loo_NT_seed_4.json" \
-"best_config_loo_NT_seed_5.json --output-csv smac3_results_eval/best_config_loo_NT_seed_5.json" \
-"best_config_loo_NT_seed_6.json --output-csv smac3_results_eval/best_config_loo_NT_seed_6.json" \
-"best_config_loo_NT_seed_7.json --output-csv smac3_results_eval/best_config_loo_NT_seed_7.json" \
-"best_config_loo_NT_seed_8.json --output-csv smac3_results_eval/best_config_loo_NT_seed_8.json" \
-"best_config_loo_NT_seed_9.json --output-csv smac3_results_eval/best_config_loo_NT_seed_9.json" \
-"best_config_loo_News-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_0.json" \
-"best_config_loo_News-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_1.json" \
-"best_config_loo_News-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_2.json" \
-"best_config_loo_News-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_3.json" \
-"best_config_loo_News-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_4.json" \
-"best_config_loo_News-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_5.json" \
-"best_config_loo_News-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_6.json" \
-"best_config_loo_News-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_7.json" \
-"best_config_loo_News-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_8.json" \
-"best_config_loo_News-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_News-T_seed_9.json" \
-"best_config_loo_SO-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_0.json" \
-"best_config_loo_SO-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_1.json" \
-"best_config_loo_SO-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_2.json" \
-"best_config_loo_SO-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_3.json" \
-"best_config_loo_SO-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_4.json" \
-"best_config_loo_SO-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_5.json" \
-"best_config_loo_SO-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_6.json" \
-"best_config_loo_SO-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_7.json" \
-"best_config_loo_SO-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_8.json" \
-"best_config_loo_SO-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_SO-T_seed_9.json" \
-"best_config_loo_Semantic10-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_0.json" \
-"best_config_loo_Semantic10-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_1.json" \
-"best_config_loo_Semantic10-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_2.json" \
-"best_config_loo_Semantic10-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_3.json" \
-"best_config_loo_Semantic10-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_4.json" \
-"best_config_loo_Semantic10-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_5.json" \
-"best_config_loo_Semantic10-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_6.json" \
-"best_config_loo_Semantic10-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_7.json" \
-"best_config_loo_Semantic10-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_8.json" \
-"best_config_loo_Semantic10-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_Semantic10-T_seed_9.json" \
-"best_config_loo_Semantic40-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_0.json" \
-"best_config_loo_Semantic40-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_1.json" \
-"best_config_loo_Semantic40-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_2.json" \
-"best_config_loo_Semantic40-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_3.json" \
-"best_config_loo_Semantic40-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_4.json" \
-"best_config_loo_Semantic40-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_5.json" \
-"best_config_loo_Semantic40-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_6.json" \
-"best_config_loo_Semantic40-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_7.json" \
-"best_config_loo_Semantic40-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_8.json" \
-"best_config_loo_Semantic40-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_Semantic40-T_seed_9.json" \
-"best_config_loo_Semantic5-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_0.json" \
-"best_config_loo_Semantic5-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_1.json" \
-"best_config_loo_Semantic5-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_2.json" \
-"best_config_loo_Semantic5-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_3.json" \
-"best_config_loo_Semantic5-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_4.json" \
-"best_config_loo_Semantic5-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_5.json" \
-"best_config_loo_Semantic5-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_6.json" \
-"best_config_loo_Semantic5-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_7.json" \
-"best_config_loo_Semantic5-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_8.json" \
-"best_config_loo_Semantic5-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_Semantic5-T_seed_9.json" \
-"best_config_loo_Trends-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_0.json" \
-"best_config_loo_Trends-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_1.json" \
-"best_config_loo_Trends-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_2.json" \
-"best_config_loo_Trends-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_3.json" \
-"best_config_loo_Trends-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_4.json" \
-"best_config_loo_Trends-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_5.json" \
-"best_config_loo_Trends-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_6.json" \
-"best_config_loo_Trends-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_7.json" \
-"best_config_loo_Trends-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_8.json" \
-"best_config_loo_Trends-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_Trends-T_seed_9.json" \
-"best_config_loo_Tweets-T_seed_0.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_0.json" \
-"best_config_loo_Tweets-T_seed_1.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_1.json" \
-"best_config_loo_Tweets-T_seed_2.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_2.json" \
-"best_config_loo_Tweets-T_seed_3.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_3.json" \
-"best_config_loo_Tweets-T_seed_4.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_4.json" \
-"best_config_loo_Tweets-T_seed_5.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_5.json" \
-"best_config_loo_Tweets-T_seed_6.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_6.json" \
-"best_config_loo_Tweets-T_seed_7.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_7.json" \
-"best_config_loo_Tweets-T_seed_8.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_8.json" \
-"best_config_loo_Tweets-T_seed_9.json --output-csv smac3_results_eval/best_config_loo_Tweets-T_seed_9.json" \
-"--use-default-config --output-csv smac3_results_eval/default_performances.json")
+if [[ $SLURM_ARRAY_TASK_ID -eq 200 ]]; then
+    echo "Evaluating default configuration"
+    python experiments/smac/eval_best_config.py --use-default-config --algorithm textClust --output-csv smac3_results_eval/textClust/default_performances.json
+    python experiments/smac/eval_best_config.py --use-default-config --algorithm embClust --output-csv smac3_results_eval/embClust/default_performances.json
+    echo "Finished evaluating default configuration"
+    exit 0
+fi
+
+DATASETS=( "Semantic10-T" "Semantic40-T" "Semantic5-T" "NT" "NTS" "NTSO" "SO-T" "News-T" "Trends-T" "Tweets-T" )
+SEEDS=( 1 2 3 4 5 6 7 8 9 10 )
+ALGORITHMS=( "textClust" "embClust" )
+
+N_DATASETS=${#DATASETS[@]}
+N_SEEDS=${#SEEDS[@]}
+N_ALGORITHMS=${#ALGORITHMS[@]}
+
+IDX_DATASET=$((SLURM_ARRAY_TASK_ID / (N_SEEDS * N_ALGORITHMS)))
+IDX_SEED=$(( (SLURM_ARRAY_TASK_ID / N_ALGORITHMS) % N_SEEDS ))
+IDX_ALGORITHM=$((SLURM_ARRAY_TASK_ID % N_ALGORITHMS))
+
+DATASET=${DATASETS[$IDX_DATASET]}
+SEED=${SEEDS[$IDX_SEED]}
+ALGORITHM=${ALGORITHMS[$IDX_ALGORITHM]}
 
 echo "START runexperiment call at $(date '+%Y-%m-%d %H:%M:%S')"
+echo "Running with dataset: $DATASET, seed: $SEED, algorithm: $ALGORITHM"
 
 module load lang/Python/3.11.3-GCCcore-12.3.0
-source /pc2/groups/hpc-prf-dedsm/sussekl/textClustEnv/bin/activate
+source /scratch/hpc-prf-dedsm/sussekl/textClust/.textClustEnv/bin/activate
 
-export SENTENCE_TRANSFORMERS_HOME=/pc2/groups/hpc-prf-dedsm/sussekl/sentence_transformers_cache
+CONFIG_FILE="best_config_loo_${DATASET}_seed_${SEED}.json"
 
-COMMANDS_PER_TASK=1
-TOTAL_COMMANDS=${#experiment[@]}
-task_start=$(( SLURM_ARRAY_TASK_ID * COMMANDS_PER_TASK ))
-task_end=$(( task_start + COMMANDS_PER_TASK - 1 ))
-for (( cmd_index=task_start; cmd_index<=task_end && cmd_index<TOTAL_COMMANDS; cmd_index++ )); do
-    python -u experiments/smac/eval_best_config.py ${experiment[$cmd_index]}
-done
+python -u experiments/smac/eval_best_config.py $CONFIG_FILE --algorithm $ALGORITHM --output-csv smac3_results_eval/${ALGORITHM}/${CONFIG_FILE}
