@@ -4,6 +4,7 @@ import os
 import json
 import shutil
 import sys
+import signal
 from pathlib import Path
 import time
 from typing import List, Optional, Tuple
@@ -66,11 +67,29 @@ datasets = {
 # embedding_model = SentenceTransformer(embedding_model_name, device="cpu")
 
 models = {
-    "sentenceTransformers": SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1', device="cpu"),
-    "minishlab": SentenceTransformer('minishlab/potion-base-32M', device="cpu"),
-    "clips": SentenceTransformer('clips/e5-base-trm-nl', device="cpu"),
-    "maniac": SentenceTransformer('ManiacLabs/miniac-embed', device="cpu"),
+    "NeuML": SentenceTransformer('NeuML/pubmedbert-base-embeddings-2M', device="cpu"),
+    "minishlab_2M": SentenceTransformer('minishlab/potion-base-2M', device="cpu"),
+    "minishlab_4M": SentenceTransformer('minishlab/potion-base-4M', device="cpu"),
+    "minishlab_8M": SentenceTransformer('minishlab/potion-base-8M', device="cpu"),
+    "minishlab_32M": SentenceTransformer('minishlab/potion-retrieval-32M', device="cpu"),
+    "stephantulkens": SentenceTransformer('stephantulkens/NIFE-mxbai-embed-large-v1_as_router', device="cpu"),
+    "Mihaiii_Bulbasaur": SentenceTransformer('Mihaiii/Bulbasaur', device="cpu"),
+    "Mihaiii_gte_micro_v4": SentenceTransformer('Mihaiii/gte-micro-v4', device="cpu"),
+    "sentence_transformers_all_MiniLM_L6_v2": SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', device="cpu"),
+    "Snowflake": SentenceTransformer('Snowflake/snowflake-arctic-embed-xs', device="cpu"),
+    "MongoDB": SentenceTransformer('MongoDB/mdbr-leaf-ir', device="cpu"),
+    "intfloat": SentenceTransformer('intfloat/e5-base-v2', device="cpu"),
+    "Alibaba_NLP": SentenceTransformer('Alibaba-NLP/gte-modernbert-base', device="cpu"),
+    "microsoft": SentenceTransformer('microsoft/harrier-oss-v1-270m', device="cpu"),
     }
+
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException("algorithm.start() exceeded time limit")
+
+TIME_LIMIT = int((30_000 + 500) / 2)  # Maximum time limit in seconds (30,000 points at 2 points/sec + 500 seconds buffer)
 
 class ThroughputLimitHistoryManager(HistoryManager):
     def __init__(self, lower_bound: float, num_points: int, *args, **kwargs):
@@ -114,8 +133,13 @@ def make_train_function(algorithm: str, max_samples:Optional[int]=30_000, throug
 
         algorithm.verbose = False
         algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=throughput_limit, num_points=log_after_n_points)  # Set a lower bound for throughput (e.g., 10 points/sec)
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(TIME_LIMIT)
         start_time = time.time()
-        algorithm.start()
+        try:
+            algorithm.start()
+        finally:
+            signal.alarm(0)  # cancel the alarm
         end_time = time.time()
         result = eval_against_truth(
             initial_text_assignments=algorithm.history_manager.initial_text_assignments,
