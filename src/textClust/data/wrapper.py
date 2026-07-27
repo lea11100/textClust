@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from turtle import pd
+import numpy as np
 
 from textClust.data.stream import Stream
 from textClust.data.point import RawPoint
@@ -11,24 +12,31 @@ import json
 class SocialEDWrapper(Stream):
     """Load a static numpy array from disk as raw points."""
 
-    def __init__(self, file_path: str, max_samples: Optional[int] = None, **kwargs):
+    def __init__(self, file_path: str, max_samples: Optional[int] = None, random_start_seed: Optional[int] = None, **kwargs):
         """Initialize the numpy wrapper.
 
         Args:
             file_path: Path to an input numpy file.
             max_samples: Maximum number of samples to load. If `None`, load all samples.
+            random_start_seed: Seed for random number generation.
         """
         super().__init__(**kwargs)
         self.max_samples = max_samples
         self.file_path = file_path
+        self.random_start_seed = random_start_seed
     
     def load(self, **kwargs):
         """Return a generator of `RawPoint` records from `file_path`."""
-        import numpy as np
         # Columns: tweet_id, text, event_id, words, filtered_words, entities, user_id, created_at, urls, hashtags, user_mentions
         data = np.load(self.file_path)
+        start = 0
+        end = data.shape[0]
+        if self.random_start_seed is not None:
+            np.random.seed(self.random_start_seed)
+            start = np.random.randint(0, data.shape[0])
         if self.max_samples is not None:
-            data = data[:self.max_samples]
+            end = min(start + self.max_samples, data.shape[0])
+        data = data[start:end]
         for i in range(data.shape[0]):
             yield RawPoint(text=data[i, 1], timestamp=None, text_id=data[i, 0], cluster_id=data[i, 2])
         yield None
@@ -36,7 +44,7 @@ class SocialEDWrapper(Stream):
 class StaticJsonWrapper(Stream):
     """Load newline-delimited JSON records from disk as raw points."""
 
-    def __init__(self, file_path: str, max_samples: Optional[int] = None, do_check: bool = False, **kwargs):
+    def __init__(self, file_path: str, max_samples: Optional[int] = None, random_start_seed: Optional[int] = None, do_check: bool = False, **kwargs):
         """Initialize the JSON wrapper.
 
         Args:
@@ -46,6 +54,7 @@ class StaticJsonWrapper(Stream):
         super().__init__(**kwargs)
         self.max_samples = max_samples
         self.file_path = file_path
+        self.random_start_seed = random_start_seed
         self.do_check = do_check
     
     def load(self, **kwargs):
@@ -53,9 +62,20 @@ class StaticJsonWrapper(Stream):
         def generator():
             """Yield parsed JSON lines as `RawPoint` objects, then `None`."""
             i = 0
+            file_length = sum(1 for _ in open(self.file_path))
+            start = 0
+            end = None
+            if self.random_start_seed is not None:
+                np.random.seed(self.random_start_seed)
+                start = np.random.randint(0, file_length)
+            if self.max_samples is not None:
+                end = min(start + self.max_samples, file_length)
             with open(self.file_path, "r") as file:
                 for l in file:
-                    if self.max_samples is not None and i >= self.max_samples:
+                    if i < start:
+                        i += 1
+                        continue
+                    if end is not None and i >= end:
                         break
                     i += 1
                     item = json.loads(l)

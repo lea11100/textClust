@@ -24,23 +24,42 @@ from smac import HyperparameterOptimizationFacade, Scenario
 from ConfigSpace.read_and_write import pcs_new as pcs
 
 from textClust.algorithms.presets import get_embClust, get_fastLogClust
-from textClust.data.wrapper import StaticJsonWrapper
+from textClust.data.wrapper import StaticJsonWrapper, SocialEDWrapper
 from textClust.utils.eval import eval_against_truth
 from textClust.offline.clusterer import SimpleMacroClusterer
 from textClust.history.manager import HistoryManager
 from textClust.online.clusterer import Microclusterer
 
+# datasets = {
+#     "Semantic10-T": "examples/data/Semantic10-T.json",
+#     "Semantic40-T": "examples/data/Semantic40-T.json",
+#     "Semantic5-T": "examples/data/Semantic5-T.json",
+#     "NT": "examples/data/NT.json",
+#     "NTS": "examples/data/NTS.json",
+#     "NTSO": "examples/data/NTSO-T.json",
+#     "SO-T": "examples/data/SO-T.json",
+#     "News-T": "examples/data/News-T.json",
+#     "Trends-T": "examples/data/Trends-T.json",
+#     "Tweets-T": "examples/data/Tweets-T.json",
+# }
+
 datasets = {
-    "Semantic10-T": "examples/data/Semantic10-T.json",
-    "Semantic40-T": "examples/data/Semantic40-T.json",
-    "Semantic5-T": "examples/data/Semantic5-T.json",
-    "NT": "examples/data/NT.json",
-    "NTS": "examples/data/NTS.json",
-    "NTSO": "examples/data/NTSO-T.json",
-    "SO-T": "examples/data/SO-T.json",
-    "News-T": "examples/data/News-T.json",
-    "Trends-T": "examples/data/Trends-T.json",
-    "Tweets-T": "examples/data/Tweets-T.json",
+    "Arabic_7" : "examples/social_ed_data/Arabic_7.npy",
+    "Arabic_Twitter" : "examples/social_ed_data/Arabic_Twitter.npy",
+    "CrisisLexT6" : "examples/social_ed_data/CrisisLexT6.npy",
+    "CrisisLexT7" : "examples/social_ed_data/CrisisLexT7.npy",
+    "CrisisLexT26" : "examples/social_ed_data/CrisisLexT26.npy",
+    "CrisisMMD" : "examples/social_ed_data/CrisisMMD.npy",
+    "CrisisNLP" : "examples/social_ed_data/CrisisNLP.npy",
+    "Event2012" : "examples/social_ed_data/Event2012.npy",
+    "Event2018" : "examples/social_ed_data/Event2018.npy",
+    "HumAID" : "examples/social_ed_data/HumAID.npy",
+    "KBP" : "examples/social_ed_data/KBP.npy",
+    "MAVEN" : "examples/social_ed_data/MAVEN.npy",
+    "Mix_Data" : "examples/social_ed_data/Mix_Data.npy",
+    "Semantic5-T" : "examples/data/Semantic5-T.json",
+    "Semantic10-T" : "examples/data/Semantic10-T.json",
+    "Semantic40-T" : "examples/data/Semantic40-T.json",
 }
 
 # embedding_model_name = 'ibm-granite/granite-embedding-107m-multilingual'
@@ -68,29 +87,33 @@ class ThroughputLimitHistoryManager(HistoryManager):
             raise RuntimeError(f"Throughput {throughput:.2f} is below the lower bound of {self.lower_bound}. Terminating optimization.")
         self.current_time = time.time()  # Reset timer for next snapshot
 
-def make_train_function(algorithm: str, max_samples:Optional[int]=30_000, throughput_limit: float = 2.0, num_points: int = 1000):
+def make_train_function(algorithm: str, max_samples:Optional[int]=30_000, throughput_limit: float = 2.0, log_after_n_points: int = 1000):
     
-    def get_algorithm(config: Configuration, instance:str = ""):
+    def get_algorithm(config: Configuration, seed:int = 1,instance:str = ""):
+        if instance.endswith(".npy"):
+            data_loader = SocialEDWrapper(instance, max_samples=max_samples, random_start_seed=seed)
+        else:
+            data_loader = StaticJsonWrapper(instance, max_samples=max_samples, random_start_seed=seed)
         if algorithm == "embClust":
             embedding_model_name = config.get("model", "sentenceTransformers")
             embedding_model = models.get(embedding_model_name, models["sentenceTransformers"])
-            return get_embClust(data_loader=StaticJsonWrapper(instance, max_samples=max_samples),
+            return get_embClust(data_loader=data_loader,
                                 embedding_model=embedding_model,
-                                log_interval=num_points,
+                                log_interval=log_after_n_points,
                                 **config)
         elif algorithm == "textClust":
-            return get_fastLogClust(data_loader=StaticJsonWrapper(instance, max_samples=max_samples),
-                                 log_interval=num_points,
+            return get_fastLogClust(data_loader=data_loader,
+                                 log_interval=log_after_n_points,
                                  **config)
         else: 
             raise ValueError(f"Unknown algorithm: {algorithm}")
         
         
     def train(config: Configuration, seed: int = 1, instance:str = "") -> Tuple[dict[str, float], dict[str, str]]:
-        algorithm = get_algorithm(config, instance)
+        algorithm = get_algorithm(config, seed, instance)
 
         algorithm.verbose = False
-        algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=throughput_limit, num_points=num_points)  # Set a lower bound for throughput (e.g., 10 points/sec)
+        algorithm.history_manager = ThroughputLimitHistoryManager(lower_bound=throughput_limit, num_points=log_after_n_points)  # Set a lower bound for throughput (e.g., 10 points/sec)
         start_time = time.time()
         algorithm.start()
         end_time = time.time()
@@ -132,7 +155,7 @@ if __name__ == "__main__":
         objectives=["-adj_mutual_info", "-throughput"],  
         instances=selected_datasets,
         instance_features={name: [i] for i, name in enumerate(selected_datasets)},  # Map instance names to indices
-        deterministic=True,
+        deterministic=False,
         walltime_limit=60 * 60 * 24 * 7,
         n_trials=250,
         seed=parsed_args.seed,
