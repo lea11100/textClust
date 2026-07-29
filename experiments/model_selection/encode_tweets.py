@@ -143,7 +143,7 @@ def load_dataset(dataset_path):
             break
         data.append(point)
 
-    tweet_ids = np.array([point.id for point in data])
+    tweet_ids = np.array([point.text_id for point in data])
     tweets = [point.text for point in data]
     return tweet_ids, tweets
 
