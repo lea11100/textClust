@@ -1,5 +1,7 @@
 """Text preprocessing components used before micro-clustering."""
 
+import time
+
 from sentence_transformers import SentenceTransformer
 
 from textClust.data.point import RawPoint, Point, point_from_raw_point
@@ -8,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
 from typing import List
+import numpy as np
 
 class Preprocessor:
     """Base callable preprocessor interface."""
@@ -96,3 +99,24 @@ class EmbeddingPreprocessor(Preprocessor):
         """Generate an embedding for the input point text and return a `Point`."""
         embedding = self.embedding_model.encode(point.text, convert_to_tensor=True, show_progress_bar=False)
         return point_from_raw_point(point, embedding=embedding)
+    
+class SimulatedEmbeddingPreprocessor(Preprocessor):
+    """Preprocessor that simulates embedding calculations for testing purposes. 
+    The embeddings are precomputed and stored in a .npz file, and this preprocessor retrieves them based on the text_id of the input point."""
+
+    def __init__(self, model: str, dataset: str):
+        """Initialize with a specified embedding dimension."""
+        self.model = model
+        self.dataset = dataset
+        
+        self.data = np.load(f"data/simulated_embeddings/{self.dataset}/{self.model}.npz")
+    
+    def __call__(self, point: RawPoint) -> Point:
+        """Generate a simulated embedding for the input point text and return a `Point`."""
+        assert point.text_id is not None, "RawPoint must have a text_id for simulated embedding lookup."
+        assert point.text_id in self.data["tweet_ids"], f"Text ID {point.text_id} not found in simulated embedding dataset."
+        i = self.data["tweet_ids"].index(point.text_id)
+        simulated_embedding = self.data["embeddings"][i]
+        time_to_wait = self.data["times"][i]
+        time.sleep(time_to_wait)  # Simulate processing time
+        return point_from_raw_point(point, embedding=simulated_embedding)

@@ -1,7 +1,6 @@
 """Concrete stream wrappers for loading textClust input data."""
 
 from datetime import datetime
-from turtle import pd
 import numpy as np
 
 from textClust.data.stream import Stream
@@ -28,7 +27,7 @@ class SocialEDWrapper(Stream):
     def load(self, **kwargs):
         """Return a generator of `RawPoint` records from `file_path`."""
         # Columns: tweet_id, text, event_id, words, filtered_words, entities, user_id, created_at, urls, hashtags, user_mentions
-        data = np.load(self.file_path)
+        data = np.load(self.file_path, allow_pickle=True)
         start = 0
         end = data.shape[0]
         if self.random_start_seed is not None:
