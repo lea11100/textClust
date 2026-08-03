@@ -104,12 +104,13 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
     """Preprocessor that simulates embedding calculations for testing purposes. 
     The embeddings are precomputed and stored in a .npz file, and this preprocessor retrieves them based on the text_id of the input point."""
 
-    def __init__(self, model: str, dataset: str):
+    def __init__(self, model: str, dataset: str, folder: str = "data/pre_embedded_data"):
         """Initialize with a specified embedding dimension."""
         self.model = model
         self.dataset = dataset
-        
-        self.data = np.load(f"data/simulated_embeddings/{self.dataset}/{self.model}.npz")
+        self.folder = folder
+
+        self.data = np.load(f"{self.folder}/{self.dataset}/{self.model}.npz")
     
     def __call__(self, point: RawPoint) -> Point:
         """Generate a simulated embedding for the input point text and return a `Point`."""
