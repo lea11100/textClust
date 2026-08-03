@@ -211,3 +211,9 @@ tree_visualization.png
 .textClustEnv/
 slurm-*.out
 output/smac/*
+
+# Ignore data files
+examples/data/*.json
+examples/data/*.npy
+examples/social_ed_data/*.json
+examples/social_ed_data/*.npy
