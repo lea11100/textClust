@@ -111,13 +111,13 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
         self.dataset = dataset
         self.folder = folder
 
-        self.data = np.load(f"{self.folder}/{self.dataset}/{self.model}.npz")
+        self.data = np.load(f"{self.folder}/{self.dataset}/{self.model}.npz", allow_pickle=True)
     
     def __call__(self, point: RawPoint) -> Point:
         """Generate a simulated embedding for the input point text and return a `Point`."""
         assert point.text_id is not None, "RawPoint must have a text_id for simulated embedding lookup."
         assert point.text_id in self.data["tweet_ids"], f"Text ID {point.text_id} not found in simulated embedding dataset."
-        i = self.data["tweet_ids"].index(point.text_id)
+        i = np.where(self.data["tweet_ids"] == point.text_id)[0][0]
         simulated_embedding = torch.tensor(self.data["embeddings"][i])
         time_to_wait = self.data["times"][i]
         time.sleep(time_to_wait)  # Simulate processing time
