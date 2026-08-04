@@ -11,6 +11,7 @@ from nltk.stem import PorterStemmer
 
 from typing import List
 import numpy as np
+import torch
 
 class Preprocessor:
     """Base callable preprocessor interface."""
@@ -117,7 +118,7 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
         assert point.text_id is not None, "RawPoint must have a text_id for simulated embedding lookup."
         assert point.text_id in self.data["tweet_ids"], f"Text ID {point.text_id} not found in simulated embedding dataset."
         i = self.data["tweet_ids"].index(point.text_id)
-        simulated_embedding = self.data["embeddings"][i]
+        simulated_embedding = torch.tensor(self.data["embeddings"][i])
         time_to_wait = self.data["times"][i]
         time.sleep(time_to_wait)  # Simulate processing time
         return point_from_raw_point(point, embedding=simulated_embedding)
