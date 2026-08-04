@@ -60,8 +60,7 @@ def get_embClust(
     adaptive_threshold = True, sigma: Optional[float] = 1, radius: Optional[float] = None,
     threshold_momentum: Optional[float] = None, use_heuristic: bool = True, min_weight: Optional[float] = None, time_gap: Optional[float] = None,
     min_num_mc: int = 5, device: str = "cpu", **kwargs):
-    assert embedding_model_name is not None or embedding_model is not None, "Either embedding_model_name or embedding_model must be provided"
-    if embedding_model is None:
+    if embedding_model is None and embedding_model_name is not None:
         embedding_model = SentenceTransformer(embedding_model_name, device=device)
     return textClust(
         data_loader=data_loader,
