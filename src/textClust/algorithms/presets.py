@@ -4,7 +4,7 @@ from typing import Optional
 from sentence_transformers import SentenceTransformer
 
 from textClust.core.textClust import textClust
-from textClust.preprocessing.preprocessor import TFIDFPreprocessor, EmbeddingPreprocessor
+from textClust.preprocessing.preprocessor import Preprocessor, TFIDFPreprocessor, EmbeddingPreprocessor
 from textClust.online.clusterer import EmbeddingThresholdClusterer
 from textClust.online.metrics import EmbeddingCosineDistance
 from textClust.online.fade import EmbeddingExpFader
@@ -64,7 +64,7 @@ def get_embClust(
         embedding_model = SentenceTransformer(embedding_model_name, device=device)
     return textClust(
         data_loader=data_loader,
-        preprocessor=EmbeddingPreprocessor(embedding_model=embedding_model),
+        preprocessor=EmbeddingPreprocessor(embedding_model=embedding_model) if embedding_model is not None else Preprocessor(),
         time_manager=FixedIntervalTimeManager(clean_interval=clean_interval, cluster_interval=cluster_interval, log_interval=log_interval),
         micro_clusterer=EmbeddingThresholdClusterer(
             adaptive_threshold=adaptive_threshold,
