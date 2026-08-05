@@ -28,6 +28,21 @@ class SocialEDWrapper(Stream):
         """Return a generator of `RawPoint` records from `file_path`."""
         # Columns: tweet_id, text, event_id, words, filtered_words, entities, user_id, created_at, urls, hashtags, user_mentions
         data = np.load(self.file_path, allow_pickle=True)
+        try:
+            date_times = np.array([str(s).replace("/", "-") for s in data[:, 7]],dtype="datetime64[s]")
+            data_times_sorted = np.argsort(date_times)
+            data_sorted = data[data_times_sorted]
+            if (data != data_sorted).any():
+                print(f"Warning: Data in {self.file_path} is not sorted by timestamp. Sorting now.")
+            data = data_sorted
+        except Exception as e:
+            print(f"Warning: Could not sort data in {self.file_path} by timestamp. Error: {e}")
+        
+        values, counts = np.unique(data[:, 0], return_counts=True)
+        if np.any(counts > 1):
+            print(f"Warning: Duplicate tweetIDs found in {self.file_path}. Later duplicates will be ignored.")
+            data = data[np.isin(data[:, 0], values[counts == 1])]
+        
         start = 0
         end = data.shape[0]
         if self.random_start_seed is not None:
