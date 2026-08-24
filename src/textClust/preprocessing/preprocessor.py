@@ -1,6 +1,7 @@
 """Text preprocessing components used before micro-clustering."""
 
 import time
+from pathlib import Path
 
 from sentence_transformers import SentenceTransformer
 
@@ -102,16 +103,20 @@ class EmbeddingPreprocessor(Preprocessor):
         return point_from_raw_point(point, embedding=embedding)
     
 class SimulatedEmbeddingPreprocessor(Preprocessor):
-    """Preprocessor that simulates embedding calculations for testing purposes. 
-    The embeddings are precomputed and stored in a .npz file, and this preprocessor retrieves them based on the text_id of the input point."""
+    """Preprocessor that loads precomputed embeddings for testing purposes.
 
-    def __init__(self, model: str, dataset: str, folder: str = "data/pre_embedded_data"):
+    Embeddings are stored at ``embedded/<model>/<dataset>.npy`` below the
+    configured data folder.
+    """
+
+    def __init__(self, model: str, dataset: str, folder: str = "examples/data/embedded"):
         """Initialize with a specified embedding dimension."""
         self.model = model
         self.dataset = dataset
         self.folder = folder
 
-        self.data = np.load(f"{self.folder}/{self.dataset}/{self.model}.npz", allow_pickle=True)
+        path = Path(self.folder) / self.model / f"{self.dataset}.npy"
+        self.data = np.load(path, allow_pickle=True).item()
         self.saved_time = 0.0
     
     def __call__(self, point: RawPoint) -> Point:

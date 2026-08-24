@@ -8,7 +8,7 @@ from textClust.offline.clusterer import LlmMacroClusterer
 
 if __name__ == "__main__":
     
-    wrapper = StaticJsonWrapper("examples/data/News-T.json")
+    wrapper = StaticJsonWrapper("examples/data/raw_data/News-T.json")
     preprocessor = TFIDFPreprocessor()  
     time_manager = FixedIntervalTimeManager(clean_interval=100, cluster_interval=1000, log_interval=100)
     metric = FastCosineDistance()

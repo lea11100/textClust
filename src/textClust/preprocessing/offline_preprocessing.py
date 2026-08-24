@@ -15,7 +15,8 @@ English after emojis are converted to textual names.
 
 Output format
 -------------
-For each dataset/model pair, we save OUTPUT_DIR/<dataset>/<model>.npy
+For each dataset/model pair, we save
+examples/data/embedded/<model>/<dataset>.npy
 containing a dictionary with "dataset_name", "model_name", "tweet_ids",
 "embeddings", and "times".
 
@@ -56,26 +57,45 @@ except ImportError:
 # Configuration -- edit these for your setup
 # ---------------------------------------------------------------------------
 
-# Datasets: friendly name -> path. Supports both .npy (loaded via np.load)
-# and .json (loaded via json.load) files. Each record is still expected to
-# provide the tweet id at index 0 and the tweet text at index 1.
+# All dataset artefacts live below examples/data. Raw input files are kept in
+# raw_data, translated/demojified files in translated_no_emojis, and embedding
+# outputs below embedded/<model_name>.
+DATA_DIR = Path("examples/data")
+RAW_DATA_DIR = DATA_DIR / "raw_data"
+PREPROCESSED_DIR = DATA_DIR / "translated_no_emojis"
+EMBEDDED_DIR = DATA_DIR / "embedded"
+
+# Datasets: friendly name -> raw input path. Supports both .npy (loaded via
+# np.load) and .json (loaded via json.load) files. Each record is still
+# expected to provide the tweet id at index 0 and the tweet text at index 1.
 DATASETS = {
-    "Arabic_7": "examples/social_ed_data/Arabic_7.npy",
-    "Arabic_Twitter": "examples/social_ed_data/Arabic_Twitter.npy",
-    "CrisisLexT6": "examples/social_ed_data/CrisisLexT6.npy",
-    "CrisisLexT7": "examples/social_ed_data/CrisisLexT7.npy",
-    "CrisisLexT26": "examples/social_ed_data/CrisisLexT26.npy",
-    "CrisisMMD": "examples/social_ed_data/CrisisMMD.npy",
-    "CrisisNLP": "examples/social_ed_data/CrisisNLP.npy",
-    "Event2012": "examples/social_ed_data/Event2012.npy",
-    "Event2018": "examples/social_ed_data/Event2018.npy",
-    "HumAID": "examples/social_ed_data/HumAID.npy",
-    "KBP": "examples/social_ed_data/KBP.npy",
-    "MAVEN": "examples/social_ed_data/MAVEN.npy",
-    "Mix_Data": "examples/social_ed_data/Mix_Data.npy",
-    "Semantic5-T": "examples/data/Semantic5-T.json",
-    "Semantic10-T": "examples/data/Semantic10-T.json",
-    "Semantic40-T": "examples/data/Semantic40-T.json",
+    "Arabic_7": RAW_DATA_DIR / "Arabic_7.npy",
+    "Arabic_Twitter": RAW_DATA_DIR / "Arabic_Twitter.npy",
+    "CrisisLexT6": RAW_DATA_DIR / "CrisisLexT6.npy",
+    "CrisisLexT7": RAW_DATA_DIR / "CrisisLexT7.npy",
+    "CrisisLexT26": RAW_DATA_DIR / "CrisisLexT26.npy",
+    "CrisisMMD": RAW_DATA_DIR / "CrisisMMD.npy",
+    "CrisisNLP": RAW_DATA_DIR / "CrisisNLP.npy",
+    "Event2012": RAW_DATA_DIR / "Event2012.npy",
+    "Event2012_100": RAW_DATA_DIR / "Event2012_100.npy",
+    "Event2018": RAW_DATA_DIR / "Event2018.npy",
+    "Event2018_100": RAW_DATA_DIR / "Event2018_100.npy",
+    "HumAID": RAW_DATA_DIR / "HumAID.npy",
+    "KBP": RAW_DATA_DIR / "KBP.npy",
+    "MAVEN": RAW_DATA_DIR / "MAVEN.npy",
+    "Mix_Data": RAW_DATA_DIR / "Mix_Data.npy",
+    "Semantic5-T": RAW_DATA_DIR / "Semantic5-T.json",
+    "Semantic5-T_sorted": RAW_DATA_DIR / "Semantic5-T_sorted.json",
+    "Semantic10-T": RAW_DATA_DIR / "Semantic10-T.json",
+    "Semantic40-T": RAW_DATA_DIR / "Semantic40-T.json",
+    "NT": RAW_DATA_DIR / "NT.json",
+    "NTS": RAW_DATA_DIR / "NTS.json",
+    "NTSO-T": RAW_DATA_DIR / "NTSO-T.json",
+    "SO-T": RAW_DATA_DIR / "SO-T.json",
+    "News-T": RAW_DATA_DIR / "News-T.json",
+    "Trends-T": RAW_DATA_DIR / "Trends-T.json",
+    "Trends-T_modified": RAW_DATA_DIR / "Trends-T_modified.json",
+    "Tweets-T": RAW_DATA_DIR / "Tweets-T.json",
 }
 
 # Models: friendly name -> HuggingFace model id. Only one embedding model is ever
@@ -113,13 +133,6 @@ PREPROCESS_BATCH_SIZE = 32
 # Index within each record where the tweet id and tweet text are stored.
 ID_INDEX = 0
 TEXT_INDEX = 1
-
-# Where to write the per-dataset result files.
-OUTPUT_DIR = Path("results")
-
-# One checkpoint per input dataset. Embedding models can then be changed or
-# rerun without downloading/translating the datasets again.
-PREPROCESSED_DIR = Path("translated/to_en")
 
 # Remove existing result files before starting. When false, completed model /
 # dataset pairs are resumed from their existing result file.
@@ -308,7 +321,7 @@ def embed_tweets_with_model(
 
 def result_path(dataset_name: str, model_name: str) -> Path:
     """Return the checkpoint path for one dataset/model pair."""
-    return OUTPUT_DIR / dataset_name / f"{model_name}.npy"
+    return EMBEDDED_DIR / model_name / f"{dataset_name}.npy"
 
 
 def result_has_model(results_path: Path) -> bool:
@@ -337,18 +350,19 @@ def save_model_results(
 
 
 def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     PREPROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    EMBEDDED_DIR.mkdir(parents=True, exist_ok=True)
 
     model_names = list(MODEL_IDS.keys())
     dataset_names = list(DATASETS.keys())
 
     if CLEAR_OUTPUT:
         for dataset_name in dataset_names:
-            dataset_output_dir = OUTPUT_DIR / dataset_name
-            if dataset_output_dir.exists():
-                shutil.rmtree(dataset_output_dir)
-                print(f"Removed existing results: {dataset_output_dir}")
+            for model_name in MODEL_IDS:
+                output_path = result_path(dataset_name, model_name)
+                if output_path.exists():
+                    output_path.unlink()
+                    print(f"Removed existing embedding: {output_path}")
         if PREPROCESSED_DIR.exists():
             shutil.rmtree(PREPROCESSED_DIR)
             print(f"Removed existing translated checkpoints: {PREPROCESSED_DIR}")
@@ -358,7 +372,7 @@ def main() -> None:
     print(f"- device: {DEVICE}")
     print(f"- datasets: {len(dataset_names)}")
     print(f"- models: {len(model_names)}")
-    print(f"- output directory: {OUTPUT_DIR}")
+    print(f"- embedding directory: {EMBEDDED_DIR}")
     print(f"- preprocessed data: {PREPROCESSED_DIR}")
     print("=" * 72)
 

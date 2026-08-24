@@ -5,7 +5,7 @@ from textClust.utils.eval import eval_against_truth
 
 if __name__ == "__main__":   
     clusterer = get_fastClust(
-        data_loader=StaticJsonWrapper("examples/data/Semantic10-T.json", max_samples=10_000),
+        data_loader=StaticJsonWrapper("examples/data/raw_data/Semantic10-T.json", max_samples=10_000),
         clean_interval=100,
         cluster_interval=1000,
         log_interval=100,

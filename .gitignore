@@ -212,11 +212,13 @@ tree_visualization.png
 slurm-*.out
 output/smac/*
 
-# Ignore data files
-examples/data/*.json
-examples/data/*.npy
-examples/social_ed_data/*.json
-examples/social_ed_data/*.npy
+# Ignore downloaded/generated data files
+examples/data/raw_data/*
+examples/data/translated_no_emojis/*
+examples/data/embedded/*
+!examples/data/raw_data/.gitkeep
+!examples/data/translated_no_emojis/.gitkeep
+!examples/data/embedded/.gitkeep
 
 #macOS
 .DS_Store

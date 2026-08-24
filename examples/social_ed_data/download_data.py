@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import requests
 
 datasets = {
@@ -19,6 +21,8 @@ datasets = {
 }
     
 url = "https://github.com/lea11100/twitter_stream_data/blob/main/social_ed_data"
+output_dir = Path(__file__).parent.parent / "data" / "raw_data"
+output_dir.mkdir(parents=True, exist_ok=True)
 
 for d in datasets:
     file_name = datasets[d]
@@ -28,7 +32,7 @@ for d in datasets:
     response = requests.get(file_url)
     response.raise_for_status()
 
-    with open(f"examples/data/{file_name}", "wb") as f:
+    with open(output_dir / file_name, "wb") as f:
         f.write(response.content)
 
     print(f"{file_name} downloaded.")
