@@ -112,6 +112,7 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
         self.folder = folder
 
         self.data = np.load(f"{self.folder}/{self.dataset}/{self.model}.npz", allow_pickle=True)
+        self.saved_time = 0.0
     
     def __call__(self, point: RawPoint) -> Point:
         """Generate a simulated embedding for the input point text and return a `Point`."""
@@ -120,5 +121,5 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
         i = np.where(self.data["tweet_ids"] == point.text_id)[0][0]
         simulated_embedding = torch.tensor(self.data["embeddings"][i])
         time_to_wait = self.data["times"][i]
-        time.sleep(time_to_wait)  # Simulate processing time
+        self.saved_time += time_to_wait
         return point_from_raw_point(point, embedding=simulated_embedding)
