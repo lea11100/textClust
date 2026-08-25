@@ -11,7 +11,7 @@ Each dataset record is expected to behave like a sequence where:
 
 Datasets can be either .npy files (loaded with np.load) or .json files
 (loaded with json.load) -- see load_dataset(). Tweets are translated to
-English after emojis are converted to textual names.
+English through an OpenAI-compatible Chat Completions API.
 
 Output format
 -------------
@@ -34,16 +34,20 @@ Edit DATASETS and MODEL_IDS below, then run:
     python src/textClust/preprocessing/offline_preprocessing.py
 """
 
+import ast
+import argparse
 import gc
+import json
+import os
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
-import emoji
+from openai import OpenAI
 from sentence_transformers import SentenceTransformer
-from transformers import AutoModelForSequenceClassification, AutoModelForSeq2SeqLM, AutoTokenizer
+from tqdm import tqdm
 
 from textClust.data.wrapper import StaticJsonWrapper, SocialEDWrapper
 from textClust.data.point import RawPoint
@@ -58,7 +62,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 # All dataset artefacts live below examples/data. Raw input files are kept in
-# raw_data, translated/demojified files in translated_no_emojis, and embedding
+# raw_data, translated files in translated_no_emojis, and embedding
 # outputs below embedded/<model_name>.
 DATA_DIR = Path("examples/data")
 RAW_DATA_DIR = DATA_DIR / "raw_data"
@@ -88,14 +92,15 @@ DATASETS = {
     "Semantic5-T_sorted": RAW_DATA_DIR / "Semantic5-T_sorted.json",
     "Semantic10-T": RAW_DATA_DIR / "Semantic10-T.json",
     "Semantic40-T": RAW_DATA_DIR / "Semantic40-T.json",
-    "NT": RAW_DATA_DIR / "NT.json",
-    "NTS": RAW_DATA_DIR / "NTS.json",
-    "NTSO-T": RAW_DATA_DIR / "NTSO-T.json",
-    "SO-T": RAW_DATA_DIR / "SO-T.json",
-    "News-T": RAW_DATA_DIR / "News-T.json",
-    "Trends-T": RAW_DATA_DIR / "Trends-T.json",
-    "Trends-T_modified": RAW_DATA_DIR / "Trends-T_modified.json",
-    "Tweets-T": RAW_DATA_DIR / "Tweets-T.json",
+    # Do not use these, they are partly already processed
+    # "NT": RAW_DATA_DIR / "NT.json",
+    # "NTS": RAW_DATA_DIR / "NTS.json",
+    # "NTSO-T": RAW_DATA_DIR / "NTSO-T.json",
+    # "SO-T": RAW_DATA_DIR / "SO-T.json",
+    # "News-T": RAW_DATA_DIR / "News-T.json",
+    # "Trends-T": RAW_DATA_DIR / "Trends-T.json",
+    # "Trends-T_modified": RAW_DATA_DIR / "Trends-T_modified.json",
+    # "Tweets-T": RAW_DATA_DIR / "Tweets-T.json",
 }
 
 # Models: friendly name -> HuggingFace model id. Only one embedding model is ever
@@ -121,14 +126,20 @@ MODEL_IDS = {
 # All models here are run on CPU. Change to "cuda" if/when running on a GPU.
 DEVICE = "cuda"
 
-# Hugging Face models used to identify each tweet's source language and to
-# translate it to English. They are loaded once and released before embedding.
-LANGUAGE_ID_MODEL = "facebook/fasttext-language-identification"
-TRANSLATION_MODEL = "facebook/nllb-200-distilled-600M"
-
+# OpenAI-compatible translation service. Store the key in the environment,
+# never in this file. These settings can be overridden without code changes.
+OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
+OPENAI_BASE_URL = os.getenv(
+    "OPENAI_BASE_URL", "https://ai-gateway.uni-paderborn.de/v1"
+)
+OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gwdg.qwen3.5-397b-a17b-no-think")
 # Text preprocessing is performed in batches. Increase this if the selected
 # device has enough memory.
-PREPROCESS_BATCH_SIZE = 32
+PREPROCESS_BATCH_SIZE = 256
+
+# Number of raw/translated tweet pairs to print after each dataset is
+# translated. Set to 0 to disable sample output.
+SAMPLE_COUNT = 3
 
 # Index within each record where the tweet id and tweet text are stored.
 ID_INDEX = 0
@@ -143,90 +154,126 @@ CLEAR_OUTPUT = False
 # Core logic
 # ---------------------------------------------------------------------------
 
-def _normalise_language_label(label: str) -> str:
-    """Convert fastText labels to the NLLB language-code format."""
-    return label.removeprefix("__label__")
+def parse_args() -> argparse.Namespace:
+    """Parse the datasets to process from the command line."""
+    parser = argparse.ArgumentParser(
+        description="Translate and embed selected text datasets."
+    )
+    parser.add_argument(
+        "--datasets",
+        nargs="+",
+        default=["all"],
+        metavar="DATASET",
+        help=(
+            "Dataset names to process, or 'all' (default) to process every "
+            "configured dataset."
+        ),
+    )
+    args = parser.parse_args()
+
+    if "all" in args.datasets and args.datasets != ["all"]:
+        parser.error("'all' cannot be combined with individual dataset names")
+
+    unknown = sorted(set(args.datasets) - set(DATASETS))
+    if unknown:
+        parser.error(
+            "unknown dataset(s): "
+            + ", ".join(unknown)
+            + ". Choose from: "
+            + ", ".join(DATASETS)
+        )
+
+    return args
 
 
-def _language_code(
-    label: str, translation_tokenizer: AutoTokenizer
-) -> Union[str, None]:
-    """Return an NLLB source code, or ``None`` for unsupported languages."""
-    code = _normalise_language_label(label)
-    if code in translation_tokenizer.lang_code_to_id:
-        return code
+def selected_datasets(dataset_names: List[str]) -> dict:
+    """Return the configured dataset mapping selected by the CLI."""
+    if dataset_names == ["all"]:
+        return DATASETS.copy()
+    return {name: DATASETS[name] for name in dataset_names}
 
-    # Some versions of the fastText checkpoint emit ISO-639-1/3 labels while
-    # NLLB uses ISO-639-3 plus a script. Prefer the tokenizer's matching code.
-    candidates = [
-        nllb_code for nllb_code in translation_tokenizer.lang_code_to_id
-        if nllb_code.startswith(f"{code}_")
-    ]
-    if candidates:
-        return candidates[0]
-    iso1_to_iso3 = {"en": "eng", "de": "deu", "fr": "fra", "es": "spa", "it": "ita", "pt": "por", "nl": "nld", "ar": "arb", "ru": "rus", "uk": "ukr", "tr": "tur", "pl": "pol"}
-    iso3 = iso1_to_iso3.get(code, code)
-    candidates = [
-        nllb_code for nllb_code in translation_tokenizer.lang_code_to_id
-        if nllb_code.startswith(f"{iso3}_")
-    ]
-    return candidates[0] if candidates else None
+RESPONSE_SCHEMA = {
+    "name": "translation_batch",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "translations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer"},
+                        "detected_language": {"type": "string"},
+                        "translation": {"type": "string"},
+                    },
+                    "required": ["id", "detected_language", "translation"],
+                    "additionalProperties": False,
+                },
+            }
+        },
+        "required": ["translations"],
+        "additionalProperties": False,
+    },
+    "strict": True,
+}
 
+SYSTEM_PROMPT = """You are a precise translation assistant.
+You will receive a numbered list of tweets, each with a unique id.
+For each tweet, produce an English translation and detect the source language.
+ 
+Rules:
+- Preserve the original meaning and tone as closely as possible.
+- Do not alter URLs, @mentions, or hashtags -- copy them through unchanged.
+- Replace emojis with a short textual description in parentheses, e.g. (smiling face).
+- If a tweet mixes multiple languages, translate all of it to English.
+- If a tweet is already in English, return it unchanged (still set detected_language: "en").
+- You MUST return exactly one output item per input id, with matching ids.
+- Do not skip, merge, or reorder items.
+"""
 
-def _predict_languages(
-    texts: List[str], language_tokenizer: AutoTokenizer,
-    language_model: AutoModelForSequenceClassification, batch_size: int,
-) -> List[str]:
-    """Identify tweet languages in batches using the fastText HF checkpoint."""
-    labels: List[str] = []
-    for start in range(0, len(texts), batch_size):
-        batch = texts[start:start + batch_size]
-        inputs = language_tokenizer(
-            batch, return_tensors="pt", padding=True, truncation=True,
-        ).to(DEVICE)
-        with torch.inference_mode():
-            predictions = language_model(**inputs).logits.argmax(dim=-1)
-        labels.extend(language_model.config.id2label[int(index)] for index in predictions)
-    return labels
-
+def build_user_prompt(id_to_tweet: dict, extra_context: str = "") -> str:
+    lines = [f"id={tid}: {text}" for tid, text in id_to_tweet.items()]
+    prompt = "Translate the following tweets:\n\n" + "\n".join(lines)
+    if extra_context:
+        prompt += f"\n\nNote: {extra_context}"
+    return prompt
 
 def preprocess_tweets(
-    texts: List[str], language_tokenizer: AutoTokenizer,
-    language_model: AutoModelForSequenceClassification,
-    translation_tokenizer: AutoTokenizer,
-    translation_model: AutoModelForSeq2SeqLM,
-    batch_size: int,
+    texts: List[str], text_ids: List[str], client: OpenAI, batch_size: int,
+    model_name: str = OPENAI_CHAT_MODEL,
 ) -> Tuple[List[str], List[str]]:
-    """Demojify, identify languages, and translate tweets in batches."""
-    demojified = [emoji.demojize("" if text is None else str(text)) for text in texts]
-    initial_language = _predict_languages(
-        demojified, language_tokenizer, language_model, batch_size,
-    )
-    translated = list(demojified)
-    grouped: Dict[str, List[int]] = {}
-    for index, label in enumerate(initial_language):
-        source_code = _language_code(label, translation_tokenizer)
-        if source_code is not None and source_code != "eng_Latn":
-            grouped.setdefault(source_code, []).append(index)
+    """Translate tweet batches with an OpenAI-compatible Chat API."""
+    translations: List[str] = []
+    translated_ids: List[str] = []
+    batch_starts = range(0, len(texts), batch_size)
+    for start in tqdm(
+        batch_starts,
+        desc=f"Translating batches with {model_name}",
+        unit="batch",
+    ):
+        batch = [
+            "" if text is None else str(text)
+            for text in texts[start:start + batch_size]
+        ]
+        batch_ids = text_ids[start:start + batch_size]
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)})},
+            ],
+            response_format={"type": "json_schema", "json_schema": RESPONSE_SCHEMA},
+            temperature=0,
+        )
+        raw = completion.choices[0].message.content
+        assert raw is not None, "Received empty response from translation API"
+        data = json.loads(raw)
+        
+        translations.extend(data["translations"])
+        translated_ids.extend(batch_ids)
 
-    for source_code, indices in grouped.items():
-        translation_tokenizer.src_lang = source_code
-        for start in range(0, len(indices), batch_size):
-            batch_indices = indices[start:start + batch_size]
-            inputs = translation_tokenizer(
-                [demojified[index] for index in batch_indices],
-                return_tensors="pt", padding=True, truncation=True,
-            ).to(DEVICE)
-            with torch.inference_mode():
-                output = translation_model.generate(
-                    **inputs,
-                    forced_bos_token_id=translation_tokenizer.lang_code_to_id["eng_Latn"],
-                    max_new_tokens=256,
-                )
-            decoded = translation_tokenizer.batch_decode(output, skip_special_tokens=True)
-            for index, text in zip(batch_indices, decoded):
-                translated[index] = text
-    return translated, initial_language
+    # Keep the existing metadata field for checkpoint compatibility.
+    return translations, translated_ids
 
 def load_dataset(
     dataset_path: Union[str, Path]
@@ -260,28 +307,61 @@ def load_dataset(
     return tweet_ids, tweets
 
 
+def create_translation_client() -> OpenAI:
+    """Create the translation client without embedding credentials in code."""
+    api_key = os.getenv(OPENAI_API_KEY_ENV)
+    if not api_key:
+        raise RuntimeError(
+            f"Set {OPENAI_API_KEY_ENV} in the environment before running "
+            "the preprocessing pipeline"
+        )
+    return OpenAI(api_key=api_key, base_url=OPENAI_BASE_URL)
+
+
 def preprocessed_path(dataset_name: str) -> Path:
     """Return the checkpoint path for a translated dataset."""
     return PREPROCESSED_DIR / f"{dataset_name}.npy"
 
 
 def save_preprocessed_dataset(
-    path: Path, tweet_ids: np.ndarray, tweets: List[str], initial_language: List[str],
+    path: Path, tweet_ids: List[str], tweets: List[str],
 ) -> None:
     """Persist preprocessing output so it can be reused by all embeddings."""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "tweet_ids": tweet_ids,
-        "tweets": np.asarray(tweets, dtype=object),
-        "initial_language": np.asarray(initial_language, dtype=object),
+        "tweet_ids": np.asarray(tweet_ids, dtype=object),
+        "tweets": np.asarray(tweets, dtype=object)
     }
     np.save(path, np.array(payload, dtype=object), allow_pickle=True)
 
 
-def load_preprocessed_dataset(path: Path) -> Tuple[np.ndarray, List[str]]:
+def load_preprocessed_dataset(path: Path) -> Tuple[List[str], List[str]]:
     """Load a preprocessing checkpoint."""
     payload = np.load(path, allow_pickle=True).item()
-    return payload["tweet_ids"], payload["tweets"].tolist()
+    return payload["tweet_ids"].tolist(), payload["tweets"].tolist()
+
+
+def print_translation_samples(
+    dataset_name: str, raw_tweets: List[str], translated_tweets: List[str],
+) -> None:
+    """Print a few raw tweets alongside their translated output."""
+    if SAMPLE_COUNT <= 0:
+        return
+
+    sample_count = min(SAMPLE_COUNT, len(raw_tweets), len(translated_tweets))
+    print(f"  sample raw/translated tweets for '{dataset_name}':")
+    if sample_count == 0:
+        print("    (dataset is empty)")
+        return
+
+    for index in range(sample_count):
+        raw = "" if raw_tweets[index] is None else str(raw_tweets[index])
+        translated = (
+            "" if translated_tweets[index] is None
+            else str(translated_tweets[index])
+        )
+        print(f"    {index + 1}. raw: {raw!r}")
+        print(f"       translated: {translated!r}")
 
 
 def embed_tweets_with_model(
@@ -300,7 +380,9 @@ def embed_tweets_with_model(
     embeddings = np.empty(n_tweets, dtype=object)
     times = np.zeros(n_tweets, dtype=np.float64)
 
-    for t_idx, tweet in enumerate(tweets):
+    for t_idx, tweet in enumerate(
+        tqdm(tweets, desc=f"Embedding {model_name}", unit="tweet")
+    ):
         # Guard against missing/non-string tweet text
         text = "" if tweet is None else str(tweet)
 
@@ -331,7 +413,7 @@ def result_has_model(results_path: Path) -> bool:
 
 def save_model_results(
     results_path: Path,
-    tweet_ids: np.ndarray,
+    tweet_ids: List[str],
     embeddings: np.ndarray,
     times: np.ndarray,
     dataset_name: str,
@@ -350,11 +432,14 @@ def save_model_results(
 
 
 def main() -> None:
+    args = parse_args()
+    datasets = selected_datasets(args.datasets)
+
     PREPROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     EMBEDDED_DIR.mkdir(parents=True, exist_ok=True)
 
     model_names = list(MODEL_IDS.keys())
-    dataset_names = list(DATASETS.keys())
+    dataset_names = list(datasets.keys())
 
     if CLEAR_OUTPUT:
         for dataset_name in dataset_names:
@@ -376,50 +461,37 @@ def main() -> None:
     print(f"- preprocessed data: {PREPROCESSED_DIR}")
     print("=" * 72)
 
-    if torch is None:
-        raise RuntimeError("PyTorch is required for Hugging Face preprocessing models")
-
     # Preprocess each dataset once, independently of the embedding models.
-    language_tokenizer = AutoTokenizer.from_pretrained(LANGUAGE_ID_MODEL)
-    language_model = AutoModelForSequenceClassification.from_pretrained(
-        LANGUAGE_ID_MODEL,
-    ).to(DEVICE)
-    translation_tokenizer = AutoTokenizer.from_pretrained(TRANSLATION_MODEL)
-    translation_model = AutoModelForSeq2SeqLM.from_pretrained(
-        TRANSLATION_MODEL,
-    ).to(DEVICE)
-    try:
-        for d_idx, (dataset_name, dataset_path) in enumerate(DATASETS.items()):
-            preprocessing_path = preprocessed_path(dataset_name)
-            if preprocessing_path.exists():
-                print(f"Skipping preprocessed dataset: {dataset_name}")
-                continue
-            print(
-                f"Preprocessing dataset [{d_idx + 1}/{len(dataset_names)}]: "
-                f"{dataset_name} ({dataset_path})"
-            )
-            tweet_ids, raw_tweets = load_dataset(dataset_path)
-            tweets, initial_language = preprocess_tweets(
-                raw_tweets,
-                language_tokenizer,
-                language_model,
-                translation_tokenizer,
-                translation_model,
-                PREPROCESS_BATCH_SIZE,
-            )
-            save_preprocessed_dataset(
-                preprocessing_path, tweet_ids, tweets, initial_language,
-            )
-            print(f"  -> saved {preprocessing_path}")
-            del tweet_ids, raw_tweets, tweets, initial_language
+    translation_client = create_translation_client()
+    for d_idx, (dataset_name, dataset_path) in enumerate(
+        tqdm(datasets.items(), desc="Preprocessing datasets", unit="dataset")
+    ):
+        preprocessing_path = preprocessed_path(dataset_name)
+        print(
+            f"Preprocessing dataset [{d_idx + 1}/{len(dataset_names)}]: "
+            f"{dataset_name} ({dataset_path})"
+        )
+        tweet_ids, raw_tweets = load_dataset(dataset_path)
+
+        if preprocessing_path.exists():
+            print(f"  skipping translation; checkpoint exists: {preprocessing_path}")
+            _, translated_tweets = load_preprocessed_dataset(preprocessing_path)
+            print_translation_samples(dataset_name, raw_tweets, translated_tweets)
+            del tweet_ids, raw_tweets, translated_tweets
             gc.collect()
-    finally:
-        language_model.to("cpu")
-        translation_model.to("cpu")
-        del language_model, translation_model, language_tokenizer, translation_tokenizer
+            continue
+
+        tweets, translated_tweet_ids = preprocess_tweets(
+            raw_tweets, [str(id) for id in tweet_ids], translation_client, PREPROCESS_BATCH_SIZE,
+            OPENAI_CHAT_MODEL,
+        )
+        save_preprocessed_dataset(
+            preprocessing_path, translated_tweet_ids, tweets,
+        )
+        print(f"  -> saved {preprocessing_path}")
+        print_translation_samples(dataset_name, raw_tweets, tweets)
+        del tweet_ids, raw_tweets, tweets
         gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
 
     # Process one model and one preprocessed dataset at a time. Dataset data
     # is released after its checkpoint is written, and completed model rows
@@ -430,7 +502,9 @@ def main() -> None:
         print(f"Model [{m_idx + 1}/{len(model_names)}]: {name} ({model_id})")
         model = SentenceTransformer(model_id, device=DEVICE)
         try:
-            for d_idx, (dataset_name, dataset_path) in enumerate(DATASETS.items()):
+            for d_idx, (dataset_name, dataset_path) in enumerate(
+                tqdm(datasets.items(), desc=f"Datasets for {name}", unit="dataset")
+            ):
                 output_path = result_path(dataset_name, name)
                 if result_has_model(output_path):
                     print(f"  skipping completed dataset: {dataset_name}")
