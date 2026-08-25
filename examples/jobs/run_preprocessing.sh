@@ -6,7 +6,6 @@
 #SBATCH -n 1
 #SBATCH --mem=32G
 #SBATCH --gres=gpu:a100:1
-# Two datasets are processed by each array task.
 #SBATCH --array=0-9
 #SBATCH -J "textClust"
 #SBATCH -p gpu

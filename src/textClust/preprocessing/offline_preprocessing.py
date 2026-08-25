@@ -34,7 +34,6 @@ Edit DATASETS and MODEL_IDS below, then run:
     python src/textClust/preprocessing/offline_preprocessing.py
 """
 
-import ast
 import argparse
 import gc
 import json
@@ -44,6 +43,7 @@ import time
 from pathlib import Path
 from typing import List, Tuple, Union
 
+import emoji
 import numpy as np
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
@@ -69,31 +69,33 @@ RAW_DATA_DIR = DATA_DIR / "raw_data"
 PREPROCESSED_DIR = DATA_DIR / "translated_no_emojis"
 EMBEDDED_DIR = DATA_DIR / "embedded"
 
-# Datasets: friendly name -> raw input path. Supports both .npy (loaded via
-# np.load) and .json (loaded via json.load) files. Each record is still
-# expected to provide the tweet id at index 0 and the tweet text at index 1.
+# Datasets: friendly name -> configuration. Set ``language`` to ``"en"`` for
+# datasets that are already in English; those datasets skip the translation
+# API and are still written to the same translated-checkpoint format after
+# emojis are converted to text. Any other language code is translated to
+# English.
 DATASETS = {
-    "Arabic_7": RAW_DATA_DIR / "Arabic_7.npy",
-    "Arabic_Twitter": RAW_DATA_DIR / "Arabic_Twitter.npy",
-    "CrisisLexT6": RAW_DATA_DIR / "CrisisLexT6.npy",
-    "CrisisLexT7": RAW_DATA_DIR / "CrisisLexT7.npy",
-    "CrisisLexT26": RAW_DATA_DIR / "CrisisLexT26.npy",
-    "CrisisMMD": RAW_DATA_DIR / "CrisisMMD.npy",
-    "CrisisNLP": RAW_DATA_DIR / "CrisisNLP.npy",
-    "Event2012": RAW_DATA_DIR / "Event2012.npy",
-    "Event2012_100": RAW_DATA_DIR / "Event2012_100.npy",
-    "Event2018": RAW_DATA_DIR / "Event2018.npy",
-    "Event2018_100": RAW_DATA_DIR / "Event2018_100.npy",
-    "HumAID": RAW_DATA_DIR / "HumAID.npy",
-    "KBP": RAW_DATA_DIR / "KBP.npy",
-    "MAVEN": RAW_DATA_DIR / "MAVEN.npy",
-    "Mix_Data": RAW_DATA_DIR / "Mix_Data.npy",
-    "Semantic5-T": RAW_DATA_DIR / "Semantic5-T.json",
-    "Semantic5-T_sorted": RAW_DATA_DIR / "Semantic5-T_sorted.json",
-    "Semantic10-T": RAW_DATA_DIR / "Semantic10-T.json",
-    "Semantic40-T": RAW_DATA_DIR / "Semantic40-T.json",
+    "Arabic_7": {"path": RAW_DATA_DIR / "Arabic_7.npy", "language": "ar"},
+    "Arabic_Twitter": {"path": RAW_DATA_DIR / "Arabic_Twitter.npy", "language": "ar"},
+    "CrisisLexT6": {"path": RAW_DATA_DIR / "CrisisLexT6.npy", "language": "en"},
+    "CrisisLexT7": {"path": RAW_DATA_DIR / "CrisisLexT7.npy", "language": "en"},
+    "CrisisLexT26": {"path": RAW_DATA_DIR / "CrisisLexT26.npy", "language": "en"},
+    "CrisisMMD": {"path": RAW_DATA_DIR / "CrisisMMD.npy", "language": "en"},
+    "CrisisNLP": {"path": RAW_DATA_DIR / "CrisisNLP.npy", "language": "en"},
+    "Event2012": {"path": RAW_DATA_DIR / "Event2012.npy", "language": "en"},
+    "Event2012_100": {"path": RAW_DATA_DIR / "Event2012_100.npy", "language": "en"},
+    "Event2018": {"path": RAW_DATA_DIR / "Event2018.npy", "language": "fr"},
+    "Event2018_100": {"path": RAW_DATA_DIR / "Event2018_100.npy", "language": "fr"},
+    "HumAID": {"path": RAW_DATA_DIR / "HumAID.npy", "language": "en"},
+    "KBP": {"path": RAW_DATA_DIR / "KBP.npy", "language": "en"},
+    "MAVEN": {"path": RAW_DATA_DIR / "MAVEN.npy", "language": "en"},
+    "Mix_Data": {"path": RAW_DATA_DIR / "Mix_Data.npy", "language": "en"},
+    "Semantic5-T": {"path": RAW_DATA_DIR / "Semantic5-T.json", "language": "en"},
+    "Semantic5-T_sorted": {"path": RAW_DATA_DIR / "Semantic5-T_sorted.json", "language": "en"},
+    "Semantic10-T": {"path": RAW_DATA_DIR / "Semantic10-T.json", "language": "en"},
+    "Semantic40-T": {"path": RAW_DATA_DIR / "Semantic40-T.json", "language": "en"},
     # Do not use these, they are partly already processed
-    # "NT": RAW_DATA_DIR / "NT.json",
+    # "NT": {"path": RAW_DATA_DIR / "NT.json", "language": "en"},
     # "NTS": RAW_DATA_DIR / "NTS.json",
     # "NTSO-T": RAW_DATA_DIR / "NTSO-T.json",
     # "SO-T": RAW_DATA_DIR / "SO-T.json",
@@ -232,6 +234,32 @@ Rules:
 - Do not skip, merge, or reorder items.
 """
 
+def emojis_to_text(text: object) -> str:
+    """Replace emojis with readable descriptions while preserving text.
+
+    Parentheses make the generated descriptions suitable for both the
+    translated checkpoints and the embedding models, for example ``😀``
+    becomes ``(grinning face)``.
+    """
+    value = "" if text is None else str(text)
+    return emoji.demojize(value, language="en", delimiters=("(", ")"))
+
+
+def prepare_english_tweets(
+    texts: List[str], text_ids: List[str]
+) -> Tuple[List[dict], List[str]]:
+    """Create translated-checkpoint records for already-English tweets."""
+    cleaned_tweets = [emojis_to_text(text) for text in texts]
+    translations = [
+        {
+            "id": tweet_id,
+            "detected_language": "en",
+            "translation": text,
+        }
+        for tweet_id, text in zip(text_ids, cleaned_tweets)
+    ]
+    return translations, text_ids
+
 def build_user_prompt(id_to_tweet: dict, extra_context: str = "") -> str:
     lines = [f"id={tid}: {text}" for tid, text in id_to_tweet.items()]
     prompt = "Translate the following tweets:\n\n" + "\n".join(lines)
@@ -280,7 +308,7 @@ def preprocess_tweets(
         translated_ids.extend(batch_ids)
 
     #Sort translations to match the order of translated_ids
-    translations_dict = {item["id"]: item for item in translations}
+    translations_dict = {str(item["id"]): item for item in translations}
     translations = [translations_dict[tid] for tid in translated_ids]
     return translations, translated_ids
 
@@ -366,10 +394,13 @@ def print_translation_samples(
 
     for index in range(sample_count):
         raw = "" if raw_tweets[index] is None else str(raw_tweets[index])
+        translated_item = translated_tweets[index]
         translated = (
-            "" if translated_tweets[index] is None
-            else str(translated_tweets[index].get("translation", ""))
+            translated_item.get("translation", "")
+            if isinstance(translated_item, dict)
+            else translated_item
         )
+        translated = "" if translated is None else str(translated)
         print(f"    {index + 1}. raw: {raw!r}")
         print(f"       translated: {translated!r}")
 
@@ -472,14 +503,19 @@ def main() -> None:
     print("=" * 72)
 
     # Preprocess each dataset once, independently of the embedding models.
-    translation_client = create_translation_client()
-    for d_idx, (dataset_name, dataset_path) in enumerate(
+    needs_translation = any(
+        config["language"].lower() != "en" for config in datasets.values()
+    )
+    translation_client = create_translation_client() if needs_translation else None
+    for d_idx, (dataset_name, dataset_config) in enumerate(
         tqdm(datasets.items(), desc="Preprocessing datasets", unit="dataset")
     ):
+        dataset_path = dataset_config["path"]
+        dataset_language = dataset_config["language"].lower()
         preprocessing_path = preprocessed_path(dataset_name)
         print(
             f"Preprocessing dataset [{d_idx + 1}/{len(dataset_names)}]: "
-            f"{dataset_name} ({dataset_path})"
+            f"{dataset_name} ({dataset_path}, language={dataset_language})"
         )
         tweet_ids, raw_tweets = load_dataset(dataset_path)
 
@@ -491,10 +527,20 @@ def main() -> None:
             gc.collect()
             continue
 
-        tweets, translated_tweet_ids = preprocess_tweets(
-            raw_tweets, [str(id) for id in tweet_ids], translation_client, PREPROCESS_BATCH_SIZE,
-            OPENAI_CHAT_MODEL,
-        )
+        text_ids = [str(tweet_id) for tweet_id in tweet_ids]
+        if dataset_language == "en":
+            print("  skipping translation; removing emojis from English tweets")
+            tweets, translated_tweet_ids = prepare_english_tweets(raw_tweets, text_ids)
+        else:
+            if translation_client is None:
+                raise RuntimeError("A translation client is required for non-English datasets")
+            tweets, translated_tweet_ids = preprocess_tweets(
+                raw_tweets,
+                text_ids,
+                translation_client,
+                PREPROCESS_BATCH_SIZE,
+                OPENAI_CHAT_MODEL,
+            )
         save_preprocessed_dataset(
             preprocessing_path, translated_tweet_ids, tweets,
         )
@@ -502,7 +548,7 @@ def main() -> None:
         print_translation_samples(dataset_name, raw_tweets, tweets)
         del tweet_ids, raw_tweets, tweets
         gc.collect()
-
+    raise Exception("STOPPED FOR TESTING")
     # Process one model and one preprocessed dataset at a time. Dataset data
     # is released after its checkpoint is written, and completed model rows
     # are skipped.
@@ -512,7 +558,7 @@ def main() -> None:
         print(f"Model [{m_idx + 1}/{len(model_names)}]: {name} ({model_id})")
         model = SentenceTransformer(model_id, device=DEVICE)
         try:
-            for d_idx, (dataset_name, dataset_path) in enumerate(
+            for d_idx, (dataset_name, dataset_config) in enumerate(
                 tqdm(datasets.items(), desc=f"Datasets for {name}", unit="dataset")
             ):
                 output_path = result_path(dataset_name, name)
