@@ -132,10 +132,10 @@ OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
 OPENAI_BASE_URL = os.getenv(
     "OPENAI_BASE_URL", "https://ai-gateway.uni-paderborn.de/v1"
 )
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gwdg.qwen3.5-397b-a17b-no-think")
+OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "openai.gpt-5.6-luna")
 # Text preprocessing is performed in batches. Increase this if the selected
 # device has enough memory.
-PREPROCESS_BATCH_SIZE = 256
+PREPROCESS_BATCH_SIZE = 64
 
 # Number of raw/translated tweet pairs to print after each dataset is
 # translated. Set to 0 to disable sample output.
@@ -223,7 +223,8 @@ For each tweet, produce an English translation and detect the source language.
  
 Rules:
 - Preserve the original meaning and tone as closely as possible.
-- Do not alter URLs, @mentions, or hashtags -- copy them through unchanged.
+- Do not alter URLs or @mentions -- copy them through unchanged.
+- You can translate hashtags but keep them as hashtags (e.g. #Klimawandel -> #ClimateChange).
 - Replace emojis with a short textual description in parentheses, e.g. (smiling face).
 - If a tweet mixes multiple languages, translate all of it to English.
 - If a tweet is already in English, return it unchanged (still set detected_language: "en").
@@ -243,7 +244,7 @@ def preprocess_tweets(
     model_name: str = OPENAI_CHAT_MODEL,
 ) -> Tuple[List[str], List[str]]:
     """Translate tweet batches with an OpenAI-compatible Chat API."""
-    translations: List[str] = []
+    translations: List = []
     translated_ids: List[str] = []
     batch_starts = range(0, len(texts), batch_size)
     for start in tqdm(
@@ -256,23 +257,31 @@ def preprocess_tweets(
             for text in texts[start:start + batch_size]
         ]
         batch_ids = text_ids[start:start + batch_size]
-        completion = client.chat.completions.create(
+        # completion = client.chat.completions.create(
+        #     model=model_name,
+        #     messages=[
+        #         {"role": "system", "content": SYSTEM_PROMPT},
+        #         {"role": "user", "content": build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)})},
+        #     ],
+        #     response_format={"type": "json_schema", "json_schema": RESPONSE_SCHEMA},
+        #     temperature=0,
+        # )
+        # raw = completion.choices[0].message.content
+        response = client.responses.create(
+            instructions=SYSTEM_PROMPT,
             model=model_name,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)})},
-            ],
-            response_format={"type": "json_schema", "json_schema": RESPONSE_SCHEMA},
-            temperature=0,
+            input=build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)}),
+            text={"format": {"type": "json_schema", **RESPONSE_SCHEMA}},
         )
-        raw = completion.choices[0].message.content
-        assert raw is not None, "Received empty response from translation API"
+        raw = response.output_text
         data = json.loads(raw)
         
         translations.extend(data["translations"])
         translated_ids.extend(batch_ids)
 
-    # Keep the existing metadata field for checkpoint compatibility.
+    #Sort translations to match the order of translated_ids
+    translations_dict = {item["id"]: item for item in translations}
+    translations = [translations_dict[tid] for tid in translated_ids]
     return translations, translated_ids
 
 def load_dataset(
@@ -324,13 +333,14 @@ def preprocessed_path(dataset_name: str) -> Path:
 
 
 def save_preprocessed_dataset(
-    path: Path, tweet_ids: List[str], tweets: List[str],
+    path: Path, tweet_ids: List[str], tweets: List,
 ) -> None:
     """Persist preprocessing output so it can be reused by all embeddings."""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "tweet_ids": np.asarray(tweet_ids, dtype=object),
-        "tweets": np.asarray(tweets, dtype=object)
+        "tweets_eng": np.asarray([tweet.get("translation", "") for tweet in tweets], dtype=object),
+        "tweets_detected_language": np.asarray([tweet.get("detected_language", "") for tweet in tweets], dtype=object)
     }
     np.save(path, np.array(payload, dtype=object), allow_pickle=True)
 
@@ -338,11 +348,11 @@ def save_preprocessed_dataset(
 def load_preprocessed_dataset(path: Path) -> Tuple[List[str], List[str]]:
     """Load a preprocessing checkpoint."""
     payload = np.load(path, allow_pickle=True).item()
-    return payload["tweet_ids"].tolist(), payload["tweets"].tolist()
+    return payload["tweet_ids"].tolist(), payload["tweets_eng"].tolist()
 
 
 def print_translation_samples(
-    dataset_name: str, raw_tweets: List[str], translated_tweets: List[str],
+    dataset_name: str, raw_tweets: List[str], translated_tweets: List,
 ) -> None:
     """Print a few raw tweets alongside their translated output."""
     if SAMPLE_COUNT <= 0:
@@ -358,7 +368,7 @@ def print_translation_samples(
         raw = "" if raw_tweets[index] is None else str(raw_tweets[index])
         translated = (
             "" if translated_tweets[index] is None
-            else str(translated_tweets[index])
+            else str(translated_tweets[index].get("translation", ""))
         )
         print(f"    {index + 1}. raw: {raw!r}")
         print(f"       translated: {translated!r}")
