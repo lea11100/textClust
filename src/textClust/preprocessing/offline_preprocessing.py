@@ -232,6 +232,7 @@ Rules:
 - If a tweet is already in English, return it unchanged (still set detected_language: "en").
 - You MUST return exactly one output item per input id, with matching ids.
 - Do not skip, merge, or reorder items.
+- Make sure to include every tweet and its tweet id.
 """
 
 def emojis_to_text(text: object) -> str:
@@ -280,32 +281,40 @@ def preprocess_tweets(
         desc=f"Translating batches with {model_name}",
         unit="batch",
     ):
-        batch = [
-            "" if text is None else str(text)
-            for text in texts[start:start + batch_size]
-        ]
-        batch_ids = text_ids[start:start + batch_size]
-        # completion = client.chat.completions.create(
-        #     model=model_name,
-        #     messages=[
-        #         {"role": "system", "content": SYSTEM_PROMPT},
-        #         {"role": "user", "content": build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)})},
-        #     ],
-        #     response_format={"type": "json_schema", "json_schema": RESPONSE_SCHEMA},
-        #     temperature=0,
-        # )
-        # raw = completion.choices[0].message.content
-        response = client.responses.create(
-            instructions=SYSTEM_PROMPT,
-            model=model_name,
-            input=build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)}),
-            text={"format": {"type": "json_schema", **RESPONSE_SCHEMA}},
-        )
-        raw = response.output_text
-        data = json.loads(raw)
-        
-        translations.extend(data["translations"])
-        translated_ids.extend(batch_ids)
+        for retry in range(3):  # Retry up to 3 times for transient errors
+            try:
+                batch = [
+                    "" if text is None else str(text)
+                    for text in texts[start:start + batch_size]
+                ]
+                batch_ids = text_ids[start:start + batch_size]
+                # completion = client.chat.completions.create(
+                #     model=model_name,
+                #     messages=[
+                #         {"role": "system", "content": SYSTEM_PROMPT},
+                #         {"role": "user", "content": build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)})},
+                #     ],
+                #     response_format={"type": "json_schema", "json_schema": RESPONSE_SCHEMA},
+                #     temperature=0,
+                # )
+                # raw = completion.choices[0].message.content
+                response = client.responses.create(
+                    instructions=SYSTEM_PROMPT,
+                    model=model_name,
+                    input=build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)}),
+                    text={"format": {"type": "json_schema", **RESPONSE_SCHEMA}},
+                )
+                raw = response.output_text
+                data = json.loads(raw)
+                translated_ids = [str(item["id"]) for item in data["translations"]]
+                if set(translated_ids) != set(batch_ids):
+                    print(f"Retry {retry + 1}/3: Inconsistent translation IDs for batch starting at index {start}")
+                    continue
+                translations.extend(data["translations"])
+                translated_ids.extend(batch_ids)
+                break  # Exit retry loop on success
+            except Exception as e:
+                print(f"Retry {retry + 1}/3: Error translating batch starting at index {start}: {e}")
 
     #Sort translations to match the order of translated_ids
     translations_dict = {str(item["id"]): item for item in translations}
@@ -548,7 +557,6 @@ def main() -> None:
         print_translation_samples(dataset_name, raw_tweets, tweets)
         del tweet_ids, raw_tweets, tweets
         gc.collect()
-    raise Exception("STOPPED FOR TESTING")
     # Process one model and one preprocessed dataset at a time. Dataset data
     # is released after its checkpoint is written, and completed model rows
     # are skipped.
