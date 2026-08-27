@@ -271,54 +271,78 @@ def build_user_prompt(id_to_tweet: dict, extra_context: str = "") -> str:
 def preprocess_tweets(
     texts: List[str], text_ids: List[str], client: OpenAI, batch_size: int,
     model_name: str = OPENAI_CHAT_MODEL,
-) -> Tuple[List[str], List[str]]:
+) -> Tuple[List[dict], List[str]]:
     """Translate tweet batches with an OpenAI-compatible Chat API."""
-    translations: List = []
+    translations: List[dict] = []
     translated_ids: List[str] = []
+    max_retries = 3
     batch_starts = range(0, len(texts), batch_size)
     for start in tqdm(
         batch_starts,
         desc=f"Translating batches with {model_name}",
         unit="batch",
     ):
-        for retry in range(3):  # Retry up to 3 times for transient errors
+        batch_texts = ["" if text is None else str(text) for text in texts[start:start + batch_size]]
+        batch_ids = [str(tweet_id) for tweet_id in text_ids[start:start + batch_size]]
+        pending = dict(zip(batch_ids, batch_texts))
+        batch_translations: dict[str, dict] = {}
+
+        for attempt in range(max_retries + 1):
+            if not pending:
+                break
+
             try:
-                batch = [
-                    "" if text is None else str(text)
-                    for text in texts[start:start + batch_size]
-                ]
-                batch_ids = text_ids[start:start + batch_size]
-                # completion = client.chat.completions.create(
-                #     model=model_name,
-                #     messages=[
-                #         {"role": "system", "content": SYSTEM_PROMPT},
-                #         {"role": "user", "content": build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)})},
-                #     ],
-                #     response_format={"type": "json_schema", "json_schema": RESPONSE_SCHEMA},
-                #     temperature=0,
-                # )
-                # raw = completion.choices[0].message.content
                 response = client.responses.create(
                     instructions=SYSTEM_PROMPT,
                     model=model_name,
-                    input=build_user_prompt({tid: text for tid, text in zip(batch_ids, batch)}),
+                    input=build_user_prompt(pending),
                     text={"format": {"type": "json_schema", **RESPONSE_SCHEMA}},
                 )
-                raw = response.output_text
-                data = json.loads(raw)
-                translated_ids = [str(item["id"]) for item in data["translations"]]
-                if set(translated_ids) != set(batch_ids):
-                    print(f"Retry {retry + 1}/3: Inconsistent translation IDs for batch starting at index {start}")
-                    continue
-                translations.extend(data["translations"])
-                translated_ids.extend(batch_ids)
-                break  # Exit retry loop on success
-            except Exception as e:
-                print(f"Retry {retry + 1}/3: Error translating batch starting at index {start}: {e}")
+                data = json.loads(response.output_text)
+                returned = data["translations"]
 
-    #Sort translations to match the order of translated_ids
-    translations_dict = {str(item["id"]): item for item in translations}
-    translations = [translations_dict[tid] for tid in translated_ids]
+                # Keep only requested ids and add each id at most once. The
+                # response may omit ids, so only those ids remain pending.
+                for item in returned:
+                    tweet_id = str(item["id"])
+                    if tweet_id in pending and tweet_id not in batch_translations:
+                        batch_translations[tweet_id] = item
+                        del pending[tweet_id]
+
+                if pending and attempt < max_retries:
+                    print(
+                        f"  batch starting at index {start} missed "
+                        f"{len(pending)} id(s); retrying "
+                        f"({attempt + 1}/{max_retries})"
+                    )
+            except Exception as e:
+                if attempt == max_retries:
+                    print(
+                        f"Error translating batch starting at index {start} "
+                        f"after {max_retries} retries: {e}"
+                    )
+                else:
+                    print(
+                        f"Error translating batch starting at index {start}; "
+                        f"retrying ({attempt + 1}/{max_retries}): {e}"
+                    )
+
+        # Append successful translations in the original batch order. Keeping
+        # the id and translation together prevents retries from duplicating or
+        # misaligning either list.
+        if pending:
+            missing_ids = ", ".join(pending)
+            raise RuntimeError(
+                f"Could not translate {len(pending)} tweet id(s) in batch "
+                f"starting at index {start} after {max_retries} retries: "
+                f"{missing_ids}"
+            )
+
+        for tweet_id in batch_ids:
+            if tweet_id in batch_translations:
+                translations.append(batch_translations[tweet_id])
+                translated_ids.append(tweet_id)
+
     return translations, translated_ids
 
 def load_dataset(
