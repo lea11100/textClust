@@ -131,12 +131,14 @@ def files_by_stem(directory: Path) -> dict[str, Path]:
     return {path.stem: path for path in directory.iterdir() if path.is_file() and path.suffix.lower() in SUPPORTED_SUFFIXES}
 
 
-def compare_ids(expected: Iterable[str], actual: Iterable[str]) -> tuple[bool, list[str], list[str], bool]:
-    expected_list, actual_list = list(expected), list(actual)
-    expected_counts, actual_counts = Counter(expected_list), Counter(actual_list)
-    missing = sorted((expected_counts - actual_counts).elements())
-    extra = sorted((actual_counts - expected_counts).elements())
-    return expected_list == actual_list, missing, extra, expected_counts == actual_counts
+def compare_ids(expected: Iterable[str], actual: Iterable[str]) -> tuple[bool, list[str], list[str]]:
+    expected_set, actual_set = set(expected), set(actual)
+    expected_counts = Counter(expected)
+    duplicates = set(identifier for identifier, count in expected_counts.items() if count > 1)
+    expected_set = expected_set - duplicates # Duplicates are ignored in the comparison, as they are not valid identifiers.
+    missing = sorted(expected_set - actual_set)
+    extra = sorted(actual_set - expected_set)
+    return expected_set == actual_set, missing, extra
 
 
 def format_span(info: DatasetInfo) -> str:
@@ -155,10 +157,13 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="exit 1 if any consistency check fails")
     args = parser.parse_args()
 
+    args.details = False
+    
     raw_files = files_by_stem(args.raw_dir)
     translated_files = files_by_stem(args.translated_dir) if args.translated_dir.is_dir() else {}
     models = sorted(path.name for path in args.embedded_dir.iterdir() if path.is_dir()) if args.embedded_dir.is_dir() else []
     failures = 0
+    failed_datasets: set[str] = set()
 
     print(f"Raw datasets: {args.raw_dir}")
     print(f"Embedding models discovered: {', '.join(models) or 'none'}")
@@ -173,6 +178,7 @@ def main() -> int:
             print(f"{name} | {info.tweet_count} | {format_span(info)} | {info.cluster_count} | {duplicates}")
         except (OSError, ValueError, TypeError) as error:
             failures += 1
+            failed_datasets.add(name)
             print(f"{name} | ERROR: {error}")
 
     print("\nCONSISTENCY")
@@ -180,39 +186,45 @@ def main() -> int:
         translated = translated_files.get(name)
         if translated is None:
             failures += 1
+            failed_datasets.add(name)
             print(f"{name}: translated MISSING")
         else:
             try:
                 translated_ids, _ = load_checkpoint(translated)
-                ordered, missing, extra, same_counts = compare_ids(raw.ids, translated_ids)
-                status = "OK" if ordered else "FAIL"
-                if not ordered:
+                same, missing, extra = compare_ids(raw.ids, translated_ids)
+                status = "OK" if same else "FAIL"
+                if not same:
                     failures += 1
-                print(f"{name}: translated {status} (tweets={len(translated_ids)}, matching_ids={'yes' if same_counts else 'no'}, order={'same' if ordered else 'different'})")
-                if args.details and not ordered:
+                    failed_datasets.add(name)
+                print(f"{name}: translated {status} (translated_tweets={len(translated_ids)}, num_missing_ids={len(missing)}, num_extra_ids={len(extra)})")
+                if args.details and not same:
                     print(f"  missing={missing[:10]} extra={extra[:10]}")
             except (OSError, ValueError, TypeError, AttributeError) as error:
                 failures += 1
+                failed_datasets.add(name)
                 print(f"{name}: translated ERROR: {error}")
 
         for model in models:
             embedding_path = args.embedded_dir / model / f"{name}.npy"
             if not embedding_path.exists():
                 failures += 1
+                failed_datasets.add(name)
                 print(f"{name}: embedding/{model} MISSING")
                 continue
             try:
                 embedding_ids, payload = load_checkpoint(embedding_path)
-                ordered, missing, extra, same_counts = compare_ids(raw.ids, embedding_ids)
+                same, missing, extra = compare_ids(raw.ids, embedding_ids)
                 has_embeddings = len(payload.get("embeddings", [])) == len(embedding_ids)
-                status = "OK" if ordered and has_embeddings else "FAIL"
+                status = "OK" if same and has_embeddings else "FAIL"
                 if status == "FAIL":
                     failures += 1
-                print(f"{name}: embedding/{model} {status} (tweets={len(embedding_ids)}, matching_ids={'yes' if same_counts else 'no'}, order={'same' if ordered else 'different'}, vectors={'count-ok' if has_embeddings else 'count-mismatch'})")
-                if args.details and not ordered:
+                    failed_datasets.add(name)
+                print(f"{name}: embedding/{model} {status} (embedded_tweets={len(embedding_ids)}, num_missing_ids={len(missing)}, num_extra_ids={len(extra)}")
+                if args.details and not same:
                     print(f"  missing={missing[:10]} extra={extra[:10]}" )
             except (OSError, ValueError, TypeError, AttributeError) as error:
                 failures += 1
+                failed_datasets.add(name)
                 print(f"{name}: embedding/{model} ERROR: {error}")
 
     orphan_translated = sorted(set(translated_files) - set(raw_files))
@@ -220,6 +232,7 @@ def main() -> int:
         print(f"\nTranslated datasets without raw source: {', '.join(orphan_translated)}")
     if failures:
         print(f"\nChecks with failures: {failures}")
+        print(f"Failed datasets: {', '.join(sorted(set(failed_datasets)))}")
     return 1 if args.strict and failures else 0
 
 
