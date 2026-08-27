@@ -106,7 +106,7 @@ class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
     
     def __call__(self, point: RawPoint) -> Point:
         """Translate the input point text to English, preprocess it, and return a `Point`."""
-        translated_text = self.tweet_id_to_eng.get(point.text_id)
+        translated_text = self.tweet_id_to_eng.get(str(point.text_id))
         if not translated_text:
             raise ValueError(f"Translated text for ID {point.text_id} not found.")
         processed_text_tokens = self.preprocess_text(translated_text)
@@ -155,10 +155,10 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
     def __call__(self, point: RawPoint) -> Point:
         """Generate a simulated embedding for the input point text and return a `Point`."""
         assert point.text_id is not None, "RawPoint must have a text_id for simulated embedding lookup."
-        assert point.text_id in self.tweet_id_to_embedding, f"Text ID {point.text_id} not found in simulated embedding dataset."
-        assert point.text_id in self.tweet_id_to_time, f"Text ID {point.text_id} not found in simulated time dataset."
+        assert str(point.text_id) in self.tweet_id_to_embedding, f"Text ID {point.text_id} not found in simulated embedding dataset."
+        assert str(point.text_id) in self.tweet_id_to_time, f"Text ID {point.text_id} not found in simulated time dataset."
         
-        simulated_embedding = self.tweet_id_to_embedding[point.text_id]
-        time_to_wait = self.tweet_id_to_time[point.text_id]
+        simulated_embedding = self.tweet_id_to_embedding[str(point.text_id)]
+        time_to_wait = self.tweet_id_to_time[str(point.text_id)]
         self.saved_time += time_to_wait
-        return point_from_raw_point(point, embedding=simulated_embedding)
+        return point_from_raw_point(point, embedding=torch.tensor(simulated_embedding))
