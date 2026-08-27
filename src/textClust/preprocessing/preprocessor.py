@@ -89,6 +89,29 @@ class TFIDFPreprocessor(Preprocessor):
         
         return tokens
     
+class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
+    """TFIDFPreprocessor that translates text to English before preprocessing."""
+
+    def __init__(self, dataset: str, folder: str = "data/translated_no_emojis", *args, **kwargs):
+        """Initialize with a dataset name and folder for translation."""
+        super().__init__(*args, **kwargs)
+        self.dataset = dataset
+        self.folder = folder
+        
+        eng_data = np.load(f"{self.folder}/{self.dataset}.npy", allow_pickle=True).item()
+        for k in ["tweet_ids", "tweets_eng"]:
+            assert k in eng_data, f"Key '{k}' not found in translation data."
+        self.tweet_id_to_eng = dict(zip(eng_data["tweet_ids"], eng_data["tweets_eng"]))
+        
+    
+    def __call__(self, point: RawPoint) -> Point:
+        """Translate the input point text to English, preprocess it, and return a `Point`."""
+        translated_text = self.tweet_id_to_eng.get(point.text_id)
+        if not translated_text:
+            raise ValueError(f"Translated text for ID {point.text_id} not found.")
+        processed_text_tokens = self.preprocess_text(translated_text)
+        return point_from_raw_point(point, processed_text_tokens=processed_text_tokens)
+    
 
 class EmbeddingPreprocessor(Preprocessor):
     """Preprocessor that generates vector embeddings for input text."""
@@ -109,22 +132,33 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
     configured data folder.
     """
 
-    def __init__(self, model: str, dataset: str, folder: str = "examples/data/embedded"):
+    def __init__(self, model: str, dataset: str, folder: str = "data/embedded"):
         """Initialize with a specified embedding dimension."""
         self.model = model
         self.dataset = dataset
         self.folder = folder
 
-        path = Path(self.folder) / self.model / f"{self.dataset}.npy"
-        self.data = np.load(path, allow_pickle=True).item()
+        data = np.load(f"{self.folder}/{self.model}/{self.dataset}.npy", allow_pickle=True).item()
+        for k in ["tweet_ids", "embeddings", "times"]:
+            assert k in data, f"Key '{k}' not found in simulated embedding data."
+        
+        if "dataset_name" in data:
+            assert data["dataset_name"] == self.dataset, f"Dataset name mismatch: expected {self.dataset}, found {data['dataset_name']}."
+        if "model_name" in data:
+            assert data["model_name"] == self.model, f"Model name mismatch: expected {self.model}, found {data['model_name']}."
+        
+        self.tweet_id_to_embedding = dict(zip(data["tweet_ids"], data["embeddings"]))
+        self.tweet_id_to_time = dict(zip(data["tweet_ids"], data["times"]))
+        
         self.saved_time = 0.0
     
     def __call__(self, point: RawPoint) -> Point:
         """Generate a simulated embedding for the input point text and return a `Point`."""
         assert point.text_id is not None, "RawPoint must have a text_id for simulated embedding lookup."
-        assert point.text_id in self.data["tweet_ids"], f"Text ID {point.text_id} not found in simulated embedding dataset."
-        i = np.where(self.data["tweet_ids"] == point.text_id)[0][0]
-        simulated_embedding = torch.tensor(self.data["embeddings"][i])
-        time_to_wait = self.data["times"][i]
+        assert point.text_id in self.tweet_id_to_embedding, f"Text ID {point.text_id} not found in simulated embedding dataset."
+        assert point.text_id in self.tweet_id_to_time, f"Text ID {point.text_id} not found in simulated time dataset."
+        
+        simulated_embedding = self.tweet_id_to_embedding[point.text_id]
+        time_to_wait = self.tweet_id_to_time[point.text_id]
         self.saved_time += time_to_wait
         return point_from_raw_point(point, embedding=simulated_embedding)
