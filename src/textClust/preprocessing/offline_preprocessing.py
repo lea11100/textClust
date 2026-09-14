@@ -95,14 +95,13 @@ DATASETS = {
     "Semantic10-T": {"path": RAW_DATA_DIR / "Semantic10-T.json", "language": "en"},
     "Semantic40-T": {"path": RAW_DATA_DIR / "Semantic40-T.json", "language": "en"},
     # Do not use these, they are partly already processed
-    # "NT": {"path": RAW_DATA_DIR / "NT.json", "language": "en"},
-    # "NTS": RAW_DATA_DIR / "NTS.json",
-    # "NTSO-T": RAW_DATA_DIR / "NTSO-T.json",
-    # "SO-T": RAW_DATA_DIR / "SO-T.json",
-    # "News-T": RAW_DATA_DIR / "News-T.json",
-    # "Trends-T": RAW_DATA_DIR / "Trends-T.json",
-    # "Trends-T_modified": RAW_DATA_DIR / "Trends-T_modified.json",
-    # "Tweets-T": RAW_DATA_DIR / "Tweets-T.json",
+    "NT": {"path": RAW_DATA_DIR / "NT.json", "language": "en"},
+    "NTS": {"path": RAW_DATA_DIR / "NTS.json", "language": "en"},
+    "NTSO-T": {"path": RAW_DATA_DIR / "NTSO-T.json", "language": "en"},
+    "SO-T": {"path": RAW_DATA_DIR / "SO-T.json", "language": "en"},
+    "News-T": {"path": RAW_DATA_DIR / "News-T.json", "language": "en"},
+    "Trends-T": {"path": RAW_DATA_DIR / "Trends-T.json", "language": "en"},
+    "Tweets-T": {"path": RAW_DATA_DIR / "Tweets-T.json", "language": "en"},
 }
 
 # Models: friendly name -> HuggingFace model id. Only one embedding model is ever

@@ -6,7 +6,7 @@
 #SBATCH -n 1
 #SBATCH --mem=32G
 #SBATCH --gres=gpu:a100:1
-#SBATCH --array=0-9
+#SBATCH --array=0-7
 #SBATCH -J "textClust"
 #SBATCH -p gpu
 #SBATCH -A hpc-prf-dedsm
@@ -18,26 +18,35 @@ module load devel/protobuf/25.3-GCCcore-13.2.0
 module load system/CUDA/12.8.0
 source .textClust_venv/bin/activate
 
+# DATASETS=(
+# 	Arabic_7
+# 	Arabic_Twitter
+# 	CrisisLexT6
+# 	CrisisLexT7
+# 	CrisisLexT26
+# 	CrisisMMD
+# 	CrisisNLP
+# 	Event2012
+# 	Event2012_100
+# 	Event2018
+# 	Event2018_100
+# 	HumAID
+# 	KBP
+# 	MAVEN
+# 	Mix_Data
+# 	Semantic5-T
+# 	Semantic5-T_sorted
+# 	Semantic10-T
+# 	Semantic40-T
+# )
 DATASETS=(
-	Arabic_7
-	Arabic_Twitter
-	CrisisLexT6
-	CrisisLexT7
-	CrisisLexT26
-	CrisisMMD
-	CrisisNLP
-	Event2012
-	Event2012_100
-	Event2018
-	Event2018_100
-	HumAID
-	KBP
-	MAVEN
-	Mix_Data
-	Semantic5-T
-	Semantic5-T_sorted
-	Semantic10-T
-	Semantic40-T
+	NT
+	NTS
+	NTSO-T
+	SO-T
+	News-T
+	Trends-T
+	Tweets-T
 )
 
 START=$((SLURM_ARRAY_TASK_ID * 2))
