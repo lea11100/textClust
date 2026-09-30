@@ -295,7 +295,7 @@ def preprocess_tweets(
                     instructions=SYSTEM_PROMPT,
                     model=model_name,
                     input=build_user_prompt(pending),
-                    text={"format": {"type": "json_schema", **RESPONSE_SCHEMA}},
+                    text={"format": {"type": "json_schema", **RESPONSE_SCHEMA}}, #type: ignore
                 )
                 data = json.loads(response.output_text)
                 returned = data["translations"]
