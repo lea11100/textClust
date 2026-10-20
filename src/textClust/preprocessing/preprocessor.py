@@ -64,7 +64,10 @@ class TFIDFPreprocessor(Preprocessor):
     def __call__(self, point: RawPoint) -> Point:
         """Preprocess the input point text and return a `Point`."""
         processed_text_tokens = self.preprocess_text(point.text)
-        return point_from_raw_point(point, processed_text_tokens=processed_text_tokens)
+        tf = {}
+        for token in processed_text_tokens:
+            tf[token] = tf.get(token, 0) + 1
+        return point_from_raw_point(point, embedding=tf)
     
     def preprocess_text(self, text: str) -> List[str]:
         """Normalize and tokenize text according to configured options."""

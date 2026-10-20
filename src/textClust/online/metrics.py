@@ -1,128 +1,68 @@
 """Distance metrics used for microcluster similarity computations."""
 
-from typing import Any
+from typing import Any, List, Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
 import math
 
-from textClust.online.cluster import EmbeddingMicrocluster, TfIdfMicrocluster, Microcluster
+from textClust.online.cluster import Microcluster
 
 class DistanceMetric:
     """Base callable interface for microcluster distance metrics."""
 
     def __init__(self):
         """Initialize metric capabilities."""
-        self.requires_idf = False
-        self.support_batch = False
     
-    def __call__(self, mc1: Microcluster, mc2: Microcluster, *args: Any, **kwds: Any) -> float:
+    def __call__(self, mc1: Microcluster, mc2: List[Microcluster], *args: Any, **kwds: Any) -> List[float]:
         """Return a non-negative distance between two microclusters."""
         raise NotImplementedError("DistanceMetric must implement __call__()")
     
-class TfIdfDistanceMetric(DistanceMetric):
-    """Base class for distance metrics over TF-IDF microclusters."""
-
-    def __init__(self):
-        """Initialize metric capabilities."""
-        super().__init__()
-        self.requires_idf = False
-    
-    def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, *args: Any, **kwds: Any) -> float:
-        """Return a non-negative distance between two microclusters."""
-        raise NotImplementedError("DistanceMetric must implement __call__()")
-    
-class EmbeddingDistanceMetric(DistanceMetric):
-    """Base class for distance metrics over embedding microclusters."""
-
-    def __init__(self):
-        """Initialize metric capabilities."""
-        super().__init__()
-        self.requires_idf = False
-    
-    def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, *args: Any, **kwds: Any) -> float:
-        """Return a non-negative distance between two microclusters."""
-        raise NotImplementedError("DistanceMetric must implement __call__()")
-    
-class TfidfCosineDistance(TfIdfDistanceMetric):
-    """Cosine distance over TF-IDF-weighted term-frequency vectors."""
+class CosineDistance(DistanceMetric):
+    """Cosine distance."""
 
     def __init__(self):
         """Initialize cosine metric and declare IDF dependency."""
         super().__init__()
-        self.requires_idf = True
         
     
-    def __call__(self, mc1: TfIdfMicrocluster, mc2: TfIdfMicrocluster, idf: dict[str, float], n: int, **kwds: Any) -> float:
+    def __call__(self, mc1: Microcluster, mc2: List[Microcluster], idf: Optional[dict[str, float]]=None, n:Optional[int]=None, **kwds: Any) -> List[float]:
         """Compute TF-IDF cosine distance in the interval `[0, 1]`."""
         # Compute cosine distance between two microclusters based on their TF-IDF vectors
-        tf1 = mc1.tf
-        tf2 = mc2.tf
-       
-        # Create uniform embeddings
-        intersection = set(tf1.keys()) & set(tf2.keys())
-        
-        if not intersection:
-            return 1.0
-        
-        inner_product = 0.0      
-        
-        for term in intersection:
-            tf_val1 = tf1[term]
-            tf_val2 = tf2[term]
-            
-            if idf and term in idf:
-                inner_product += idf[term] ** 2 * tf_val1 * tf_val2
-            else:
-                inner_product += tf_val1 * tf_val2
-                
-        tfidf1, tfidf2 = self._make_tfidf_vectors(tf1, tf2, idf, n)
-        norm1 = np.linalg.norm(tfidf1).astype(float)
-        norm2 = np.linalg.norm(tfidf2).astype(float)
-
-        similarity = inner_product / (norm1 * norm2)
-        distance = 1 - similarity
-        
-        return distance
-    
-    def _make_tfidf_vectors(self, tf1: dict[str, float], tf2: dict[str, float], idf: dict[str, float], n:int) -> tuple[np.ndarray, np.ndarray]:
-        """Build weighted vectors from term-frequency mappings."""
-        if idf:
-            default_idf = 1 + math.log(n)
-            tfidf1 = [(idf.get(k, default_idf) * v) for k, v in tf1.items()]
-            tfidf2 = [(idf.get(k, default_idf) * v) for k, v in tf2.items()]
+        if idf is not None and n is not None and isinstance(mc1.embedding, dict):
+            return self.compute_1_n_idf(mc1, mc2, idf, n, **kwds)
         else:
-            tfidf1 = [v for v in tf1.values()]
-            tfidf2 = [v for v in tf2.values()]
+            return self.compute_1_n(mc1, mc2, **kwds)
+    
+    def compute_1_n_idf(self, mc1: Microcluster, mc2_list: List[Microcluster], idf: dict[str, float], n:int, **kwds: Any) -> List[float]:
+        assert isinstance(mc1.embedding, dict), "Expected mc1 to be a TfIdfMicrocluster"
+        tfidf1 = {term: weight * idf.get(term, 1 + math.log(n)) for term, weight in mc1.embedding.items()}
+        norm1 = np.linalg.norm(list(tfidf1.values())).astype(float)            
+        
+        distances = []
+        for mc2 in mc2_list:
+            assert isinstance(mc2.embedding, dict), "Expected mc2 to be a TfIdfMicrocluster"
+            tfidf2 = {term: weight * idf.get(term, 1 + math.log(n)) for term, weight in mc2.embedding.items()}
             
-        return np.array(tfidf1), np.array(tfidf2)
+            intersection = set(tfidf1.keys()) & set(tfidf2.keys())
+            if not intersection:
+                distances.append(1.0)
+                continue
+            
+            inner_product = sum(tfidf1[term] * tfidf2[term] for term in intersection)
+            norm2 = np.linalg.norm(list(tfidf2.values())).astype(float)
+            
+            similarity = inner_product / (norm1 * norm2) if norm1 > 0 and norm2 > 0 else 0.0
+            distance = 1 - similarity
+            distances.append(distance)
+        return distances
     
-class EmbeddingCosineDistance(EmbeddingDistanceMetric):
-    def __init__(self):
-        super().__init__()
-        self.requires_idf = False
-        self.support_batch = True
-        
-    def __call__(self, mc1: EmbeddingMicrocluster, mc2: EmbeddingMicrocluster, *args, **kwargs) -> float:
-        embedding1 = mc1.embedding
-        embedding2 = mc2.embedding
-        
-        similarity = F.cosine_similarity(embedding1, embedding2, dim=0).item()
-        distance = 1 - similarity
-        
-        return distance
     
-    def batch_distance(self, mc1: EmbeddingMicrocluster, other_mcs: list[EmbeddingMicrocluster], *args, **kwargs) -> list[float]:
-        embedding1 = mc1.embedding
-        if isinstance(other_mcs, list):
-            distances = []
-            emb = torch.stack([mc.embedding for mc in other_mcs])
-            similarities = F.cosine_similarity(embedding1.unsqueeze(0), emb, dim=1)
+    def compute_1_n(self, mc1: Microcluster, mc2_list: list[Microcluster], **kwds: Any) ->  list[float]:
+        if isinstance(mc1.embedding, torch.Tensor):
+            m2_embeddings = torch.stack([mc2.embedding for mc2 in mc2_list if isinstance(mc2.embedding, torch.Tensor)], dim=0)
+            similarities = F.cosine_similarity(mc1.embedding.unsqueeze(0), m2_embeddings, dim=1)
             distances = (1 - similarities).tolist()
             return distances
-        else:
-            embedding2 = mc2.embedding        
-            similarity = F.cosine_similarity(embedding1, embedding2, dim=0).item()
-            distance = 1 - similarity
         
-        return distance
+        return [1.0] * len(mc2_list)  # Default distances if embeddings are not compatible
