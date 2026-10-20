@@ -169,7 +169,7 @@ class ThresholdMicroclusterer(Microclusterer):
         merge_history = {}
         
         removed = np.zeros(len(self.microclusters), dtype=bool)
-        for i in range(len(self.microclusters)):
+        for i in range(len(self.microclusters)-1):
             self.fader(self.microclusters[i], current_time)
             if removed[i]:
                 continue
