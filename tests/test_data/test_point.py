@@ -28,11 +28,10 @@ def test_raw_point_to_microcluster_defaults_timestamp_to_zero_when_missing():
 
     assert isinstance(microcluster, Microcluster)
     assert microcluster.id is None
-    assert microcluster.tf == {}
+    assert microcluster.embedding == {}
     assert microcluster.last_update_time == 0
     assert microcluster.n == 1
     assert microcluster.weight == 1.0
-    assert microcluster.embedding is None
 
 
 def test_raw_point_to_microcluster_uses_timestamp_when_present():
@@ -56,15 +55,18 @@ def test_point_constructor_stores_tokens_embedding_and_extra_kwargs():
     )
 
     assert point.text == "hello world"
-    assert point.processed_text_tokens == ["hello", "world"]
+    assert point.extra["processed_text_tokens"] == ["hello", "world"]
     assert point.embedding is embedding
     assert point.timestamp == 10
     assert point.text_id == "id-1"
     assert point.cluster_id == 3
-    assert point.extra == {"source": "news"}
+    assert point.extra == {
+        "processed_text_tokens": ["hello", "world"],
+        "source": "news",
+    }
 
 
-def test_point_to_microcluster_builds_term_frequencies_and_passes_embedding():
+def test_point_to_microcluster_passes_embedding():
     embedding = np.array([0.1, 0.2])
     point = Point(
         text="sample",
@@ -76,19 +78,18 @@ def test_point_to_microcluster_builds_term_frequencies_and_passes_embedding():
     microcluster = point.to_microcluster()
 
     assert isinstance(microcluster, Microcluster)
-    assert microcluster.tf == {"a": 3, "b": 2, "c": 1}
     assert microcluster.embedding is embedding
     assert microcluster.last_update_time == 88
     assert microcluster.n == 1
     assert microcluster.weight == 1.0
 
 
-def test_point_to_microcluster_uses_empty_tf_and_zero_timestamp_when_missing_values():
+def test_point_to_microcluster_uses_empty_embedding_and_zero_timestamp_when_missing_values():
     point = Point(text="sample", processed_text_tokens=None, timestamp=None)
 
     microcluster = point.to_microcluster()
 
-    assert microcluster.tf == {}
+    assert microcluster.embedding == {}
     assert microcluster.last_update_time == 0
 
 
@@ -115,6 +116,6 @@ def test_point_from_raw_point_copies_fields_and_uses_supplied_processing_data():
     assert point.timestamp == 55
     assert point.text_id == "rid"
     assert point.cluster_id == 9
-    assert point.processed_text_tokens == tokens
+    assert point.extra["processed_text_tokens"] == tokens
     assert point.embedding is embedding
-    assert point.extra == {"pipeline": "default"}
+    assert point.extra == {"processed_text_tokens": tokens, "pipeline": "default"}

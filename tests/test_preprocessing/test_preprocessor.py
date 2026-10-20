@@ -41,7 +41,7 @@ def test_preprocess_text_with_stemming(monkeypatch):
     assert tokens == ["run", "run", "runner"]
 
 
-def test_call_returns_point_with_processed_tokens(monkeypatch):
+def test_call_returns_point_with_term_frequencies(monkeypatch):
     monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: [])
     preprocessor = TFIDFPreprocessor(stopword_removal=False)
     raw_point = RawPoint(text="Hello world")
@@ -49,4 +49,4 @@ def test_call_returns_point_with_processed_tokens(monkeypatch):
     point = preprocessor(raw_point)
 
     assert point.text == "Hello world"
-    assert point.processed_text_tokens == ["hello", "world"]
+    assert point.embedding == {"hello": 1, "world": 1}

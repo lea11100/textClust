@@ -3,10 +3,18 @@ from textClust.history.manager import HistoryManager, Snapshot
 from textClust.online.cluster import Microcluster
 
 
+class StubClusterer:
+    def __init__(self, microclusters):
+        self.microclusters = microclusters
+
+    def get_clusters(self):
+        return self.microclusters
+
+
 def test_snapshot_captures_cluster_ids_weights_and_time():
     microclusters = [
-        Microcluster(id=1, tf={"a": 1.0}, current_time=0.0, n=1, weight=2.5),
-        Microcluster(id=2, tf={"b": 1.0}, current_time=0.0, n=1, weight=3.0),
+        Microcluster(id=1, embedding={"a": 1.0}, current_time=0.0, n=1, weight=2.5),
+        Microcluster(id=2, embedding={"b": 1.0}, current_time=0.0, n=1, weight=3.0),
     ]
 
     snapshot = Snapshot(microclusters=microclusters, time=12.0)
@@ -48,9 +56,9 @@ def test_update_text_assignment_skips_true_assignment_when_missing_cluster_id():
 
 def test_snapshot_method_appends_snapshot_object():
     manager = HistoryManager()
-    microclusters = [Microcluster(id=10, tf={"k": 1.0}, current_time=0.0, n=1, weight=1.2)]
+    microclusters = [Microcluster(id=10, embedding={"k": 1.0}, current_time=0.0, n=1, weight=1.2)]
 
-    manager.snapshot(current_time=15.0, microclusters=microclusters)
+    manager.snapshot(current_time=15.0, clusterer=StubClusterer(microclusters))
 
     assert len(manager.snapshots) == 1
     assert isinstance(manager.snapshots[0], Snapshot)
@@ -61,9 +69,9 @@ def test_snapshot_method_appends_snapshot_object():
 
 def test_snapshot_stores_weight_values_not_live_references():
     manager = HistoryManager()
-    microcluster = Microcluster(id=9, tf={"x": 1.0}, current_time=0.0, n=1, weight=2.0)
+    microcluster = Microcluster(id=9, embedding={"x": 1.0}, current_time=0.0, n=1, weight=2.0)
 
-    manager.snapshot(current_time=2.0, microclusters=[microcluster])
+    manager.snapshot(current_time=2.0, clusterer=StubClusterer([microcluster]))
     microcluster.weight = 9.5
 
     assert manager.snapshots[0].microcluster_weights == [2.0]

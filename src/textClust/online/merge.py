@@ -25,7 +25,6 @@ class SumMerger(Merger):
         super().__init__()
         
     def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
-        
         merged_weight = mc1.weight + mc2.weight
         merged_n = mc1.n + mc2.n
         
