@@ -18,3 +18,7 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pyright]
+exclude = ["build"]
+ignore = ["build"]

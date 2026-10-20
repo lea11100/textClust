@@ -12,7 +12,7 @@ def test_distance_metric_base_defaults_and_call_raises():
     mc2 = Microcluster(id=2, embedding={"a": 1.0}, current_time=0.0, n=1)
 
     with pytest.raises(NotImplementedError):
-        metric(mc1, mc2)
+        metric(mc1, [mc2])
 
 
 def test_cosine_distance_returns_one_when_no_term_overlap():

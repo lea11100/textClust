@@ -40,6 +40,8 @@ class TrackingMerger(Merger):
 
     def __call__(self, mc1, mc2, current_time, *args, **kwargs):
         self.calls.append((mc1.id, mc2.id, current_time))
+        assert isinstance(mc1.embedding, dict)
+        assert isinstance(mc2.embedding, dict)
         embedding = dict(mc1.embedding)
         for term, value in mc2.embedding.items():
             embedding[term] = embedding.get(term, 0.0) + value

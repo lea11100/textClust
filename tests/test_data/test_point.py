@@ -1,4 +1,4 @@
-import numpy as np
+import torch
 
 from textClust.data.point import Point, RawPoint, point_from_raw_point
 from textClust.online.cluster import Microcluster
@@ -43,7 +43,7 @@ def test_raw_point_to_microcluster_uses_timestamp_when_present():
 
 
 def test_point_constructor_stores_tokens_embedding_and_extra_kwargs():
-    embedding = np.array([1.0, 2.0, 3.0])
+    embedding = torch.tensor([1.0, 2.0, 3.0])
     point = Point(
         text="hello world",
         processed_text_tokens=["hello", "world"],
@@ -67,7 +67,7 @@ def test_point_constructor_stores_tokens_embedding_and_extra_kwargs():
 
 
 def test_point_to_microcluster_passes_embedding():
-    embedding = np.array([0.1, 0.2])
+    embedding = torch.tensor([0.1, 0.2])
     point = Point(
         text="sample",
         processed_text_tokens=["a", "b", "a", "c", "b", "a"],
@@ -102,7 +102,7 @@ def test_point_from_raw_point_copies_fields_and_uses_supplied_processing_data():
         source="raw-source",
     )
     tokens = ["token1", "token2"]
-    embedding = np.array([9.0, 8.0])
+    embedding = torch.tensor([9.0, 8.0])
 
     point = point_from_raw_point(
         raw_point,

@@ -1,10 +1,12 @@
 from textClust.data.point import RawPoint
 from textClust.history.manager import HistoryManager, Snapshot
 from textClust.online.cluster import Microcluster
+from textClust.online.clusterer import Microclusterer
 
 
-class StubClusterer:
+class StubClusterer(Microclusterer):
     def __init__(self, microclusters):
+        super().__init__()
         self.microclusters = microclusters
 
     def get_clusters(self):
