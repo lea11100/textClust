@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 
 import pytest
+import numpy as np
+from warnings import warn
 
 from textClust.algorithms.presets import get_textClust, get_fastLogClust, get_fastSqrtClust
 from textClust.data.wrapper import StaticJsonWrapper, SocialEDWrapper
@@ -72,6 +74,8 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
     for metric in target:
         assert metric in result, f"Missing metric {metric} in result"
         assert target[metric]["lower_bound"] <= result[metric] <= target[metric]["upper_bound"], f"{metric} {result[metric]} not within target range {target[metric]['lower_bound']} - {target[metric]['upper_bound']}"
+        if np.isclose(target[metric]["target"], result[metric]):  # Only check closeness if the target is not equal to the result
+            warn(f"{metric} {result[metric]} is close to target {target[metric]['target']}, but not within the specified range.")
 
 @pytest.mark.skipif(
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",

@@ -113,7 +113,10 @@ class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
         if not translated_text:
             raise ValueError(f"Translated text for ID {point.text_id} not found.")
         processed_text_tokens = self.preprocess_text(translated_text)
-        return point_from_raw_point(point, processed_text_tokens=processed_text_tokens)
+        embedding = {}
+        for token in processed_text_tokens:
+            embedding[token] = embedding.get(token, 0) + 1
+        return point_from_raw_point(point, embedding=embedding)
     
 
 class EmbeddingPreprocessor(Preprocessor):
