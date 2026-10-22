@@ -31,12 +31,14 @@ class TFIDFPreprocessor(Preprocessor):
     def __init__(self, 
                  language='english',
                  stopword_removal=True,
-                 stemming=False,
+                 stemming=True,
                  punctuation=True,
                  hashtag=True,
                  username=True,
                  url=True,
-                 exclude_tokens=None):
+                 exclude_tokens=None,
+                 n_gram_min=1,
+                 n_gram_max=1):
         """Initialize preprocessing options.
 
         Args:
@@ -44,21 +46,25 @@ class TFIDFPreprocessor(Preprocessor):
             stopword_removal: Whether to remove stopwords.
             stemming: Whether to apply Porter stemming.
             punctuation: Whether to strip punctuation.
-            hashtag: Keep hashtag terms while removing `#` marker if true.
+            hashtag: Remove hashtag terms while only removing `#` marker if false.
             username: Whether to remove @mentions.
             url: Whether to remove URLs.
             exclude_tokens: Optional custom token blocklist.
+            n_gram_min: Minimum n-gram size.
+            n_gram_max: Maximum n-gram size.
         """
         
         self.language = language
         self.stopword_removal = stopword_removal
         self.stemming = stemming
         self.remove_punctuation = punctuation
-        self.keep_hashtag = hashtag
+        self.remove_hashtag = hashtag
         self.remove_username = username
         self.remove_url = url
         self.exclude_tokens = exclude_tokens or []
         self.stopwords = set(stopwords.words(self.language)) if self.stopword_removal else set()
+        self.n_gram_min = n_gram_min
+        self.n_gram_max = n_gram_max
         self.stemmer = PorterStemmer() if self.stemming else None
     
     def __call__(self, point: RawPoint) -> Point:
@@ -73,7 +79,7 @@ class TFIDFPreprocessor(Preprocessor):
         """Normalize and tokenize text according to configured options."""
         
         text = re.sub(r'https?://\S+|www\.\S+', '', text) if self.remove_url else text # Remove URLs
-        text = re.sub(r'#(\w+)', r'\1', text) if self.keep_hashtag else re.sub(r'#\w+', '', text) # Handle hashtags
+        text = re.sub(r'#\w+', '', text) if self.remove_hashtag else re.sub(r'#(\w+)', r'\1', text) # Handle hashtags
         text = re.sub(r'@\w+', '', text) if self.remove_username else text # Remove usernames
         text = text.lower() # Lowercase  
         if self.remove_punctuation: # Remove punctuation
@@ -90,6 +96,14 @@ class TFIDFPreprocessor(Preprocessor):
         tokens = [self.stemmer.stem(t) for t in tokens] if self.stemming and self.stemmer else tokens # Apply stemming
         tokens = [t for t in tokens if len(t) >= 2 and not t.isdigit()] # Remove short tokens and numbers
         
+        # Generate n-grams
+        if self.n_gram_min > 1 or self.n_gram_max > 1:
+            n_grams = []
+            for i in range(self.n_gram_min, min(self.n_gram_max + 1, len(tokens) + 1)):
+                for j in range(len(tokens) - i + 1):
+                    n_grams.append(' '.join(tokens[j:j + i]))
+            tokens = n_grams
+
         return tokens
     
 class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
