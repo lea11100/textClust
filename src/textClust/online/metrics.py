@@ -21,9 +21,10 @@ class DistanceMetric:
 class CosineDistance(DistanceMetric):
     """Cosine distance."""
 
-    def __init__(self):
+    def __init__(self, assume_normalized: bool = False):
         """Initialize cosine metric and declare IDF dependency."""
         super().__init__()
+        self.assume_normalized = assume_normalized
         
     
     def __call__(self, mc1: Microcluster, mc2: List[Microcluster], idf: Optional[dict[str, float]]=None, n:Optional[int]=None, **kwds: Any) -> List[float]:
@@ -36,6 +37,7 @@ class CosineDistance(DistanceMetric):
     
     def compute_1_n_idf(self, mc1: Microcluster, mc2_list: List[Microcluster], idf: dict[str, float], n:int, **kwds: Any) -> List[float]:
         assert isinstance(mc1.embedding, dict), "Expected mc1 to be a TfIdfMicrocluster"
+        assert self.assume_normalized is False, "IDF-based cosine distance does not support assume_normalized=True"
         tfidf1 = {term: weight * idf.get(term, 1 + math.log(n)) for term, weight in mc1.embedding.items()}
         norm1 = np.linalg.norm(list(tfidf1.values())).astype(float)            
         
@@ -61,7 +63,10 @@ class CosineDistance(DistanceMetric):
     def compute_1_n(self, mc1: Microcluster, mc2_list: list[Microcluster], **kwds: Any) ->  list[float]:
         if isinstance(mc1.embedding, torch.Tensor):
             m2_embeddings = torch.stack([mc2.embedding for mc2 in mc2_list if isinstance(mc2.embedding, torch.Tensor)], dim=0)
-            similarities = F.cosine_similarity(mc1.embedding.unsqueeze(0), m2_embeddings, dim=1)
+            if self.assume_normalized:
+                similarities = torch.inner(mc1.embedding.unsqueeze(0), m2_embeddings).reshape(-1)
+            else:
+                similarities = F.cosine_similarity(mc1.embedding.unsqueeze(0), m2_embeddings, dim=1)
             distances = (1 - similarities).tolist()
             return distances
         

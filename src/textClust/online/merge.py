@@ -9,22 +9,26 @@ from typing import Optional
 class Merger:
     """Base callable interface for combining two microclusters."""
 
-    def __init__(self):
+    def __init__(self, normalize: bool = False):
         """Initialize merger strategy."""
-        pass
+        self.normalize = normalize
     
     def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
         """Merge two microclusters and return the merged result."""
-        raise NotImplementedError("merge() must be implemented by subclass")
+        merged = self._merge(mc1, mc2, current_time, *args, **kwargs)
+        if self.normalize:
+            assert isinstance(merged.embedding, torch.Tensor), "Normalization is only supported for embedding vectors"
+            merged.embedding = torch.nn.functional.normalize(merged.embedding, p=2, dim=0)
+        return merged
+
+    def _merge(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
+        """Internal merge logic to be implemented by subclasses."""
+        raise NotImplementedError("_merge() must be implemented by subclass")
     
 class SumMerger(Merger):
     """Merge strategy that sums weights, counts, and term frequencies."""
-
-    def __init__(self):
-        """Initialize sum merger."""
-        super().__init__()
         
-    def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
+    def _merge(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
         merged_weight = mc1.weight + mc2.weight
         merged_n = mc1.n + mc2.n
         
@@ -46,7 +50,7 @@ class SumMerger(Merger):
         
 class WeightedSumMerger(Merger):
     """Merge strategy that performs a weighted sum of the two microclusters."""
-    def __call__(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
+    def _merge(self, mc1: Microcluster, mc2: Microcluster, current_time: float, *args, **kwargs) -> Microcluster:
         w1 = mc1.weight
         w2 = mc2.weight
         total_weight = w1 + w2

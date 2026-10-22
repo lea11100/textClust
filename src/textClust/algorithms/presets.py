@@ -57,20 +57,20 @@ def get_embClust(
     embedding_model_name: Optional[str] = None, embedding_model:Optional[SentenceTransformer] = None,
     adaptive_threshold = True, sigma: Optional[float] = 1, radius: Optional[float] = None,
     threshold_momentum: Optional[float] = None, use_heuristic: bool = True, min_weight: Optional[float] = None, time_gap: Optional[float] = None,
-    min_num_mc: int = 5, device: str = "cpu", **kwargs):
+    min_num_mc: int = 5, normalize: bool = True, device: str = "cpu", **kwargs):
     if embedding_model is None and embedding_model_name is not None:
         embedding_model = SentenceTransformer(embedding_model_name, device=device)
     return textClust(
         data_loader=data_loader,
-        preprocessor=EmbeddingPreprocessor(embedding_model=embedding_model) if embedding_model is not None else Preprocessor(),
+        preprocessor=EmbeddingPreprocessor(embedding_model=embedding_model, normalize=normalize) if embedding_model is not None else Preprocessor(),
         time_manager=FixedIntervalTimeManager(clean_interval=clean_interval, cluster_interval=cluster_interval, log_interval=log_interval),
         micro_clusterer=EmbeddingThresholdClusterer(
             adaptive_threshold=adaptive_threshold,
             sigma=sigma, 
             radius=radius,
-            distance_metric=CosineDistance(), 
+            distance_metric=CosineDistance(assume_normalized=normalize), 
             fader=ExpFade(decay_rate=decay_rate, use_heuristic=use_heuristic, time_gap=time_gap, min_weight=min_weight), 
-            merger=WeightedSumMerger(), 
+            merger=WeightedSumMerger(normalize=normalize), 
             min_num_mc=min_num_mc,
             threshold_momentum=threshold_momentum),
         macro_clusterer=SimpleMacroClusterer(),

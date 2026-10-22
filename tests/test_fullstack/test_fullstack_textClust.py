@@ -58,9 +58,12 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
     pipeline = factory(
         data_loader=data_wrapper,
         log_interval=1000,
+        term_fading=False,
         **config
     )
-    pipeline.preprocessor = TFIDFPreprocessorWithTranslation(dataset=Path(data_wrapper.file_path).stem, folder=str(TRANSLATIONS_FOLDER))
+    
+    # Configuration got without using stemming
+    pipeline.preprocessor = TFIDFPreprocessorWithTranslation(dataset=Path(data_wrapper.file_path).stem, folder=str(TRANSLATIONS_FOLDER), stemming=False)
     pipeline.verbose = False  # Avoid interactive plots; still run clustering and evaluation.
 
     pipeline.start()

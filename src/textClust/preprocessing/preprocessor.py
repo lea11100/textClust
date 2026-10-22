@@ -33,7 +33,7 @@ class TFIDFPreprocessor(Preprocessor):
                  stopword_removal=True,
                  stemming=True,
                  punctuation=True,
-                 hashtag=True,
+                 keep_hashtag_term=True,
                  username=True,
                  url=True,
                  exclude_tokens=None,
@@ -46,7 +46,7 @@ class TFIDFPreprocessor(Preprocessor):
             stopword_removal: Whether to remove stopwords.
             stemming: Whether to apply Porter stemming.
             punctuation: Whether to strip punctuation.
-            hashtag: Remove hashtag terms while only removing `#` marker if false.
+            keep_hashtag_term: Whether to keep hashtag terms and remove the `#` marker, or remove whole term.
             username: Whether to remove @mentions.
             url: Whether to remove URLs.
             exclude_tokens: Optional custom token blocklist.
@@ -58,7 +58,7 @@ class TFIDFPreprocessor(Preprocessor):
         self.stopword_removal = stopword_removal
         self.stemming = stemming
         self.remove_punctuation = punctuation
-        self.remove_hashtag = hashtag
+        self.keep_hashtag = keep_hashtag_term
         self.remove_username = username
         self.remove_url = url
         self.exclude_tokens = exclude_tokens or []
@@ -79,7 +79,7 @@ class TFIDFPreprocessor(Preprocessor):
         """Normalize and tokenize text according to configured options."""
         
         text = re.sub(r'https?://\S+|www\.\S+', '', text) if self.remove_url else text # Remove URLs
-        text = re.sub(r'#\w+', '', text) if self.remove_hashtag else re.sub(r'#(\w+)', r'\1', text) # Handle hashtags
+        text = re.sub(r'#(\w+)', r'\1', text) if self.keep_hashtag else re.sub(r'#\w+', '', text) # Handle hashtags
         text = re.sub(r'@\w+', '', text) if self.remove_username else text # Remove usernames
         text = text.lower() # Lowercase  
         if self.remove_punctuation: # Remove punctuation
@@ -136,13 +136,16 @@ class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
 class EmbeddingPreprocessor(Preprocessor):
     """Preprocessor that generates vector embeddings for input text."""
 
-    def __init__(self, embedding_model: SentenceTransformer):
+    def __init__(self, embedding_model: SentenceTransformer, normalize: bool = True):
         """Initialize with a callable embedding model."""
         self.embedding_model = embedding_model
-    
+        self.normalize = normalize
+
     def __call__(self, point: RawPoint) -> Point:
         """Generate an embedding for the input point text and return a `Point`."""
         embedding = self.embedding_model.encode(point.text, convert_to_tensor=True, show_progress_bar=False)
+        if self.normalize:
+            embedding = torch.nn.functional.normalize(embedding, p=2, dim=0)
         return point_from_raw_point(point, embedding=embedding)
     
 class SimulatedEmbeddingPreprocessor(Preprocessor):
@@ -152,11 +155,12 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
     configured data folder.
     """
 
-    def __init__(self, model: str, dataset: str, folder: str = "data/embedded"):
+    def __init__(self, model: str, dataset: str, normalize: bool = True, folder: str = "data/embedded"):
         """Initialize with a specified embedding dimension."""
         self.model = model
         self.dataset = dataset
         self.folder = folder
+        self.normalize = normalize
 
         data = np.load(f"{self.folder}/{self.model}/{self.dataset}.npy", allow_pickle=True).item()
         for k in ["tweet_ids", "embeddings", "times"]:
@@ -179,6 +183,9 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
         assert str(point.text_id) in self.tweet_id_to_time, f"Text ID {point.text_id} not found in simulated time dataset."
         
         simulated_embedding = self.tweet_id_to_embedding[str(point.text_id)]
+        simulated_embedding = torch.tensor(simulated_embedding)
+        if self.normalize:
+            simulated_embedding = torch.nn.functional.normalize(simulated_embedding, p=2, dim=0)
         time_to_wait = self.tweet_id_to_time[str(point.text_id)]
         self.saved_time += time_to_wait
-        return point_from_raw_point(point, embedding=torch.tensor(simulated_embedding))
+        return point_from_raw_point(point, embedding=simulated_embedding)

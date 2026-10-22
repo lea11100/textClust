@@ -16,7 +16,7 @@ def test_preprocess_text_default_options(monkeypatch):
 
 def test_preprocess_text_can_remove_hashtags(monkeypatch):
     monkeypatch.setattr("textClust.preprocessing.preprocessor.stopwords.words", lambda _: [])
-    preprocessor = TFIDFPreprocessor(hashtag=False)
+    preprocessor = TFIDFPreprocessor(keep_hashtag_term=False)
 
     tokens = preprocessor.preprocess_text("#Tag")
 

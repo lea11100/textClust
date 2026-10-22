@@ -56,6 +56,7 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
     pipeline = get_embClust(
         data_loader=data_wrapper,
         log_interval=1000,
+        normalize=False,
         **config
     )
     embedding_model_name = config.get("model", "minishlab_32M")

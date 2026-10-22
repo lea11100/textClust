@@ -110,7 +110,8 @@ class ThresholdMicroclusterer(Microclusterer):
         
         distances.pop(min_dist_idx)
         avg_dist = np.average(distances) if distances else 0.0
-        std_dist = np.std(distances, ddof=1) if distances else 0.0 # Empirical std needs at least two distances
+        # Sample standard deviation (ddof=1) is undefined for fewer than two values.
+        std_dist = np.std(distances, ddof=1) if len(distances) > 1 else np.nan
         
         if self.adaptive_threshold:
             threshold = avg_dist - self.sigma * std_dist
