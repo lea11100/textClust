@@ -98,7 +98,6 @@ class ThresholdMicroclusterer(Microclusterer):
             self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first few points
             self.outlier_dist_squaresum += 1.0
             return mc, None
-        print(current_time, ": " ,self.distance_metric(mc, self.microclusters, *args, **kwargs))
         distances = self.distance_metric(mc, self.microclusters, *args, **kwargs)   
         if len(distances) == 0:
             self.microclusters.append(mc)
