@@ -110,8 +110,11 @@ class FastLogCosineDistance(CosineDistance):
         return tf_val1 * tf_val2 * ((1 + math.log(n / term_freq)) ** 2)
     
     def __call__(self, mc1: FastMicrocluster, mc2: List[FastMicrocluster], *args, **kwargs) -> List[float]:
-        if not isinstance(mc1, FastMicrocluster) or not isinstance(mc2, FastMicrocluster):
+        if not isinstance(mc1, FastMicrocluster):
             raise ValueError("FastCosineDistance requires FastMicrocluster instances")
+        for mc in mc2:
+            if not isinstance(mc, FastMicrocluster):
+                raise ValueError("FastCosineDistance requires a list of FastMicrocluster instances")
         
         tf1 = mc1.embedding
         norm1 = mc1.get_norm()
@@ -126,6 +129,7 @@ class FastLogCosineDistance(CosineDistance):
             intersection = set(tf1.keys()) & set(tf2.keys())
             if not intersection:
                 distances.append(1.0)
+                continue
             
             inner_product = 0.0
             for term in intersection:

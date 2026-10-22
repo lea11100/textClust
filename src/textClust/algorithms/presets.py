@@ -22,7 +22,7 @@ from textClust.online.fast_log_clusterer import FastLogClusterer, FastSumMerger,
 
 def get_textClust(
     data_loader: Stream, clean_interval: int, cluster_interval: int,
-    log_interval: int, decay_rate: float, adaptive_threshold: bool = True,
+    log_interval: int, decay_rate: float, adaptive_threshold: bool = True, term_fading: bool = True,
     sigma: Optional[float] = 1, radius: Optional[float] = None,
     threshold_momentum: Optional[float] = None, use_heuristic: bool = True,
     min_weight: Optional[float] = None, time_gap: Optional[float] = None,
@@ -39,7 +39,7 @@ def get_textClust(
             distance_metric=CosineDistance(), 
             fader=ExpFade(
                 decay_rate=decay_rate,
-                term_fading=False,
+                term_fading=term_fading,
                 use_heuristic=use_heuristic,
                 time_gap=time_gap,
                 min_weight=min_weight,
@@ -79,7 +79,7 @@ def get_embClust(
     
 def get_fastSqrtClust(
     data_loader: Stream, clean_interval: int, cluster_interval: int,
-    log_interval: int, decay_rate: float, adaptive_threshold: bool = True,
+    log_interval: int, decay_rate: float, adaptive_threshold: bool = True, term_fading: bool = True,
     sigma: Optional[float] = 1, radius: Optional[float] = None,
     threshold_momentum: Optional[float] = None, use_heuristic: bool = True,
     min_weight: Optional[float] = None, time_gap: Optional[float] = None,
@@ -96,7 +96,7 @@ def get_fastSqrtClust(
             distance_metric=FastSqrtCosineDistance(), 
             fader=FastSqrtFader(
                 decay_rate=decay_rate,
-                term_fading=False,
+                term_fading=term_fading,
                 use_heuristic=use_heuristic,
                 time_gap=time_gap,
                 min_weight=min_weight,
@@ -110,7 +110,7 @@ def get_fastSqrtClust(
     
 def get_fastLogClust(
     data_loader: Stream, clean_interval: int, cluster_interval: int,
-    log_interval: int, decay_rate: float, adaptive_threshold: bool = True,
+    log_interval: int, decay_rate: float, adaptive_threshold: bool = True, term_fading: bool = True,
     sigma: Optional[float] = 1, radius: Optional[float] = None,
     threshold_momentum: Optional[float] = None, use_heuristic: bool = True,
     min_weight: Optional[float] = None, time_gap: Optional[float] = None,
@@ -127,7 +127,7 @@ def get_fastLogClust(
             distance_metric=FastLogCosineDistance(), 
             fader=FastLogFader(
                 decay_rate=decay_rate,
-                term_fading=False,
+                term_fading=term_fading,
                 use_heuristic=use_heuristic,
                 time_gap=time_gap,
                 min_weight=min_weight,

@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 
 import pytest
+import numpy as np
+from warnings import warn
 
 from textClust.algorithms.presets import get_embClust, get_textClust, get_fastLogClust
 from textClust.data.wrapper import StaticJsonWrapper, SocialEDWrapper
@@ -46,7 +48,7 @@ SEMANTIC_10T_TARGET = {
 }
 
 
-def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target):
+def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target, warn_if_target_not_reached: bool):
     dataset = Path(data_wrapper.file_path)
     if not dataset.is_file():
         pytest.skip(f"raw dataset not available: {dataset}")
@@ -71,6 +73,8 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
     for metric in target:
         assert metric in result, f"Missing metric {metric} in result"
         assert target[metric]["lower_bound"] <= result[metric] <= target[metric]["upper_bound"], f"{metric} {result[metric]} not within target range {target[metric]['lower_bound']} - {target[metric]['upper_bound']}"
+        if not np.isclose(target[metric]["target"], result[metric]) and warn_if_target_not_reached:
+            warn(f"{metric} {result[metric]} is not close to target {target[metric]['target']}, but within the specified range.")
 
 @pytest.mark.skipif(
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
@@ -79,7 +83,7 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
 def test_embClust_Arabic_7():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Arabic_7.npy")))
     data_wrapper = SocialEDWrapper(str(dataset))
-    generic_test_clust(data_wrapper, ARABIC_7_CONFIG, ARABIC_7_TARGET)
+    generic_test_clust(data_wrapper, ARABIC_7_CONFIG, ARABIC_7_TARGET, True)
     
 @pytest.mark.skipif(
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
@@ -88,4 +92,4 @@ def test_embClust_Arabic_7():
 def test_embClust_Semantic_10T():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Semantic10-T.json")))
     data_wrapper = StaticJsonWrapper(str(dataset))
-    generic_test_clust(data_wrapper, SEMANTIC_10T_CONFIG, SEMANTIC_10T_TARGET)
+    generic_test_clust(data_wrapper, SEMANTIC_10T_CONFIG, SEMANTIC_10T_TARGET, True)

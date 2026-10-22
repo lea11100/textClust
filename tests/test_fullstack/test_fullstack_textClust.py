@@ -47,7 +47,7 @@ SEMANTIC_40T_TARGET = {
 }
 
 
-def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target, factory):
+def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target, warn_if_target_not_reached: bool, factory):
     dataset = Path(data_wrapper.file_path)
     if not dataset.is_file():
         pytest.skip(f"raw dataset not available: {dataset}")
@@ -74,8 +74,8 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
     for metric in target:
         assert metric in result, f"Missing metric {metric} in result"
         assert target[metric]["lower_bound"] <= result[metric] <= target[metric]["upper_bound"], f"{metric} {result[metric]} not within target range {target[metric]['lower_bound']} - {target[metric]['upper_bound']}"
-        if np.isclose(target[metric]["target"], result[metric]):  # Only check closeness if the target is not equal to the result
-            warn(f"{metric} {result[metric]} is close to target {target[metric]['target']}, but not within the specified range.")
+        if not np.isclose(target[metric]["target"], result[metric]) and warn_if_target_not_reached:
+            warn(f"{metric} {result[metric]} is not close to target {target[metric]['target']}, but within the specified range.")
 
 @pytest.mark.skipif(
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
@@ -84,7 +84,7 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
 def test_fastLogClust_Arabic_7():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Arabic_7.npy")))
     data_wrapper = SocialEDWrapper(str(dataset))
-    generic_test_clust(data_wrapper, ARABIC_7_CONFIG, ARABIC_7_TARGET, get_fastLogClust)
+    generic_test_clust(data_wrapper, ARABIC_7_CONFIG, ARABIC_7_TARGET, True, get_fastLogClust)
     
 @pytest.mark.skipif(
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
@@ -93,7 +93,7 @@ def test_fastLogClust_Arabic_7():
 def test_fastLogClust_Semantic_40T():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Semantic40-T.json")))
     data_wrapper = StaticJsonWrapper(str(dataset))
-    generic_test_clust(data_wrapper, SEMANTIC_40T_CONFIG, SEMANTIC_40T_TARGET, get_fastLogClust)
+    generic_test_clust(data_wrapper, SEMANTIC_40T_CONFIG, SEMANTIC_40T_TARGET, True, get_fastLogClust)
 
 
 @pytest.mark.skipif(
@@ -102,7 +102,7 @@ def test_fastLogClust_Semantic_40T():
 )
 def test_textClust_Arabic_7():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Arabic_7.npy")))
-    generic_test_clust(SocialEDWrapper(str(dataset)), ARABIC_7_CONFIG, ARABIC_7_TARGET, get_textClust)
+    generic_test_clust(SocialEDWrapper(str(dataset)), ARABIC_7_CONFIG, ARABIC_7_TARGET, False, get_textClust)
 
 
 @pytest.mark.skipif(
@@ -111,7 +111,7 @@ def test_textClust_Arabic_7():
 )
 def test_textClust_Semantic_40T():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Semantic40-T.json")))
-    generic_test_clust(StaticJsonWrapper(str(dataset)), SEMANTIC_40T_CONFIG, SEMANTIC_40T_TARGET, get_textClust)
+    generic_test_clust(StaticJsonWrapper(str(dataset)), SEMANTIC_40T_CONFIG, SEMANTIC_40T_TARGET, False, get_textClust)
     
 
 @pytest.mark.skipif(
@@ -120,7 +120,7 @@ def test_textClust_Semantic_40T():
 )
 def test_fastSqrtClust_Arabic_7():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Arabic_7.npy")))
-    generic_test_clust(SocialEDWrapper(str(dataset)), ARABIC_7_CONFIG, ARABIC_7_TARGET, get_fastSqrtClust)
+    generic_test_clust(SocialEDWrapper(str(dataset)), ARABIC_7_CONFIG, ARABIC_7_TARGET, False,get_fastSqrtClust)
     
 @pytest.mark.skipif(
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
@@ -128,4 +128,4 @@ def test_fastSqrtClust_Arabic_7():
 )
 def test_fastSqrtClust_Semantic_40T():
     dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Semantic40-T.json")))
-    generic_test_clust(StaticJsonWrapper(str(dataset)), SEMANTIC_40T_CONFIG, SEMANTIC_40T_TARGET, get_fastSqrtClust)
+    generic_test_clust(StaticJsonWrapper(str(dataset)), SEMANTIC_40T_CONFIG, SEMANTIC_40T_TARGET, False, get_fastSqrtClust)

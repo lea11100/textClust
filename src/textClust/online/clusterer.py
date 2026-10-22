@@ -98,7 +98,7 @@ class ThresholdMicroclusterer(Microclusterer):
             self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first few points
             self.outlier_dist_squaresum += 1.0
             return mc, None
-        
+        print(current_time, ": " ,self.distance_metric(mc, self.microclusters, *args, **kwargs))
         distances = self.distance_metric(mc, self.microclusters, *args, **kwargs)   
         if len(distances) == 0:
             self.microclusters.append(mc)
@@ -110,7 +110,7 @@ class ThresholdMicroclusterer(Microclusterer):
         
         distances.pop(min_dist_idx)
         avg_dist = np.average(distances) if distances else 0.0
-        std_dist = np.std(distances, ddof=1) if len(distances) > 1 else 0.0 # Empirical std needs at least two distances
+        std_dist = np.std(distances, ddof=1) if distances else 0.0 # Empirical std needs at least two distances
         
         if self.adaptive_threshold:
             threshold = avg_dist - self.sigma * std_dist
@@ -121,7 +121,10 @@ class ThresholdMicroclusterer(Microclusterer):
         self.last_threshold = threshold
         if min_dist < threshold and avg_dist < 1:
             closest_mc = self.microclusters[min_dist_idx]
-            merged_mc = self.merger(closest_mc, mc, current_time=current_time, fader=self.fader)
+            if self.fader is not None:
+                closest_mc, _ = self.fader(closest_mc, current_time)
+                mc, _ = self.fader(mc, current_time)
+            merged_mc = self.merger(closest_mc, mc, current_time=current_time)
             self.microclusters[min_dist_idx] = merged_mc
             
             self.num_merged_obs += 1
@@ -157,17 +160,19 @@ class ThresholdMicroclusterer(Microclusterer):
 
         Returns:
             A tuple of `(expired_cluster_ids, merge_history)`.
-        """
+        """        
+        expired_cluster_ids =self._delete_expired(current_time)
+        merge_history = self._merge_clusters(current_time, *args, **kwargs)
+        return expired_cluster_ids, merge_history
+    
+    def _merge_clusters(self, current_time: float, *args, **kwargs):
+        merge_history = {}
         if self.adaptive_threshold:
             threshold = self.dist_sum / self.num_merged_obs if self.num_merged_obs > 0 else 0.0
         else:
             threshold = self.radius
         self.num_merged_obs = 0
         self.dist_sum = 0.0
-        
-        expired_cluster_ids =self._delete_expired(current_time)
-        merge_history = {}
-        
         removed = np.zeros(len(self.microclusters), dtype=bool)
         for i in range(len(self.microclusters)-1):
             self.fader(self.microclusters[i], current_time)
@@ -188,7 +193,7 @@ class ThresholdMicroclusterer(Microclusterer):
                     
                     
         self.microclusters = [c for r, c in zip(removed, self.microclusters) if not r]
-        return expired_cluster_ids, merge_history
+        return merge_history
         
     def update_with_merge_history(self, merge_history: Optional[dict[int, int]], current_time: float, *args, **kwargs):
         if merge_history is None or len(merge_history) == 0:
@@ -218,8 +223,8 @@ class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
     
     def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, Optional[int]]:
         """Assign or merge incoming microcluster using adaptive thresholding."""
-        idf = self._get_idf(additional_mc=mc)
-        return super()._update(mc, current_time, idf=idf, n=len(self.microclusters) + 1, *args, **kwargs)
+        idf = self._get_idf()
+        return super()._update(mc, current_time, idf=idf, n=len(self.microclusters), *args, **kwargs)
     
     def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List[int], dict[int, int]]:
         """Run expiration pass and merge close clusters.
@@ -227,8 +232,9 @@ class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
         Returns:
             A tuple of `(expired_cluster_ids, merge_history)`.
         """
+        expired_cluster_ids = self._delete_expired(current_time)
         idf = self._get_idf()
-        expired_cluster_ids, merge_history = super().clean_up(current_time, idf=idf, n=len(self.microclusters), *args, **kwargs)
+        merge_history = self._merge_clusters(current_time, idf=idf, n=len(self.microclusters), *args, **kwargs)
         return expired_cluster_ids, merge_history
        
     def _get_idf(self, additional_mc: Optional[Microcluster] = None) -> dict[str, float]:
