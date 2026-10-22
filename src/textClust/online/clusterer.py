@@ -237,7 +237,7 @@ class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
         merge_history = self._merge_clusters(current_time, idf=idf, n=len(self.microclusters), *args, **kwargs)
         return expired_cluster_ids, merge_history
        
-    def _get_idf(self, additional_mc: Optional[Microcluster] = None) -> dict[str, float]:
+    def _get_idf(self) -> dict[str, float]:
         """Compute per-term inverse document frequency over active clusters."""
         result = {}
         
@@ -249,18 +249,9 @@ class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
                     result[term] = 1
                 else:
                     result[term] += 1
-        if additional_mc is not None:
-            assert isinstance(additional_mc.embedding, dict), "Expected TF-IDF microcluster to have embedding as a dictionary"
-            for term in additional_mc.embedding.keys():
-                if term not in result:
-                    result[term] = 1
-                else:
-                    result[term] += 1
         
         # Calculate IDF: 1 + log(N / df)
         num_clusters = len(self.microclusters)
-        if additional_mc is not None:
-            num_clusters += 1
         for term in result.keys():
             result[term] = 1 + math.log(num_clusters / result[term])
         
