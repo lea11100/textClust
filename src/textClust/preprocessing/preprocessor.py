@@ -31,12 +31,14 @@ class TFIDFPreprocessor(Preprocessor):
     def __init__(self, 
                  language='english',
                  stopword_removal=True,
-                 stemming=False,
+                 stemming=True,
                  punctuation=True,
-                 hashtag=True,
+                 keep_hashtag_term=True,
                  username=True,
                  url=True,
-                 exclude_tokens=None):
+                 exclude_tokens=None,
+                 n_gram_min=1,
+                 n_gram_max=1):
         """Initialize preprocessing options.
 
         Args:
@@ -44,27 +46,34 @@ class TFIDFPreprocessor(Preprocessor):
             stopword_removal: Whether to remove stopwords.
             stemming: Whether to apply Porter stemming.
             punctuation: Whether to strip punctuation.
-            hashtag: Keep hashtag terms while removing `#` marker if true.
+            keep_hashtag_term: Whether to keep hashtag terms and remove the `#` marker, or remove whole term.
             username: Whether to remove @mentions.
             url: Whether to remove URLs.
             exclude_tokens: Optional custom token blocklist.
+            n_gram_min: Minimum n-gram size.
+            n_gram_max: Maximum n-gram size.
         """
         
         self.language = language
         self.stopword_removal = stopword_removal
         self.stemming = stemming
         self.remove_punctuation = punctuation
-        self.keep_hashtag = hashtag
+        self.keep_hashtag = keep_hashtag_term
         self.remove_username = username
         self.remove_url = url
         self.exclude_tokens = exclude_tokens or []
         self.stopwords = set(stopwords.words(self.language)) if self.stopword_removal else set()
+        self.n_gram_min = n_gram_min
+        self.n_gram_max = n_gram_max
         self.stemmer = PorterStemmer() if self.stemming else None
     
     def __call__(self, point: RawPoint) -> Point:
         """Preprocess the input point text and return a `Point`."""
         processed_text_tokens = self.preprocess_text(point.text)
-        return point_from_raw_point(point, processed_text_tokens=processed_text_tokens)
+        tf = {}
+        for token in processed_text_tokens:
+            tf[token] = tf.get(token, 0) + 1
+        return point_from_raw_point(point, embedding=tf)
     
     def preprocess_text(self, text: str) -> List[str]:
         """Normalize and tokenize text according to configured options."""
@@ -87,6 +96,14 @@ class TFIDFPreprocessor(Preprocessor):
         tokens = [self.stemmer.stem(t) for t in tokens] if self.stemming and self.stemmer else tokens # Apply stemming
         tokens = [t for t in tokens if len(t) >= 2 and not t.isdigit()] # Remove short tokens and numbers
         
+        # Generate n-grams
+        if self.n_gram_min > 1 or self.n_gram_max > 1:
+            n_grams = []
+            for i in range(self.n_gram_min, min(self.n_gram_max + 1, len(tokens) + 1)):
+                for j in range(len(tokens) - i + 1):
+                    n_grams.append(' '.join(tokens[j:j + i]))
+            tokens = n_grams
+
         return tokens
     
 class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
@@ -110,19 +127,25 @@ class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
         if not translated_text:
             raise ValueError(f"Translated text for ID {point.text_id} not found.")
         processed_text_tokens = self.preprocess_text(translated_text)
-        return point_from_raw_point(point, processed_text_tokens=processed_text_tokens)
+        embedding = {}
+        for token in processed_text_tokens:
+            embedding[token] = embedding.get(token, 0) + 1
+        return point_from_raw_point(point, embedding=embedding)
     
 
 class EmbeddingPreprocessor(Preprocessor):
     """Preprocessor that generates vector embeddings for input text."""
 
-    def __init__(self, embedding_model: SentenceTransformer):
+    def __init__(self, embedding_model: SentenceTransformer, normalize: bool = True):
         """Initialize with a callable embedding model."""
         self.embedding_model = embedding_model
-    
+        self.normalize = normalize
+
     def __call__(self, point: RawPoint) -> Point:
         """Generate an embedding for the input point text and return a `Point`."""
         embedding = self.embedding_model.encode(point.text, convert_to_tensor=True, show_progress_bar=False)
+        if self.normalize:
+            embedding = torch.nn.functional.normalize(embedding, p=2, dim=0)
         return point_from_raw_point(point, embedding=embedding)
     
 class SimulatedEmbeddingPreprocessor(Preprocessor):
@@ -132,11 +155,12 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
     configured data folder.
     """
 
-    def __init__(self, model: str, dataset: str, folder: str = "data/embedded"):
+    def __init__(self, model: str, dataset: str, normalize: bool = True, folder: str = "data/embedded"):
         """Initialize with a specified embedding dimension."""
         self.model = model
         self.dataset = dataset
         self.folder = folder
+        self.normalize = normalize
 
         data = np.load(f"{self.folder}/{self.model}/{self.dataset}.npy", allow_pickle=True).item()
         for k in ["tweet_ids", "embeddings", "times"]:
@@ -159,6 +183,9 @@ class SimulatedEmbeddingPreprocessor(Preprocessor):
         assert str(point.text_id) in self.tweet_id_to_time, f"Text ID {point.text_id} not found in simulated time dataset."
         
         simulated_embedding = self.tweet_id_to_embedding[str(point.text_id)]
+        simulated_embedding = torch.tensor(simulated_embedding)
+        if self.normalize:
+            simulated_embedding = torch.nn.functional.normalize(simulated_embedding, p=2, dim=0)
         time_to_wait = self.tweet_id_to_time[str(point.text_id)]
         self.saved_time += time_to_wait
-        return point_from_raw_point(point, embedding=torch.tensor(simulated_embedding))
+        return point_from_raw_point(point, embedding=simulated_embedding)

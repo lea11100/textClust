@@ -1,5 +1,5 @@
-from textClust.online.cluster import Microcluster, TfIdfMicrocluster
-from textClust.online.clusterer import Microclusterer, TfIdfThresholdMicroclusterer
+from textClust.online.cluster import Microcluster
+from textClust.online.clusterer import ThresholdMicroclusterer
 
 import math
 import numpy as np
@@ -9,9 +9,9 @@ import warnings
 from sklearn.decomposition import PCA
 import graphviz
 
-from textClust.online.fade import TfIdfExpFade, TfIdfDampedFade
-from textClust.online.merge import TfIdfMerger, SumMerger
-from textClust.online.metrics import DistanceMetric, TfidfCosineDistance
+from textClust.online.fade import ExpFade
+from textClust.online.merge import SumMerger
+from textClust.online.metrics import CosineDistance
 
 class IDFManager:
     def __init__(self):
@@ -31,15 +31,15 @@ class IDFManager:
     def recalculate(self, microclusters: List["FastMicrocluster"]):
         self.term_doc_freq = {}
         for mc in microclusters:
-            for term in mc.tf.keys():
+            for term in mc.embedding.keys():
                 self.term_doc_freq[term] = self.term_doc_freq.get(term, 0) + 1
                 
         self.total_docs = len(microclusters)
 
-class FastMicrocluster(TfIdfMicrocluster):
+class FastMicrocluster(Microcluster):
     def __init__(self, id, tf:dict[str, float], idf_manager: IDFManager, current_time: float, n: int, weight = 1.0):
-        super().__init__(id, tf, current_time, n, weight)
-       
+        super().__init__(id,  current_time, n, embedding=tf, weight=weight)
+        self.embedding = tf
         self.idf_manager = idf_manager
         self.calc_sum()
         
@@ -56,7 +56,7 @@ class FastMicrocluster(TfIdfMicrocluster):
     
     def add_tf(self, new_tf):
         for term, weight in new_tf.items():
-            old_weight = self.tf.get(term, 0)
+            old_weight = self.embedding.get(term, 0)
             c = self.idf_manager.term_doc_freq.get(term, 1)
             new_weight = old_weight + weight
             
@@ -70,17 +70,17 @@ class FastMicrocluster(TfIdfMicrocluster):
             self.tf_squared_log_sqared_c_sum += new_weight ** 2 * math.log(c) ** 2
             
             if new_weight > 0:
-                self.tf[term] = new_weight
+                self.embedding[term] = new_weight
             else:
-                if term in self.tf:
-                    del self.tf[term]
+                if term in self.embedding:
+                    del self.embedding[term]
                     
     def update_norm_by_idf(self, updates:dict):
-        relevant_terms = set(self.tf.keys()) & set(updates.keys())
+        relevant_terms = set(self.embedding.keys()) & set(updates.keys())
         
         for term, new_c in {term: updates[term] for term in relevant_terms}.items():
             old_c = self.idf_manager.term_doc_freq.get(term, 1)
-            weight = self.tf.get(term, 0)
+            weight = self.embedding.get(term, 0)
             
             self.tf_squared_log_c_sum -= weight ** 2 * math.log(old_c)
             self.tf_squared_log_c_sum += weight ** 2 * math.log(new_c)
@@ -89,15 +89,15 @@ class FastMicrocluster(TfIdfMicrocluster):
             self.tf_squared_log_sqared_c_sum += weight ** 2 * (math.log(new_c) ** 2)
             
     def calc_sum(self):       
-        self.tf_squared_sum = np.sum([v ** 2 for v in self.tf.values()])
-        self.tf_squared_log_c_sum = np.sum([v ** 2 * math.log(self.idf_manager.term_doc_freq.get(k, 1)) for k, v in self.tf.items()])
-        self.tf_squared_log_sqared_c_sum = np.sum([v ** 2 * math.log(self.idf_manager.term_doc_freq.get(k, 1)) ** 2 for k, v in self.tf.items()])
+        self.tf_squared_sum = np.sum([v ** 2 for v in self.embedding.values()])
+        self.tf_squared_log_c_sum = np.sum([v ** 2 * math.log(self.idf_manager.term_doc_freq.get(k, 1)) for k, v in self.embedding.items()])
+        self.tf_squared_log_sqared_c_sum = np.sum([v ** 2 * math.log(self.idf_manager.term_doc_freq.get(k, 1)) ** 2 for k, v in self.embedding.items()])
         
     def get_norm_direct(self):
         log_n = math.log(self.idf_manager.total_docs) if self.idf_manager.total_docs > 0 else 0
         
         norm_squared = 0.0
-        for term, weight in self.tf.items():
+        for term, weight in self.embedding.items():
             c = self.idf_manager.term_doc_freq.get(term, 1)
             norm_squared += weight ** 2 * (1 + log_n - math.log(c)) ** 2
             
@@ -105,54 +105,55 @@ class FastMicrocluster(TfIdfMicrocluster):
         return norm
         
 
-class FastCosineDistance(TfidfCosineDistance):
-    def __init__(self):
-        super().__init__()
-        self.requires_idf = False
-        
-    def __call__(self, mc1: FastMicrocluster, mc2: FastMicrocluster, *args, **kwargs) -> float:
-        if not isinstance(mc1, FastMicrocluster) or not isinstance(mc2, FastMicrocluster):
+class FastLogCosineDistance(CosineDistance):    
+    def _inner_product_formula(self, tf_val1: float, tf_val2: float, n: int, term_freq: float) -> float:
+        return tf_val1 * tf_val2 * ((1 + math.log(n / term_freq)) ** 2)
+    
+    def __call__(self, mc1: FastMicrocluster, mc2: List[FastMicrocluster], *args, **kwargs) -> List[float]:
+        if not isinstance(mc1, FastMicrocluster):
             raise ValueError("FastCosineDistance requires FastMicrocluster instances")
+        for mc in mc2:
+            if not isinstance(mc, FastMicrocluster):
+                raise ValueError("FastCosineDistance requires a list of FastMicrocluster instances")
         
-        tf1 = mc1.tf
-        tf2 = mc2.tf
-              
-        if not tf1 or not tf2:
-            return 1.0
-        
-        # Create uniform embeddings
-        intersection = set(tf1.keys()) & set(tf2.keys())
-        
-        if not intersection:
-            return 1.0
-        
-        inner_product = 0.0
-        n = mc1.idf_manager.total_docs
-        
-        for term in intersection:
-            tf_val1 = tf1[term]
-            tf_val2 = tf2[term]
-            
-            if term in mc1.idf_manager.term_doc_freq:
-                inner_product += tf_val1 * tf_val2 * ((1 + math.log(n / mc1.idf_manager.term_doc_freq[term])) ** 2)
-                
+        tf1 = mc1.embedding
         norm1 = mc1.get_norm()
-        norm2 = mc2.get_norm()
         
-        #print(f"MC{mc1.id} and MC{mc2.id}: Inner product: {inner_product}, Norm1: {norm1}, Norm2: {norm2}")
-
-        similarity = inner_product / (norm1 * norm2)
+        n = mc1.idf_manager.total_docs if mc1.idf_manager.total_docs > 0 else 1
+        distances = []
         
-        distance = min(1, 1 - similarity)
-        distance = max(0, distance)
-        return distance
+        for mc in mc2:
+            tf2 = mc.embedding    
+            norm2 = mc.get_norm()        
+            # Create uniform embeddings
+            intersection = set(tf1.keys()) & set(tf2.keys())
+            if not intersection:
+                distances.append(1.0)
+                continue
+            
+            inner_product = 0.0
+            for term in intersection:
+                tf_val1 = tf1[term]
+                tf_val2 = tf2[term]
+                
+                if term in mc1.idf_manager.term_doc_freq:
+                    inner_product += self._inner_product_formula(tf_val1, tf_val2, n, mc1.idf_manager.term_doc_freq[term])
+                
+            distances.append(1.0 - inner_product / (norm1 * norm2))
+        
+        return distances
 
-class FastFader(TfIdfExpFade):
+class FastLogFader(ExpFade):
     """Fader that also applies fading to FastMicrocluster norms."""
     
+    def update_mc_internals(self,mc: FastMicrocluster, factor: float):
+        mc.tf_squared_sum *= factor ** 2
+        mc.tf_squared_log_c_sum *= factor ** 2
+        mc.tf_squared_log_sqared_c_sum *= factor ** 2
+        
     def __init__(self, decay_rate: float, term_fading: bool = True, use_heuristic: bool = False, min_weight: Optional[float] = None, time_gap: Optional[float] = None):
-        super().__init__(decay_rate, term_fading, use_heuristic, min_weight, time_gap)
-
+            super().__init__(decay_rate, term_fading, use_heuristic, min_weight, time_gap)
+    
     def __call__(self, mc: FastMicrocluster, current_time: float) -> tuple[FastMicrocluster, bool]:
         factor = 2 ** (- self.decay_rate * (current_time - mc.last_update_time))
         mc.weight *= factor
@@ -160,38 +161,32 @@ class FastFader(TfIdfExpFade):
         is_expired = mc.weight < self.min_weight
         
         if self.term_fading:
-            mc.tf_squared_sum *= factor ** 2
-            mc.tf_squared_log_c_sum *= factor ** 2
-            mc.tf_squared_log_sqared_c_sum *= factor ** 2
-            mc.add_tf({term: -weight for term, weight in mc.tf.items() if weight < self.min_weight})
-            mc.idf_manager.add_pending_updates({term: mc.idf_manager.term_doc_freq.get(term, 1) - 1 for term, weight in mc.tf.items() if weight < self.min_weight})
+            self.update_mc_internals(mc, factor**2)
+            mc.add_tf({term: -weight for term, weight in mc.embedding.items() if weight < self.min_weight})
+            mc.idf_manager.add_pending_updates({term: mc.idf_manager.term_doc_freq.get(term, 1) - 1 for term, weight in mc.embedding.items() if weight < self.min_weight})
         
-        is_expired = is_expired or (len(mc.tf) == 0)  # Expire if no terms left
+        is_expired = is_expired or (len(mc.embedding) == 0)  # Expire if no terms left
         return mc, is_expired
-
+    
 class FastSumMerger(SumMerger):
     """Extension of SumMerger that also merges tree structure for TreeMicroclusters."""
 
-    def __call__(self, mc1: FastMicrocluster, mc2: FastMicrocluster, current_time: float, fader: Optional[FastFader] = None) -> TfIdfMicrocluster:
+    def __call__(self, mc1: FastMicrocluster, mc2: FastMicrocluster, current_time: float) -> FastMicrocluster:
         """Merge two TreeMicroclusters and combine their children."""     
-        if fader is not None:
-            mc1, _ = fader(mc1, current_time)
-            mc2, _ = fader(mc2, current_time)
-            assert isinstance(mc1, FastMicrocluster) and isinstance(mc2, FastMicrocluster), "Fader must return FastMicroclusters"
-        
         merged_weight = mc1.weight + mc2.weight
         merged_n = mc1.n + mc2.n
-        new_terms = set(mc2.tf.keys()) - set(mc1.tf.keys())
-        mc1.add_tf(mc2.tf)
+        new_terms = set(mc2.embedding.keys()) - set(mc1.embedding.keys())
+        mc1.add_tf(mc2.embedding)
         
         mc1.idf_manager.add_pending_updates({term: mc1.idf_manager.term_doc_freq.get(term, 0) + 1 for term in new_terms})
         
-        merged = FastMicrocluster(mc1.id, mc1.tf, mc1.idf_manager, mc1.last_update_time, merged_n, merged_weight)
+        merged = FastMicrocluster(mc1.id, mc1.embedding, mc1.idf_manager, current_time, merged_n, merged_weight)
         
         return merged
 
-class FastClusterer(TfIdfThresholdMicroclusterer):
-    def __init__(self, distance_metric: FastCosineDistance, fader: FastFader, merger: FastSumMerger, 
+
+class FastLogClusterer(ThresholdMicroclusterer):
+    def __init__(self, distance_metric: FastLogCosineDistance, fader: FastLogFader, merger: FastSumMerger, 
                  adaptive_threshold=True, sigma: Optional[float] = 1.0, radius: Optional[float] = None,
                  min_num_mc=5, include_min_for_threshold=False, threshold_momentum: Optional[float] = None, *args, **kwargs):
         """Initialize adaptive threshold microclusterer parameters."""
@@ -199,15 +194,20 @@ class FastClusterer(TfIdfThresholdMicroclusterer):
                          min_num_mc=min_num_mc, include_min_for_threshold=include_min_for_threshold, threshold_momentum=threshold_momentum, *args, **kwargs)
         self.microclusters: List[FastMicrocluster] = [] # type: ignore
         self.idf_manager = IDFManager()
+
         
+    def create_mc(self, mc:Microcluster, current_time: float) -> FastMicrocluster:
+        assert isinstance(mc.embedding, dict), "Expected TF-IDF microcluster to have embedding as a dictionary"
+        return FastMicrocluster(mc.id, mc.embedding, self.idf_manager, current_time, mc.n, mc.weight)
+    
     def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[FastMicrocluster, Optional[int]]:
-        assert isinstance(mc, TfIdfMicrocluster), "FastClusterer can only update TfIdfMicrocluster"
-        mc = FastMicrocluster(mc.id, mc.tf, self.idf_manager, mc.last_update_time, mc.n, mc.weight)
+        """Update a microcluster."""
+        mc=self.create_mc(mc, current_time)
         new_mc, id = super()._update(mc, current_time, *args, **kwargs)
         assert isinstance(new_mc, FastMicrocluster), "Updated microcluster must be a FastMicrocluster"
         if id is None:
             self.idf_manager.total_docs += 1
-            self.idf_manager.add_pending_updates({term: self.idf_manager.term_doc_freq.get(term, 0) + 1 for term in new_mc.tf.keys()})
+            self.idf_manager.add_pending_updates({term: self.idf_manager.term_doc_freq.get(term, 0) + 1 for term in new_mc.embedding.keys()})
         if len(self.idf_manager.pending_updates) > 0:
             for mc in self.microclusters:
                 mc.update_norm_by_idf(self.idf_manager.pending_updates)

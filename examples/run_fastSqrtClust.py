@@ -1,10 +1,10 @@
 from textClust.data.wrapper import StaticJsonWrapper
 
-from textClust.algorithms.presets import get_fastClust, get_fastLogClust
+from textClust.algorithms.presets import get_fastSqrtClust, get_fastLogClust
 from textClust.utils.eval import eval_against_truth
 
 if __name__ == "__main__":   
-    clusterer = get_fastClust(
+    clusterer = get_fastSqrtClust(
         data_loader=StaticJsonWrapper("examples/data/raw_data/Semantic10-T.json", max_samples=10_000),
         clean_interval=100,
         cluster_interval=1000,

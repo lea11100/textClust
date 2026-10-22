@@ -64,6 +64,9 @@ class StaticJsonWrapper(Stream):
         Args:
             file_path: Path to an input JSONL file.
             max_samples: Maximum number of samples to load. If `None`, load all samples.
+            random_start_seed: Optional seed for choosing a random starting record.
+            do_check: Whether to check the file for duplicate tweet IDs before loading.
+            **kwargs: Additional arguments forwarded to the base stream initializer.
         """
         super().__init__(**kwargs)
         self.max_samples = max_samples
