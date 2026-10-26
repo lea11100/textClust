@@ -1,4 +1,4 @@
-"""Optional end-to-end checks using external Arabic and Semantic raw datasets."""
+"""Optional end-to-end checks using raw datasets and their translations."""
 
 import os
 from pathlib import Path
@@ -48,6 +48,30 @@ SEMANTIC_40T_TARGET = {
     "adj_mutual_info_final": {"target": 0.3522710, "lower_bound": 0.3, "upper_bound": 0.4}
 }
 
+# General-purpose comparison settings, not tuned to any individual dataset.
+# Use a fixed expiry threshold rather than a dataset-specific time gap.
+COMPARISON_CONFIG = {
+    "adaptive_threshold": True,
+    "clean_interval": 400,
+    "cluster_interval": 5000,
+    "decay_rate": 0.02,
+    "min_num_mc": 1,
+    "use_heuristic": False,
+    "min_weight": 7.0,
+    "sigma": 0.9,
+    "threshold_momentum": 0.2,
+}
+
+
+def comparison_datasets():
+    """Find raw datasets with a matching precomputed English translation."""
+    return sorted(
+        (path for path in DATASET_FOLDER.iterdir()
+         if path.suffix in {".json", ".npy"}
+         and (TRANSLATIONS_FOLDER / f"{path.stem}.npy").is_file()),
+        key=lambda path: path.name,
+    ) if DATASET_FOLDER.is_dir() and TRANSLATIONS_FOLDER.is_dir() else []
+
 
 def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target, warn_if_target_not_reached: bool, factory):
     dataset = Path(data_wrapper.file_path)
@@ -83,7 +107,10 @@ def generic_test_clust(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config
             warn(f"{metric} {result[metric]} is not close to target {target[metric]['target']}, but within the specified range.")
 
 def generic_textClust_fastClust_comparison(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target):
-    translation = TRANSLATIONS_FOLDER / f"{Path(data_wrapper.file_path).stem}.npy"
+    dataset = Path(data_wrapper.file_path)
+    if not dataset.is_file():
+        pytest.skip(f"raw dataset not available: {dataset}")
+    translation = TRANSLATIONS_FOLDER / f"{dataset.stem}.npy"
     if not translation.is_file():
         pytest.skip(f"translated dataset not available: {translation}")
 
@@ -193,16 +220,9 @@ def test_fastSqrtClust_Semantic_40T():
     os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
     reason="opt in with TEXTCLUST_RUN_DATASET_TESTS=1",
 )
-def test_fastLogClust_equal_textClust_Semantic_40T():
-    dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Semantic40-T.json")))
-    data_wrapper = StaticJsonWrapper(str(dataset))
-    generic_textClust_fastClust_comparison(data_wrapper, SEMANTIC_40T_CONFIG, "adj_mutual_info_final")
-    
-@pytest.mark.skipif(
-    os.environ.get("TEXTCLUST_RUN_DATASET_TESTS") != "1",
-    reason="opt in with TEXTCLUST_RUN_DATASET_TESTS=1",
-)
-def test_fastLogClust_equal_textClust_Arabic_7():
-    dataset = Path(os.environ.get("TEXTCLUST_RAW_DATASET", str(DATASET_FOLDER / "Arabic_7.npy")))
-    data_wrapper = SocialEDWrapper(str(dataset))
-    generic_textClust_fastClust_comparison(data_wrapper, ARABIC_7_CONFIG, "adj_mutual_info_final")
+@pytest.mark.parametrize("dataset", comparison_datasets(), ids=lambda path: path.stem)
+def test_fastLogClust_equal_textClust(dataset):
+    wrapper = SocialEDWrapper if dataset.suffix == ".npy" else StaticJsonWrapper
+    generic_textClust_fastClust_comparison(
+        wrapper(str(dataset)), COMPARISON_CONFIG, "adj_mutual_info_final"
+    )

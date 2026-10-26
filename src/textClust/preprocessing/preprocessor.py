@@ -124,7 +124,7 @@ class TFIDFPreprocessorWithTranslation(TFIDFPreprocessor):
     def __call__(self, point: RawPoint) -> Point:
         """Translate the input point text to English, preprocess it, and return a `Point`."""
         translated_text = self.tweet_id_to_eng.get(str(point.text_id))
-        if not translated_text:
+        if translated_text == None:
             raise ValueError(f"Translated text for ID {point.text_id} not found.")
         processed_text_tokens = self.preprocess_text(translated_text)
         embedding = {}
