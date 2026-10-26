@@ -122,8 +122,8 @@ class ThresholdMicroclusterer(Microclusterer):
         if min_dist < threshold and avg_dist < 1:
             closest_mc = self.microclusters[min_dist_idx]
             if self.fader is not None:
-                closest_mc, _ = self.fader(closest_mc, current_time)
-                mc, _ = self.fader(mc, current_time)
+                closest_mc, _, _ = self.fader(closest_mc, current_time)
+                mc, _, _ = self.fader(mc, current_time)
             merged_mc = self.merger(closest_mc, mc, current_time=current_time)
             self.microclusters[min_dist_idx] = merged_mc
             
@@ -138,21 +138,24 @@ class ThresholdMicroclusterer(Microclusterer):
             
             return mc, None
     
-    def _delete_expired(self, current_time: float):
-        """Fade all clusters and remove expired ones.
+    def _get_expried(self, current_time: float) -> List[Tuple[Microcluster, bool, List[str]]]:
+        """Fade clusters and report their expiration status without deleting anything."""
+        return [self.fader(mc, current_time) for mc in self.microclusters]
 
-        Returns:
-            List of expired cluster ids.
-        """
-        removed = np.zeros(len(self.microclusters), dtype=bool)
-        for i in range(len(self.microclusters)):
-            mc, is_expired =self.fader(self.microclusters[i], current_time)
+    def _delete_expired(self, current_time: float) -> List[int]:
+        """Remove expired terms and clusters, returning expired cluster ids."""
+        expired_cluster_ids = []
+        active_clusters = []
+        for mc, is_expired, expired_terms in self._get_expried(current_time):
             if is_expired:
-                removed[i] = True
-            else:
-                self.microclusters[i] = mc
-        expired_cluster_ids = [self.microclusters[i].id for i in range(len(self.microclusters)) if removed[i]]
-        self.microclusters = [c for r, c in zip(removed, self.microclusters) if not r]
+                expired_cluster_ids.append(mc.id)
+                continue
+            if expired_terms:
+                assert isinstance(mc.embedding, dict), "Expected term-fading microcluster to have a dictionary embedding"
+                for term in expired_terms:
+                    del mc.embedding[term]
+            active_clusters.append(mc)
+        self.microclusters = active_clusters
         return expired_cluster_ids
         
     def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List[int], dict[int, int]]:
@@ -175,7 +178,7 @@ class ThresholdMicroclusterer(Microclusterer):
         self.dist_sum = 0.0
         removed = np.zeros(len(self.microclusters), dtype=bool)
         for i in range(len(self.microclusters)-1):
-            self.fader(self.microclusters[i], current_time)
+            self.microclusters[i], _, _ = self.fader(self.microclusters[i], current_time)
             if removed[i]:
                 continue
             m_dist = self.distance_metric(self.microclusters[i], self.microclusters[i+1:], *args, **kwargs)
@@ -185,8 +188,8 @@ class ThresholdMicroclusterer(Microclusterer):
                 
                 # Merge if below threshold
                 if dist < threshold:
-                    self.microclusters[i], _ = self.fader(self.microclusters[i], current_time)
-                    self.microclusters[j], _ = self.fader(self.microclusters[j], current_time)
+                    self.microclusters[i], _, _ = self.fader(self.microclusters[i], current_time)
+                    self.microclusters[j], _, _ = self.fader(self.microclusters[j], current_time)
                     self.microclusters[i] = self.merger(self.microclusters[i], self.microclusters[j], current_time=current_time)
                     removed[j] = True
                     merge_history[self.microclusters[j].id] = self.microclusters[i].id
@@ -204,8 +207,8 @@ class ThresholdMicroclusterer(Microclusterer):
                 if dest_id == c_id:
                     continue
                 if dest_id != -1: # If dest_id is -1, it means the cluster should be deleted, so we skip merging and just mark for deletion 
-                    mc_dict[dest_id], _ = self.fader(mc_dict[dest_id], current_time)
-                    mc_dict[c_id], _ = self.fader(mc_dict[c_id], current_time)
+                    mc_dict[dest_id], _, _ = self.fader(mc_dict[dest_id], current_time)
+                    mc_dict[c_id], _, _ = self.fader(mc_dict[c_id], current_time)
                     mc_dict[dest_id] = self.merger(mc_dict[dest_id], mc_dict[c_id], current_time=current_time)
                 del mc_dict[c_id]
         self.microclusters = list(mc_dict.values())

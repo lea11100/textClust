@@ -13,7 +13,7 @@ from textClust.online.fade import ExpFade
 from textClust.online.merge import SumMerger
 from textClust.online.metrics import CosineDistance
 
-from textClust.online.fast_log_clusterer import FastLogClusterer, FastLogCosineDistance, FastLogFader, IDFManager, FastMicrocluster, FastSumMerger
+from textClust.online.fast_log_clusterer import FastLogClusterer, FastLogCosineDistance, IDFManager, FastMicrocluster, FastSumMerger
 
 class FastSqrtMicrocluster(FastMicrocluster):        
     def get_norm(self):
@@ -62,8 +62,13 @@ class FastSqrtCosineDistance(FastLogCosineDistance):
     def _inner_product_formula(self, tf_val1: float, tf_val2: float, n: int, term_freq: float) -> float:
         return tf_val1 * tf_val2 * n / term_freq if term_freq > 0 else 0.0
 
-class FastSqrtFader(FastLogFader):
+class FastSqrtFader(ExpFade):
     """Fader that also applies fading to FastMicrocluster norms."""
+
+    def __init__(self, decay_rate: float, term_fading: bool = True, use_heuristic: bool = False,
+                 min_weight: Optional[float] = None, time_gap: Optional[float] = None):
+        super().__init__(decay_rate, term_fading, use_heuristic, min_weight, time_gap)
+
     def update_mc_internals(self,mc: FastMicrocluster, factor: float):
         assert isinstance(mc, FastSqrtMicrocluster), "FastSqrtFader can only update FastSqrtMicrocluster"
         mc.weighted_tf_sum *= factor

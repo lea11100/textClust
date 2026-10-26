@@ -3,17 +3,20 @@
 import warnings
 
 from textClust.online.cluster import Microcluster
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 class DampedFade:
     """Base callable for applying time-based fading to a microcluster."""
 
-    def __init__(self):
+    def __init__(self, term_fading: bool = False):
         """Initialize fading strategy."""
-        pass
+        self.term_fading = term_fading
     
-    def __call__(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, bool]:
-        """Apply decay and return `(updated_microcluster, is_expired)`."""
+    def __call__(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, bool, List[str]]:
+        """Apply decay and report `(updated_microcluster, is_expired, expired_terms)`.
+
+        Expired terms remain in the embedding until clusterer cleanup removes them.
+        """
         raise NotImplementedError("fade_microcluster() must be implemented by subclass")
 
 class ExpFade(DampedFade):
@@ -21,8 +24,8 @@ class ExpFade(DampedFade):
 
     def __init__(self, decay_rate, term_fading=False, use_heuristic = False, min_weight: Optional[float] = None, time_gap: Optional[float] = None):
         """Initialize exponential fading parameters."""
+        super().__init__(term_fading=term_fading)
         self.decay_rate = decay_rate
-        self.term_fading = term_fading
         
         if use_heuristic:
             assert time_gap is not None, "time_gap must be provided when use_heuristic is True"
@@ -34,17 +37,19 @@ class ExpFade(DampedFade):
             assert min_weight is not None, "min_weight must be provided when use_heuristic is False"
             self.min_weight = min_weight
         
-    def __call__(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, bool]:
+    def __call__(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, bool, List[str]]:
         """Exponentially decay cluster weight and optionally term weights."""
         factor = 2 ** (- self.decay_rate * (current_time - mc.last_update_time))
         mc.weight *= factor
         mc.last_update_time = current_time
         is_expired = mc.weight < self.min_weight
         
+        expired_terms: List[str] = []
         if self.term_fading:
             assert isinstance(mc.embedding, dict), "Expected TF-IDF microcluster to have embedding as a dictionary"
-            mc.embedding = {term: weight * factor for term, weight in mc.embedding.items()}
-            mc.embedding = {term: weight for term, weight in mc.embedding.items() if weight > self.min_weight}  # Remove faded terms
+            for term in mc.embedding:
+                mc.embedding[term] *= factor
+            expired_terms = [term for term, weight in mc.embedding.items() if weight <= self.min_weight]
         
-        is_expired = is_expired or (len(mc.embedding) == 0)  # Expire if no terms left
-        return mc, is_expired
+        is_expired = is_expired or (len(mc.embedding) == len(expired_terms))  # Expire if no terms survive
+        return mc, is_expired, expired_terms

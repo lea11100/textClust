@@ -18,7 +18,7 @@ from textClust.data.stream import Stream
 
 from textClust.online.fast_sqrt_clusterer import FastSqrtClusterer, FastSqrtFader, FastSqrtCosineDistance
 
-from textClust.online.fast_log_clusterer import FastLogClusterer, FastSumMerger, FastLogFader, FastLogCosineDistance 
+from textClust.online.fast_log_clusterer import FastLogClusterer, FastSumMerger, FastLogCosineDistance
 
 def get_textClust(
     data_loader: Stream, clean_interval: int, cluster_interval: int,
@@ -125,7 +125,7 @@ def get_fastLogClust(
             sigma=sigma, 
             radius=radius,
             distance_metric=FastLogCosineDistance(), 
-            fader=FastLogFader(
+            fader=ExpFade(
                 decay_rate=decay_rate,
                 term_fading=term_fading,
                 use_heuristic=use_heuristic,

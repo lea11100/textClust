@@ -5,6 +5,8 @@ import pytest
 from textClust.online.cluster import Microcluster
 from textClust.online.clusterer import Microclusterer, ThresholdMicroclusterer, TfIdfThresholdMicroclusterer
 from textClust.online.fade import DampedFade
+from textClust.online.fade import ExpFade
+from textClust.online.fast_log_clusterer import FastLogClusterer, FastLogCosineDistance, FastMicrocluster, FastSumMerger
 from textClust.online.merge import Merger
 from textClust.online.metrics import DistanceMetric
 
@@ -31,7 +33,7 @@ class StubDistanceMetric(DistanceMetric):
 class IdentityFader(DampedFade):
     def __call__(self, mc, current_time, *args, **kwargs):
         mc.last_update_time = current_time
-        return mc, False
+        return mc, False, []
 
 
 class TrackingMerger(Merger):
@@ -129,3 +131,48 @@ def test_tfidf_threshold_clusterer_computes_idf():
     assert idf["a"] == pytest.approx(1 + math.log(3 / 1))
     assert idf["b"] == pytest.approx(1 + math.log(3 / 2))
     assert idf["c"] == pytest.approx(1 + math.log(3 / 2))
+
+
+def test_delete_expired_removes_terms_reported_by_fader():
+    clusterer = ThresholdMicroclusterer(
+        distance_metric=StubDistanceMetric({}),
+        fader=ExpFade(decay_rate=1, term_fading=True, min_weight=0.5),
+        merger=TrackingMerger(),
+        adaptive_threshold=False,
+        radius=0.5,
+    )
+    mc = Microcluster(id=1, embedding={"keep": 2.0, "drop": 0.5}, current_time=0, n=1, weight=2.0)
+    clusterer.microclusters = [mc]
+
+    assert clusterer._get_expried(current_time=1) == [(mc, False, ["drop"])]
+    assert mc.embedding == {"keep": 1.0, "drop": 0.25}
+    assert clusterer.microclusters == [mc]
+    assert clusterer._delete_expired(current_time=1) == []
+    assert mc.embedding == {"keep": 1.0}
+
+
+def test_fast_log_cleanup_updates_idf_for_expired_terms_and_clusters():
+    clusterer = FastLogClusterer(
+        distance_metric=FastLogCosineDistance(),
+        fader=ExpFade(decay_rate=1, term_fading=True, min_weight=0.5),
+        merger=FastSumMerger(),
+        adaptive_threshold=False,
+        radius=0.5,
+    )
+    keep = FastMicrocluster(1, {"keep": 2.0, "drop": 0.5}, clusterer.idf_manager, 0, 1, weight=2.0)
+    expire = FastMicrocluster(2, {"gone": 0.5}, clusterer.idf_manager, 0, 1, weight=2.0)
+    clusterer.microclusters = [keep, expire]
+    clusterer.idf_manager.add_new_microcluster(keep)
+    clusterer.idf_manager.add_new_microcluster(expire)
+
+    assert clusterer._get_expried(current_time=1) == [
+        (keep, False, ["drop"]), (expire, True, ["gone"])
+    ]
+    assert clusterer.idf_manager.total_docs == 2
+    assert "drop" in keep.embedding and "gone" in expire.embedding
+    assert clusterer._delete_expired(current_time=1) == [2]
+    assert clusterer.microclusters == [keep]
+    assert keep.embedding == {"keep": 1.0}
+    assert clusterer.idf_manager.total_docs == 1
+    assert dict(clusterer.idf_manager.term_doc_freq) == {"keep": 1}
+    assert dict(clusterer.idf_manager.term_doc_occurrence) == {"keep": {1}}

@@ -55,6 +55,7 @@ class textClust:
             point = next(stream)
             if point is None:
                 break
+            #print(f"{self.time_manager.current_time}: Term document occurrence for 'residences': {self.micro_clusterer.idf_manager.term_doc_occurrence['residences']}")
             self.time_manager.update(point.timestamp)
             self.process_one(point)
             if self.time_manager.time_to_clean():
