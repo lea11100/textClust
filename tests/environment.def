@@ -1,0 +1,25 @@
+
+Bootstrap: docker
+From: python:3.11-slim
+
+%files
+    ../requirements.txt /opt/project/requirements.txt
+
+%post
+    python -m pip install --no-cache-dir --upgrade pip
+
+    # Project dependencies
+    python -m pip install --no-cache-dir \
+        -r /opt/project/requirements.txt   
+
+    python -m pip install pytest-xdist --no-cache-dir
+    
+    # Check dependency consistency
+    python -m pip check
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export TEXTCLUST_RUN_DATASET_TESTS=1
+
+%runscript
+    exec python "$@"
