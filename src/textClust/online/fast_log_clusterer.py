@@ -112,7 +112,9 @@ class FastLogCosineDistance(CosineDistance):
         
         norm1 = self.norm(mc1)
         norms_other = np.array([self.norm(mc) for mc in mc2])
-        distances = 1.0 - dot_products / (norm1 * norms_other)
+        denominators = norm1 * norms_other
+        similarities = np.divide(dot_products, denominators, out=np.zeros_like(dot_products), where=denominators > 0)
+        distances = 1.0 - similarities
         distances = np.clip(distances, 0.0, 1.0)
         return distances.tolist()
 

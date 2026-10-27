@@ -99,7 +99,8 @@ class ThresholdMicroclusterer(Microclusterer):
             self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first few points
             self.outlier_dist_squaresum += 1.0
             return mc, None
-        distances = self.distance_metric(mc, self.microclusters, *args, **kwargs)      
+        distance_kwargs = self._distance_kwargs(self.microclusters, **kwargs)
+        distances = self.distance_metric(mc, self.microclusters, *args, **distance_kwargs)
         print(f"{current_time}: Distances: {[float(round(d, 6)) for d in distances]}")
         if len(distances) == 0:
             self.microclusters.append(mc)
@@ -169,7 +170,11 @@ class ThresholdMicroclusterer(Microclusterer):
         expired_cluster_ids =self._delete_expired(current_time)
         merge_history = self._merge_clusters(current_time, *args, **kwargs)
         return expired_cluster_ids, merge_history
-    
+
+    def _distance_kwargs(self, active_clusters: Sequence[Microcluster], **kwargs):
+        """Provide metric arguments for an update or cleanup comparison."""
+        return kwargs
+
     def _merge_clusters(self, current_time: float, *args, **kwargs):
         merge_history = {}
         if self.adaptive_threshold:
@@ -183,7 +188,9 @@ class ThresholdMicroclusterer(Microclusterer):
             self.microclusters[i], _, _ = self.fader(self.microclusters[i], current_time)
             if removed[i]:
                 continue
-            m_dist = self.distance_metric(self.microclusters[i], self.microclusters[i+1:], *args, **kwargs)
+            active_clusters = [mc for is_removed, mc in zip(removed, self.microclusters) if not is_removed]
+            distance_kwargs = self._distance_kwargs(active_clusters, **kwargs)
+            m_dist = self.distance_metric(self.microclusters[i], self.microclusters[i+1:], *args, **distance_kwargs)
             for j, dist in enumerate(m_dist, start=i+1):
                 if removed[j]:
                     continue
@@ -226,23 +233,7 @@ class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
                         adaptive_threshold=adaptive_threshold, radius=radius,
                         threshold_momentum=threshold_momentum, *args, **kwargs)
     
-    def _update(self, mc: Microcluster, current_time: float, *args, **kwargs) -> Tuple[Microcluster, Optional[int]]:
-        """Assign or merge incoming microcluster using adaptive thresholding."""
-        idf = self._get_idf(self.microclusters)
-        return super()._update(mc, current_time, idf=idf, n=len(self.microclusters), *args, **kwargs)
-    
-    def clean_up(self, current_time: float, *args, **kwargs) -> tuple[List[int], dict[int, int]]:
-        """Run expiration pass and merge close clusters.
-
-        Returns:
-            A tuple of `(expired_cluster_ids, merge_history)`.
-        """
-        expired_cluster_ids = self._delete_expired(current_time)
-        idf = self._get_idf(self.microclusters)
-        merge_history = self._merge_clusters(current_time, idf=idf, n=len(self.microclusters), *args, **kwargs)
-        return expired_cluster_ids, merge_history
-       
-    def _get_idf(self, microclusters: List[Microcluster]) -> dict[str, float]:
+    def _get_idf(self, microclusters: Sequence[Microcluster]) -> dict[str, float]:
         """Compute per-term inverse document frequency over active clusters."""
         result = {}
         
@@ -261,39 +252,9 @@ class TfIdfThresholdMicroclusterer(ThresholdMicroclusterer):
             result[term] = 1 + math.log(num_clusters / result[term])
         
         return result
-    
-    def _merge_clusters(self, current_time: float, idf, n, *args, **kwargs):
-        merge_history = {}
-        if self.adaptive_threshold:
-            threshold = self.dist_sum / self.num_merged_obs if self.num_merged_obs > 0 else 0.0
-        else:
-            threshold = self.radius
-        self.num_merged_obs = 0
-        self.dist_sum = 0.0
-        removed = np.zeros(len(self.microclusters), dtype=bool)
-        n = len(self.microclusters)
-        for i in range(len(self.microclusters)-1):
-            self.microclusters[i], _, _ = self.fader(self.microclusters[i], current_time)
-            if removed[i]:
-                continue
-            idf_new = self._get_idf([c for r, c in zip(removed, self.microclusters) if not r])
-            m_dist = self.distance_metric(self.microclusters[i], self.microclusters[i+1:], idf=idf_new, n=n, *args, **kwargs)
-            for j, dist in enumerate(m_dist, start=i+1):
-                if removed[j]:
-                    continue
-                
-                # Merge if below threshold
-                if dist < threshold:
-                    self.microclusters[i], _, _ = self.fader(self.microclusters[i], current_time)
-                    self.microclusters[j], _, _ = self.fader(self.microclusters[j], current_time)
-                    self.microclusters[i] = self.merger(self.microclusters[i], self.microclusters[j], current_time=current_time)
-                    
-                    removed[j] = True
-                    n -= 1
-                    merge_history[self.microclusters[j].id] = self.microclusters[i].id                    
-                    
-        self.microclusters = [c for r, c in zip(removed, self.microclusters) if not r]
-        return merge_history
+
+    def _distance_kwargs(self, active_clusters: Sequence[Microcluster], **kwargs):
+        return {**kwargs, "idf": self._get_idf(active_clusters), "n": len(active_clusters)}
     
 class EmbeddingThresholdClusterer(ThresholdMicroclusterer):
     """Online microclusterer based on pairwise distances using adaptive or static thresholding, with LLM embedding representation."""

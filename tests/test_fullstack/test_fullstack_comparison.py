@@ -118,9 +118,7 @@ def _run_textClust_fastClust_comparison(data_wrapper, config, target):
             true_assignments=pipeline_fastLogClust.history_manager.true_assignments
         )
 
-    if not np.isclose(result_textClust[target], result_fastLogtextClust[target]):
-        warn(f"{target} differs between textClust ({result_textClust[target]}) and fastLogClust ({result_fastLogtextClust[target]})")
-
+    assert result_textClust[target] <= result_fastLogtextClust[target], f"{target} for textClust ({result_textClust[target]}) is greater than fastLogClust ({result_fastLogtextClust[target]})" 
     assert time_taken_textClust > time_taken_fastLogClust, f"textClust ({time_taken_textClust}) is faster than fastLogClust ({time_taken_fastLogClust})"
 
 

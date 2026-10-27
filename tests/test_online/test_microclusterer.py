@@ -133,6 +133,76 @@ def test_tfidf_threshold_clusterer_computes_idf():
     assert idf["c"] == pytest.approx(1 + math.log(3 / 2))
 
 
+def test_tfidf_update_uses_current_idf():
+    class RecordingDistance(StubDistanceMetric):
+        def __init__(self):
+            super().__init__({(1, 99): 0.8, (2, 99): 0.8, (3, 99): 0.8})
+            self.metric_kwargs = None
+
+        def __call__(self, mc1, mc2_list, *args, **kwargs):
+            self.metric_kwargs = kwargs
+            return super().__call__(mc1, mc2_list, *args, **kwargs)
+
+    metric = RecordingDistance()
+    clusterer = TfIdfThresholdMicroclusterer(
+        distance_metric=metric,
+        fader=IdentityFader(),
+        merger=TrackingMerger(),
+        adaptive_threshold=False,
+        radius=0.5,
+        min_num_mc=0,
+    )
+    clusterer.microclusters = [
+        Microcluster(id=1, embedding={"a": 1.0, "b": 1.0}, current_time=0.0, n=1),
+        Microcluster(id=2, embedding={"b": 1.0}, current_time=0.0, n=1),
+        Microcluster(id=3, embedding={"c": 1.0}, current_time=0.0, n=1),
+    ]
+
+    clusterer._update(
+        Microcluster(id=99, embedding={"a": 1.0}, current_time=1.0, n=1), current_time=1.0
+    )
+
+    assert metric.metric_kwargs is not None
+    assert metric.metric_kwargs["n"] == 3
+    assert metric.metric_kwargs["idf"]["a"] == pytest.approx(1 + math.log(3))
+    assert metric.metric_kwargs["idf"]["b"] == pytest.approx(1 + math.log(3 / 2))
+
+
+def test_tfidf_cleanup_recomputes_idf_after_each_merge():
+    class RecordingDistance(StubDistanceMetric):
+        def __init__(self):
+            super().__init__({(1, 2): 0.1, (1, 3): 0.9, (1, 4): 0.9,
+                              (3, 4): 0.9})
+            self.calls = []
+
+        def __call__(self, mc1, mc2_list, *args, **kwargs):
+            self.calls.append((kwargs["n"], kwargs["idf"].copy()))
+            return super().__call__(mc1, mc2_list, *args, **kwargs)
+
+    metric = RecordingDistance()
+    clusterer = TfIdfThresholdMicroclusterer(
+        distance_metric=metric,
+        fader=IdentityFader(),
+        merger=TrackingMerger(),
+        adaptive_threshold=False,
+        radius=0.5,
+    )
+    clusterer.microclusters = [
+        Microcluster(id=i, embedding={term: 1.0}, current_time=0.0, n=1)
+        for i, term in enumerate(("a", "b", "c", "d"), start=1)
+    ]
+
+    expired, merged = clusterer.clean_up(current_time=1.0)
+
+    assert expired == []
+    assert merged == {2: 1}
+    assert [mc.id for mc in clusterer.microclusters] == [1, 3, 4]
+    assert [n for n, _ in metric.calls] == [4, 3]
+    assert metric.calls[0][1]["a"] == pytest.approx(1 + math.log(4))
+    assert metric.calls[1][1]["a"] == pytest.approx(1 + math.log(3))
+    assert metric.calls[1][1]["b"] == pytest.approx(1 + math.log(3))
+
+
 def test_delete_expired_removes_terms_reported_by_fader():
     clusterer = ThresholdMicroclusterer(
         distance_metric=StubDistanceMetric({}),
