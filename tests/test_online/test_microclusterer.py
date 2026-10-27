@@ -92,6 +92,35 @@ def test_threshold_update_merges_into_closest_cluster_below_radius():
     assert clusterer.num_merged_obs == 1
 
 
+@pytest.mark.parametrize(
+    ("first_distance", "second_distance", "expected_id"),
+    [(1.11e-16, 0.0, 10), (0.2 + 5e-13, 0.2, 10), (0.4, 0.2, 20)],
+)
+def test_threshold_update_prefers_first_cluster_for_near_ties(
+    first_distance, second_distance, expected_id
+):
+    merger = TrackingMerger()
+    clusterer = ThresholdMicroclusterer(
+        distance_metric=StubDistanceMetric({(10, 99): first_distance, (20, 99): second_distance}),
+        fader=IdentityFader(),
+        merger=merger,
+        adaptive_threshold=False,
+        radius=0.5,
+        min_num_mc=0,
+    )
+    clusterer.microclusters = [
+        Microcluster(id=10, embedding={"a": 1.0}, current_time=0.0, n=1),
+        Microcluster(id=20, embedding={"a": 1.0}, current_time=0.0, n=1),
+    ]
+
+    _, assigned_id = clusterer._update(
+        Microcluster(id=99, embedding={"a": 1.0}, current_time=0.0, n=1), current_time=5.0
+    )
+
+    assert assigned_id == expected_id
+    assert merger.calls == [(expected_id, 99, 5.0)]
+
+
 def test_threshold_update_appends_outlier_above_radius():
     clusterer = ThresholdMicroclusterer(
         distance_metric=StubDistanceMetric({(10, 99): 0.8}),

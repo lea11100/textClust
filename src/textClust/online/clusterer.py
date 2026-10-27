@@ -107,7 +107,11 @@ class ThresholdMicroclusterer(Microclusterer):
             self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first point
             self.outlier_dist_squaresum += 1.0
             return mc, None
-        min_dist_idx = np.argmin(distances)
+        min_dist_idx = int(np.argmin(distances))
+        # Treat floating-point roundoff as a tie and prefer the first cluster.
+        near_min = np.flatnonzero(np.isclose(distances, distances[min_dist_idx], rtol=0, atol=1e-12))
+        if near_min.size:
+            min_dist_idx = int(near_min[0])
         min_dist = distances[min_dist_idx]
         
         distances.pop(min_dist_idx)
