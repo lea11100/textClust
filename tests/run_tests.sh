@@ -8,7 +8,7 @@
 #SBATCH -p normal
 #SBATCH -A hpc-prf-dedsm
 #SBATCH -J "Run_tests_%A_%a"
-#SBATCH -o "Slurm/%A_%a_Run_tests.out"
+#SBATCH -o "slurm/%A_%a_Run_tests.out"
 
 module load tools/Apptainer/1.1.9-GCCcore-11.3.0
 
