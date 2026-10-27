@@ -126,7 +126,7 @@ def test_tfidf_threshold_clusterer_computes_idf():
         Microcluster(id=3, embedding={"c": 3.0}, current_time=0.0, n=1),
     ]
 
-    idf = clusterer._get_idf()
+    idf = clusterer._get_idf(clusterer.microclusters)
 
     assert idf["a"] == pytest.approx(1 + math.log(3 / 1))
     assert idf["b"] == pytest.approx(1 + math.log(3 / 2))
