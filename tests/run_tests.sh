@@ -3,7 +3,8 @@
 #SBATCH --mail-user sussekl@mail.uni-paderborn.de
 #SBATCH -t 00:30:00
 #SBATCH -N 1
-#SBATCH -n 16
+#SBATCH --ntasks 1
+#SBATCH --cpus-per-task 16
 #SBATCH --mem=32G
 #SBATCH -p normal
 #SBATCH -A hpc-prf-dedsm
