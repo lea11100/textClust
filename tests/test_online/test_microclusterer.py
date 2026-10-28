@@ -138,7 +138,6 @@ def test_threshold_update_appends_outlier_above_radius():
     assert result is incoming
     assert assigned_id is None
     assert clusterer.microclusters[-1] is incoming
-    assert clusterer.outlier_dist_sum == pytest.approx(0.8)
 
 
 def test_tfidf_threshold_clusterer_computes_idf():

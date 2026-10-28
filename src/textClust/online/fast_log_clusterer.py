@@ -185,3 +185,8 @@ class FastLogClusterer(ThresholdMicroclusterer):
             self.idf_manager.add_new_microcluster(mc)
         return clusterId
     
+    def update_with_merge_history(self, merge_history: Optional[dict[int, int]], current_time: float, *args, **kwargs):
+        if merge_history is None or len(merge_history) == 0:
+            return
+        raise NotImplementedError("update_with_merge_history() is not implemented for FastLogClusterer. Please implement it to handle merge history updates.")
+    

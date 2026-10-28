@@ -62,12 +62,15 @@ class CosineDistance(DistanceMetric):
     
     def compute_1_n(self, mc1: Microcluster, mc2_list: list[Microcluster], **kwds: Any) ->  list[float]:
         if isinstance(mc1.embedding, torch.Tensor):
+            is_torch = [isinstance(mc2.embedding, torch.Tensor) for mc2 in mc2_list]
             m2_embeddings = torch.stack([mc2.embedding for mc2 in mc2_list if isinstance(mc2.embedding, torch.Tensor)], dim=0)
             if self.assume_normalized:
                 similarities = torch.inner(mc1.embedding.unsqueeze(0), m2_embeddings).reshape(-1)
             else:
                 similarities = F.cosine_similarity(mc1.embedding.unsqueeze(0), m2_embeddings, dim=1)
             distances = (1 - similarities).tolist()
-            return distances
+            result = np.ones(len(mc2_list))
+            result[np.array(is_torch)] = distances
+            return result.tolist()
         
         return [1.0] * len(mc2_list)  # Default distances if embeddings are not compatible

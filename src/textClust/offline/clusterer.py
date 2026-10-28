@@ -1,29 +1,14 @@
 """Offline macro-clustering interfaces and basic TF-IDF implementation."""
-
-import json
-import os
+    
 from typing import List, Optional
 
-from huggingface_hub import InferenceClient
-from sentence_transformers import SentenceTransformer
-from sklearn.cluster import DBSCAN
-import torch
 
 from textClust.history.manager import HistoryManager
 from textClust.offline.cluster import Macrocluster
 from textClust.online.cluster import Microcluster
 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import homogeneity_completeness_v_measure
 import time
-import plotly.graph_objects as go
-import plotly.tools as tls
 from plotly.subplots import make_subplots
-import plotly.express as px
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import textClust.offline.plots as plots
 from textClust.utils.eval import eval_against_truth
 

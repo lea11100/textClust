@@ -30,18 +30,19 @@ class SocialEDWrapper(Stream):
         data = np.load(self.file_path, allow_pickle=True)
         try:
             date_times = np.array([str(s).replace("/", "-") for s in data[:, 7]],dtype="datetime64[s]")
-            data_times_sorted = np.argsort(date_times)
+            data_times_sorted = np.argsort(date_times, kind="stable")
             data_sorted = data[data_times_sorted]
             if (data != data_sorted).any():
                 print(f"Warning: Data in {self.file_path} is not sorted by timestamp. Sorting now.")
             data = data_sorted
+            data[:, 7] = date_times[data_times_sorted]
         except Exception as e:
             print(f"Warning: Could not sort data in {self.file_path} by timestamp. Error: {e}")
         
-        values, counts = np.unique(data[:, 0], return_counts=True)
-        if np.any(counts > 1):
+        _, first_indices = np.unique(data[:, 0], return_index=True)
+        if len(first_indices) < len(data):
             print(f"Warning: Duplicate tweetIDs found in {self.file_path}. Later duplicates will be ignored.")
-            data = data[np.isin(data[:, 0], values[counts == 1])]
+            data = data[np.sort(first_indices)]
         
         start = 0
         end = data.shape[0]
@@ -52,7 +53,7 @@ class SocialEDWrapper(Stream):
             end = min(start + self.max_samples, data.shape[0])
         data = data[start:end]
         for i in range(data.shape[0]):
-            yield RawPoint(text=data[i, 1], timestamp=None, text_id=data[i, 0], cluster_id=data[i, 2])
+            yield RawPoint(text=data[i, 1], timestamp=data[i, 7], text_id=data[i, 0], cluster_id=data[i, 2])
         yield None
 
 class StaticJsonWrapper(Stream):
@@ -97,13 +98,17 @@ class StaticJsonWrapper(Stream):
                     i += 1
                     item = json.loads(l)
                     text = item.get("tweets", None)
-                    timestamp = item.get("timestamp", None)
+                    timestamp = item.get("ts", None)
+                    if timestamp is None:
+                        timestamp = item.get("timestamp", None)
                     if timestamp is not None:
                         if isinstance(timestamp, str):
                             timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
                             timestamp = timestamp.timestamp()
                     id = item.get("tweetID", None)
-                    cluster_id = item.get("clusterNo", None) or item.get("topic", None)
+                    cluster_id = item.get("clusterNo", None)
+                    if cluster_id is None:
+                        cluster_id = item.get("topic", None)
                     point = RawPoint(text=text, timestamp=timestamp, text_id=id, cluster_id=cluster_id)
                     yield point
             yield None

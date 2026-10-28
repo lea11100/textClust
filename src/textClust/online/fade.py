@@ -49,7 +49,7 @@ class ExpFade(DampedFade):
             assert isinstance(mc.embedding, dict), "Expected TF-IDF microcluster to have embedding as a dictionary"
             for term in mc.embedding:
                 mc.embedding[term] *= factor
-            expired_terms = [term for term, weight in mc.embedding.items() if weight <= self.min_weight]
+            expired_terms = [term for term, weight in mc.embedding.items() if weight < self.min_weight]
         
         is_expired = is_expired or (len(mc.embedding) == len(expired_terms))  # Expire if no terms survive
         return mc, is_expired, expired_terms

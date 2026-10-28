@@ -1,7 +1,6 @@
 """Online micro-clustering algorithms and base interfaces."""
 
 from typing import List, Optional, Sequence, Tuple
-from anyio import current_time
 import numpy as np
 import math
 
@@ -79,8 +78,6 @@ class ThresholdMicroclusterer(Microclusterer):
                 warnings.warn("Warning: threshold_momentum has no effect when adaptive_threshold is False.")
             
         self.num_merged_obs = 0
-        self.outlier_dist_sum = 0.0
-        self.outlier_dist_squaresum = 0.0
         self.dist_sum = 0.0
         
         self.min_num_mc = min_num_mc
@@ -96,16 +93,12 @@ class ThresholdMicroclusterer(Microclusterer):
         """Assign or merge incoming microcluster using adaptive thresholding."""
         if self.min_num_mc > len(self.microclusters): # Maintain multiple initial clusters to get better distance stats before merging
             self.microclusters.append(mc)
-            self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first few points
-            self.outlier_dist_squaresum += 1.0
             return mc, None
         distance_kwargs = self._distance_kwargs(self.microclusters, **kwargs)
         distances = self.distance_metric(mc, self.microclusters, *args, **distance_kwargs)
         # print(f"{current_time}: Distances: {[float(round(d, 6)) for d in distances]}")
         if len(distances) == 0:
             self.microclusters.append(mc)
-            self.outlier_dist_sum += 1.0  # Treat as distance of 1 for the first point
-            self.outlier_dist_squaresum += 1.0
             return mc, None
         min_dist_idx = int(np.argmin(distances))
         # Treat floating-point roundoff as a tie and prefer the first cluster.
@@ -117,7 +110,7 @@ class ThresholdMicroclusterer(Microclusterer):
         distances.pop(min_dist_idx)
         avg_dist = np.average(distances) if distances else 0.0
         # Sample standard deviation (ddof=1) is undefined for fewer than two values.
-        std_dist = np.std(distances, ddof=1) if len(distances) > 1 else np.nan
+        std_dist = np.std(distances, ddof=1) if len(distances) > 1 else 0.0
         
         if self.adaptive_threshold:
             threshold = avg_dist - self.sigma * std_dist
@@ -126,7 +119,7 @@ class ThresholdMicroclusterer(Microclusterer):
         else:
             threshold = self.radius
         self.last_threshold = threshold
-        if min_dist < threshold and avg_dist < 1:
+        if min_dist <= threshold and threshold < 1:
             closest_mc = self.microclusters[min_dist_idx]
             if self.fader is not None:
                 closest_mc, _, _ = self.fader(closest_mc, current_time)
@@ -140,8 +133,6 @@ class ThresholdMicroclusterer(Microclusterer):
             return merged_mc, closest_mc.id
         else:
             self.microclusters.append(mc)
-            self.outlier_dist_sum += min_dist
-            self.outlier_dist_squaresum += min_dist ** 2
             
             return mc, None
     

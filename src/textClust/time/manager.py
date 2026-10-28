@@ -44,12 +44,20 @@ class TimeManager:
 class FixedIntervalTimeManager(TimeManager):
     """Time manager that triggers actions on fixed time intervals."""
 
-    def __init__(self, clean_interval=60, cluster_interval=300, log_interval=60, *args, **kwargs):
+    def __init__(self, incremental_timing=True, clean_interval=60, cluster_interval=300, log_interval=60, *args, **kwargs):
         """Initialize fixed cleanup and clustering intervals."""
         super().__init__(*args, **kwargs)
         self.clean_interval = clean_interval
         self.cluster_interval = cluster_interval
         self.log_interval = log_interval
+        self.incremental_timing = incremental_timing
+        
+    def update(self, timestamp:Optional[float] = None):
+        """Advance time using explicit timestamp or unit step."""
+        if self.incremental_timing:
+            super().update(None)  # Increment time by 1.0 for each update
+        else:
+            super().update(timestamp)
 
     def time_to_log(self) -> bool:
         """Return true when current time hits a logging interval."""

@@ -4,9 +4,7 @@ import os
 import signal
 import time
 from pathlib import Path
-from warnings import warn
 
-import numpy as np
 import pytest
 
 from textClust.algorithms.presets import get_fastLogClust, get_textClust
@@ -55,6 +53,20 @@ def comparison_datasets():
     ) if DATASET_FOLDER.is_dir() and TRANSLATIONS_FOLDER.is_dir() else []
 
 
+def _assert_same_partition(reference, candidate):
+    """Compare cluster assignments independently of cluster ID labels."""
+    assert len(reference) == len(candidate), "Different numbers of assignments"
+    reference_to_candidate = {}
+    candidate_to_reference = {}
+    for index, (reference_id, candidate_id) in enumerate(zip(reference, candidate)):
+        assert reference_to_candidate.setdefault(reference_id, candidate_id) == candidate_id, (
+            f"Reference cluster {reference_id!r} is split at assignment {index}"
+        )
+        assert candidate_to_reference.setdefault(candidate_id, reference_id) == reference_id, (
+            f"Candidate cluster {candidate_id!r} merges distinct clusters at assignment {index}"
+        )
+
+
 def generic_textClust_fastClust_comparison(data_wrapper: StaticJsonWrapper | SocialEDWrapper, config, target):
     dataset = Path(data_wrapper.file_path)
     if not dataset.is_file():
@@ -69,7 +81,7 @@ def generic_textClust_fastClust_comparison(data_wrapper: StaticJsonWrapper | Soc
         try:
             _run_textClust_fastClust_comparison(data_wrapper, config, target)
         except _ComparisonTimedOut:
-            warn(f"Comparison for {dataset.name} exceeded 10 minutes; stopping calculation.", RuntimeWarning)
+            pytest.fail(f"Comparison for {dataset.name} exceeded {COMPARISON_TIMEOUT_SECONDS} seconds", pytrace=False)
         finally:
             signal.setitimer(signal.ITIMER_REAL, *previous_timer)
     finally:
@@ -87,9 +99,9 @@ def _run_textClust_fastClust_comparison(data_wrapper, config, target):
     pipeline_textClust.preprocessor = TFIDFPreprocessorWithTranslation(dataset=Path(data_wrapper.file_path).stem, folder=str(TRANSLATIONS_FOLDER), stemming=False)
     pipeline_textClust.verbose = False  # Avoid interactive plots; still run clustering and evaluation.
 
-    start = time.time()
+    start = time.perf_counter()
     pipeline_textClust.start()
-    end = time.time()
+    end = time.perf_counter()
     time_taken_textClust = end - start
 
     result_textClust = eval_against_truth(
@@ -107,9 +119,9 @@ def _run_textClust_fastClust_comparison(data_wrapper, config, target):
     pipeline_fastLogClust.preprocessor = TFIDFPreprocessorWithTranslation(dataset=Path(data_wrapper.file_path).stem, folder=str(TRANSLATIONS_FOLDER), stemming=False)
     pipeline_fastLogClust.verbose = False  # Avoid interactive plots; still run clustering and evaluation.
 
-    start = time.time()
+    start = time.perf_counter()
     pipeline_fastLogClust.start()
-    end = time.time()
+    end = time.perf_counter()
     time_taken_fastLogClust = end - start
 
     result_fastLogtextClust = eval_against_truth(
@@ -118,8 +130,57 @@ def _run_textClust_fastClust_comparison(data_wrapper, config, target):
             true_assignments=pipeline_fastLogClust.history_manager.true_assignments
         )
 
-    assert result_textClust[target] <= result_fastLogtextClust[target], f"{target} for textClust ({result_textClust[target]}) is greater than fastLogClust ({result_fastLogtextClust[target]})" 
-    assert time_taken_textClust > time_taken_fastLogClust, f"textClust ({time_taken_textClust}) is faster than fastLogClust ({time_taken_fastLogClust})"
+    reference_history = pipeline_textClust.history_manager
+    candidate_history = pipeline_fastLogClust.history_manager
+    reference_initial = reference_history.initial_text_assignments
+    candidate_initial = candidate_history.initial_text_assignments
+    assert [(t, point_id) for t, point_id, _ in reference_initial] == [
+        (t, point_id) for t, point_id, _ in candidate_initial
+    ], "The pipelines processed different points or timestamps"
+    _assert_same_partition(
+        [cluster_id for _, _, cluster_id in reference_initial],
+        [cluster_id for _, _, cluster_id in candidate_initial],
+    )
+
+    reference_final = reference_history.get_final_assignments()
+    candidate_final = candidate_history.get_final_assignments()
+    reference_by_point = dict(reference_final)
+    candidate_by_point = dict(candidate_final)
+    assert len(reference_by_point) == len(reference_final), "Duplicate reference point IDs"
+    assert len(candidate_by_point) == len(candidate_final), "Duplicate candidate point IDs"
+    assert reference_by_point.keys() == candidate_by_point.keys(), "Different final point IDs"
+    _assert_same_partition(
+        list(reference_by_point.values()),
+        [candidate_by_point[point_id] for point_id in reference_by_point],
+    )
+    assert result_textClust[target] == pytest.approx(result_fastLogtextClust[target], rel=0, abs=1e-12)
+    print(f"textClust: {time_taken_textClust:.3f}s; fastLogClust: {time_taken_fastLogClust:.3f}s")
+
+
+def test_partition_comparison_ignores_cluster_labels():
+    _assert_same_partition([1, 1, 2, 3], [8, 8, 9, 7])
+
+
+@pytest.mark.parametrize("candidate", [[8, 9, 9], [8, 8, 8]])
+def test_partition_comparison_rejects_splits_and_merges(candidate):
+    with pytest.raises(AssertionError):
+        _assert_same_partition([1, 1, 2], candidate)
+
+
+def test_dataset_comparison_timeout_fails(tmp_path, monkeypatch):
+    dataset = tmp_path / "sample.json"
+    dataset.touch()
+    (tmp_path / "sample.npy").touch()
+    monkeypatch.setitem(globals(), "TRANSLATIONS_FOLDER", tmp_path)
+
+    def timeout(*args, **kwargs):
+        raise _ComparisonTimedOut
+
+    monkeypatch.setitem(globals(), "_run_textClust_fastClust_comparison", timeout)
+    previous_handler = signal.getsignal(signal.SIGALRM)
+    with pytest.raises(pytest.fail.Exception, match="exceeded"):
+        generic_textClust_fastClust_comparison(StaticJsonWrapper(str(dataset)), {}, "metric")
+    assert signal.getsignal(signal.SIGALRM) == previous_handler
 
 
 @pytest.mark.skipif(

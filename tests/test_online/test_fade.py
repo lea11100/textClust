@@ -27,15 +27,26 @@ def test_exp_fade_expires_by_weight():
 
 
 def test_exp_fade_term_fading_can_expire_on_empty_terms():
-    mc = Microcluster(id=1, embedding={"a": 1.0, "b": 0.4}, current_time=0, n=1, weight=2.0)
+    mc = Microcluster(id=1, embedding={"a": 0.8, "b": 0.4}, current_time=0, n=1, weight=2.0)
     fade = ExpFade(decay_rate=1, term_fading=True, min_weight=0.5)
 
     updated, expired, expired_terms = fade(mc, current_time=1)
 
     assert updated.weight == 1.0
-    assert updated.embedding == {"a": 0.5, "b": 0.2}
+    assert updated.embedding == {"a": 0.4, "b": 0.2}
     assert expired is True
     assert expired_terms == ["a", "b"]
+
+
+def test_exp_fade_keeps_terms_at_min_weight():
+    mc = Microcluster(id=1, embedding={"a": 1.0, "b": 0.4}, current_time=0, n=1, weight=2.0)
+    fade = ExpFade(decay_rate=1, term_fading=True, min_weight=0.5)
+
+    updated, expired, expired_terms = fade(mc, current_time=1)
+
+    assert updated.embedding == {"a": 0.5, "b": 0.2}
+    assert expired is False
+    assert expired_terms == ["b"]
 
 
 def test_exp_fade_term_fading_keeps_terms_above_min_weight():
