@@ -38,6 +38,7 @@ import argparse
 import gc
 import json
 import os
+import re
 import shutil
 import time
 from pathlib import Path
@@ -245,6 +246,16 @@ def emojis_to_text(text: object) -> str:
     return emoji.demojize(value, language="en", delimiters=("(", ")"))
 
 
+URL_PATTERN = re.compile(r"\b(?:https?://|www\.)\S+", re.IGNORECASE)
+
+
+def remove_links(text: object) -> str:
+    """Remove HTTP(S) and ``www`` links from tweet text."""
+    value = "" if text is None else str(text)
+    value = URL_PATTERN.sub("", value)
+    return re.sub(r"[ \t]{2,}", " ", value).strip()
+
+
 def prepare_english_tweets(
     texts: List[str], text_ids: List[str]
 ) -> Tuple[List[dict], List[str]]:
@@ -406,7 +417,7 @@ def save_preprocessed_dataset(
 
 
 def load_preprocessed_dataset(path: Path) -> Tuple[List[str], List[str]]:
-    """Load a preprocessing checkpoint."""
+    """Load a preprocessing checkpoint without changing its tweet text."""
     payload = np.load(path, allow_pickle=True).item()
     return payload["tweet_ids"].tolist(), payload["tweets_eng"].tolist()
 
@@ -456,8 +467,8 @@ def embed_tweets_with_model(
     for t_idx, tweet in enumerate(
         tqdm(tweets, desc=f"Embedding {model_name}", unit="tweet")
     ):
-        # Guard against missing/non-string tweet text
-        text = "" if tweet is None else str(tweet)
+        # Link removal is embedding-only; keep translated checkpoints intact.
+        text = remove_links(tweet)
 
         start = time.perf_counter()
         vec = model.encode(text)

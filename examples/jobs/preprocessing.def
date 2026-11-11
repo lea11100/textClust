@@ -1,0 +1,32 @@
+# Build from the repository root with:
+# apptainer build textclust-preprocessing.sif examples/jobs/preprocessing.def
+Bootstrap: docker
+From: python:3.11-slim
+
+%files
+    pyproject.toml /opt/project/pyproject.toml
+    README.md /opt/project/README.md
+    src /opt/project/src
+
+%post
+    python -m pip install --no-cache-dir --upgrade pip
+
+    cd /opt/project
+    python -m pip install -e '.[offline-preprocessing]'
+
+    # Required by textClust.preprocessing.preprocessor.
+    python -m nltk.downloader -d /usr/local/share/nltk_data stopwords
+
+    python -m pip check
+
+%environment
+    export PYTHONUNBUFFERED=1
+
+    # Make the build-time corpus readable to the runtime user.
+    NLTK_DATA=$(mktemp -d /tmp/textclust-nltk.XXXXXXXX) || exit 1
+    mkdir "$NLTK_DATA/corpora" || exit 1
+    cp -R /usr/local/share/nltk_data/corpora/stopwords "$NLTK_DATA/corpora/" || exit 1
+    export NLTK_DATA
+
+%runscript
+    exec python "$@"
